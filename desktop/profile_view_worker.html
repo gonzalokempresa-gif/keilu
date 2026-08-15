@@ -300,7 +300,7 @@
 
         <!-- 2° DÍAS Y HORARIOS DE ATENCIÓN -->
         <div class="bg-white border border-blue-200/60 rounded-2xl p-3 shadow-sm mb-2.5 flex items-center gap-2.5">
-          <span class="text-base shrink-0">🗓️</span>
+          <img id="img-schedule-sticker" src="stickers/appmojis/calendar.gif" class="w-6 h-6 object-contain shrink-0" onerror="this.onerror=null; this.outerHTML='<span class=\'text-base\'>🗓️</span>';">
           <div class="overflow-hidden">
             <span class="text-[8px] text-[#052659] uppercase font-black tracking-wider block mb-0.5">Días y Horario de Atención</span>
             <span id="field-days-hours-text" class="text-xs font-extrabold text-slate-800 block truncate"></span>
@@ -749,9 +749,13 @@
       const btnMapaText = document.getElementById("btn-mapa-text");
       const imgSectorSticker = document.getElementById("img-sector-sticker");
       const imgAddressSticker = document.getElementById("img-address-sticker");
+      const imgScheduleSticker = document.getElementById("img-schedule-sticker");
 
       if (imgSectorSticker) {
         imgSectorSticker.src = KeiluUtils.fixStickerPath("stickers/appmojis/ubicacion.gif");
+      }
+      if (imgScheduleSticker) {
+        imgScheduleSticker.src = KeiluUtils.fixStickerPath("stickers/appmojis/calendar.gif");
       }
 
       if (privacidad === 'exacta') {
