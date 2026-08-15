@@ -366,6 +366,60 @@
   </button>
   <style>@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} } </style>
 
+  <!-- Overlay del Modo Diseño -->
+  <div id="design-overlay" onclick="toggleDesignPanel()" class="fixed inset-0 bg-black/40 z-[65] hidden"></div>
+
+  <!-- Botón Modo Diseño — FIJO, esquina inferior derecha (mismo nivel que el engranaje) -->
+  <button id="btn-design-mode" onclick="toggleDesignPanel()"
+    class="fixed bottom-24 right-4 z-50 bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-full border border-blue-400 shadow-xl flex items-center justify-center opacity-90 hover:opacity-100 transition select-none"
+    title="Modo Diseño: personalizar el pin PRO">
+    <i data-lucide="palette" class="w-5 h-5"></i>
+  </button>
+
+  <!-- Panel flotante del Modo Diseño -->
+  <div id="design-panel" class="fixed bottom-24 right-4 z-[66] w-[280px] max-w-[85vw] bg-slate-950 border border-slate-800 rounded-3xl p-4 shadow-2xl text-xs text-slate-300 hidden">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-3">
+      <div class="flex items-center gap-2 text-blue-400">
+        <i data-lucide="palette" class="w-4 h-4"></i>
+        <h3 class="text-[11px] font-black text-white uppercase tracking-wide">Modo Diseño — Pin PRO</h3>
+      </div>
+      <button onclick="toggleDesignPanel()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-[10px] font-bold text-slate-400">Color de fondo</span>
+        <input type="color" id="pin-design-bg" oninput="updatePinDesign('capsuleBg', this.value)" class="w-9 h-7 rounded-lg border border-slate-700 bg-slate-800 cursor-pointer">
+      </div>
+
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-[10px] font-bold text-slate-400">Color de texto</span>
+        <input type="color" id="pin-design-text" oninput="updatePinDesign('capsuleText', this.value)" class="w-9 h-7 rounded-lg border border-slate-700 bg-slate-800 cursor-pointer">
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <div class="flex justify-between text-[10px] font-bold text-slate-400">
+          <span>Tamaño de stickers</span>
+          <span id="pin-design-size-label">34px</span>
+        </div>
+        <input type="range" id="pin-design-size" min="26" max="44" step="1" oninput="updatePinDesign('stickerSize', parseInt(this.value))" class="w-full accent-blue-500">
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <div class="flex justify-between text-[10px] font-bold text-slate-400">
+          <span>Tamaño de letra</span>
+          <span id="pin-design-font-label">11px</span>
+        </div>
+        <input type="range" id="pin-design-font" min="9" max="14" step="1" oninput="updatePinDesign('fontSize', parseInt(this.value))" class="w-full accent-blue-500">
+      </div>
+
+      <button onclick="resetPinDesign()" class="mt-1 py-2 text-[10px] font-bold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-red-500 transition">↺ Restablecer diseño original</button>
+      <p class="text-[9px] text-slate-500 leading-snug">Los cambios se ven al instante y se guardan en este navegador. Cuando quede como querés, avisale a Claude para dejarlo fijo en el código.</p>
+    </div>
+  </div>
+
   <!-- ===== PANEL LATERAL DE AJUSTES ===== -->
   <div id="settings-sidebar">
     <!-- Cabecera del panel -->
@@ -648,7 +702,8 @@
     const proveedores = typeof providersData !== 'undefined' ? [...providersData] : [];
     
     // Cargar proveedor registrado por el usuario si existe en localStorage
-    const savedUserRaw = localStorage.getItem('keilu_user_provider');
+    let savedUserRaw = null;
+    try { savedUserRaw = localStorage.getItem('keilu_user_provider'); } catch(e) {}
     if (savedUserRaw) {
       try {
         const savedUser = JSON.parse(savedUserRaw);
@@ -663,7 +718,8 @@
     }
 
     // Cargar evento comunitario registrado (ID 999) si existe en localStorage
-    const savedCommunityRaw = localStorage.getItem('keilu_provider_999');
+    let savedCommunityRaw = null;
+    try { savedCommunityRaw = localStorage.getItem('keilu_provider_999'); } catch(e) {}
     if (savedCommunityRaw) {
       try {
         const savedCommunity = JSON.parse(savedCommunityRaw);
@@ -733,6 +789,7 @@
       map.on('load', () => {
         setTimeout(() => map.resize(), 250);
         applyAllCustomColors();
+        loadPinDesign();
         renderizarPines(proveedores);
 
         // Auto-abrir vista previa de un proveedor si se pasa ?preview=id o ?id=id en la URL
@@ -983,15 +1040,17 @@
             // 🌟 PIN PRO COMPACTO SIN CUADRO AZUL GRANDE ALREDEDOR DE LOS EMOJIS:
             // - EMOJIS CUADRADOS (34px) FLOTANDO DIRECTAMENTE
             // - CAJA DE TEXTO AZUL MARINO (#052659) MÁS GRANDE Y DESTACADA ABAJO
+            const stickerSizePx = pinDesign.stickerSize;
+            const stickerIconPx = Math.max(14, stickerSizePx - 8);
             let rubroContent = rubroStickerPath
-              ? `<img src="${rubroStickerPath}" class="w-[26px] h-[26px] object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji}</span>';">`
+              ? `<img src="${rubroStickerPath}" style="width:${stickerIconPx}px;height:${stickerIconPx}px;" class="object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji}</span>';">`
               : `<span style="font-size:13.5px;">${emoji}</span>`;
 
             if (!actionStickerPath) {
               actionStickerPath = 'stickers/acciones trabajadores/02-domicilio/00-default.gif';
             }
 
-            let actionContent = `<img src="${actionStickerPath}" class="w-[26px] h-[26px] object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>⚡</span>';">`;
+            let actionContent = `<img src="${actionStickerPath}" style="width:${stickerIconPx}px;height:${stickerIconPx}px;" class="object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>⚡</span>';">`;
 
             // Extraer nombre del oficio/trabajo (ej: Gasfiter, Fletes, Técnico PC, Jardinero)
             let oficioNombre = '';
@@ -1007,23 +1066,23 @@
 
             pinHtml = `
               <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-105" style="position: absolute; transform: translate(-50%, -50%);">
-                <!-- 1. LOS 2 STICKERS CUADRADOS DE 34px SIN NINGÚN MARCO AZUL GRANDE ATRÁS -->
+                <!-- 1. LOS 2 STICKERS CUADRADOS SIN NINGÚN MARCO AZUL GRANDE ATRÁS (tamaño editable en Modo Diseño) -->
                 <div class="flex items-center gap-1 z-20">
-                  <div class="w-[34px] h-[34px] rounded-lg bg-white flex items-center justify-center border-2 border-white shadow-md overflow-hidden ring-1 ring-slate-900/10">
+                  <div style="width:${stickerSizePx}px;height:${stickerSizePx}px;" class="rounded-lg bg-white flex items-center justify-center border-2 border-white shadow-md overflow-hidden ring-1 ring-slate-900/10">
                     ${rubroContent}
                   </div>
-                  <div class="w-[34px] h-[34px] rounded-lg bg-white flex items-center justify-center border-2 border-white shadow-md overflow-hidden ring-1 ring-slate-900/10">
+                  <div style="width:${stickerSizePx}px;height:${stickerSizePx}px;" class="rounded-lg bg-white flex items-center justify-center border-2 border-white shadow-md overflow-hidden ring-1 ring-slate-900/10">
                     ${actionContent}
                   </div>
                 </div>
 
-                <!-- 2. CAJA AZUL MARINO (#052659) MÁS GRANDE Y DESTACADA SOLO PARA EL TEXTO -->
-                <div class="relative z-10 -mt-1.5 py-1.5 px-3 rounded-lg bg-[#052659] text-white shadow-xl flex items-center justify-center border-2 border-white min-w-[80px]">
-                  <span class="text-[11px] font-black text-white tracking-wide whitespace-nowrap leading-none drop-shadow-xs">${oficioNombre}</span>
+                <!-- 2. CAJA DE TEXTO (color/tamaño editables en Modo Diseño) -->
+                <div style="background:${pinDesign.capsuleBg};" class="relative z-10 -mt-1.5 py-1.5 px-3 rounded-lg shadow-xl flex items-center justify-center border-2 border-white min-w-[80px]">
+                  <span style="color:${pinDesign.capsuleText};font-size:${pinDesign.fontSize}px;" class="font-black tracking-wide whitespace-nowrap leading-none drop-shadow-xs">${oficioNombre}</span>
                 </div>
-                
+
                 <!-- 3. PUNTA TRIANGULAR ABAJO -->
-                <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-[#052659] -mt-0.5 z-10"></div>
+                <div style="border-top-color:${pinDesign.capsuleBg};" class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] -mt-0.5 z-10"></div>
                 
                 <!-- 4. SOMBRA DISCRETA DE PISO -->
                 <div class="w-8 h-1 bg-slate-900/35 rounded-full blur-[1px] -mt-0.5 pointer-events-none"></div>
@@ -1923,6 +1982,59 @@
       document.getElementById("clear-search-btn")?.classList.add("hidden");
       renderizarPines(proveedores);
       cerrarTarjeta();
+    }
+
+    /* ===================== PANEL MODO DISEÑO ===================== */
+    function toggleDesignPanel() {
+      const panel = document.getElementById('design-panel');
+      const overlay = document.getElementById('design-overlay');
+      panel.classList.toggle('hidden');
+      overlay.classList.toggle('hidden');
+    }
+
+    /* ===================== DISEÑO DE CÁPSULA PRO (editable en vivo) ===================== */
+    const PIN_DESIGN_DEFAULT = { capsuleBg: '#052659', capsuleText: '#ffffff', stickerSize: 34, fontSize: 11 };
+    let pinDesign = { ...PIN_DESIGN_DEFAULT };
+
+    function loadPinDesign() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('keilu_pin_design') || 'null');
+        if (saved) pinDesign = { ...PIN_DESIGN_DEFAULT, ...saved };
+      } catch (e) {}
+      syncPinDesignControls();
+    }
+
+    function savePinDesign() {
+      localStorage.setItem('keilu_pin_design', JSON.stringify(pinDesign));
+    }
+
+    function updatePinDesign(key, value) {
+      pinDesign[key] = value;
+      syncPinDesignControls();
+      savePinDesign();
+      renderizarPines(proveedores);
+    }
+
+    function resetPinDesign() {
+      pinDesign = { ...PIN_DESIGN_DEFAULT };
+      localStorage.removeItem('keilu_pin_design');
+      syncPinDesignControls();
+      renderizarPines(proveedores);
+    }
+
+    function syncPinDesignControls() {
+      const bg = document.getElementById('pin-design-bg');
+      const text = document.getElementById('pin-design-text');
+      const size = document.getElementById('pin-design-size');
+      const sizeLabel = document.getElementById('pin-design-size-label');
+      const font = document.getElementById('pin-design-font');
+      const fontLabel = document.getElementById('pin-design-font-label');
+      if (bg) bg.value = pinDesign.capsuleBg;
+      if (text) text.value = pinDesign.capsuleText;
+      if (size) size.value = pinDesign.stickerSize;
+      if (sizeLabel) sizeLabel.textContent = pinDesign.stickerSize + 'px';
+      if (font) font.value = pinDesign.fontSize;
+      if (fontLabel) fontLabel.textContent = pinDesign.fontSize + 'px';
     }
 
     /* ===================== BADGE STYLE ===================== */
