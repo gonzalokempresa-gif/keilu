@@ -1,0 +1,2169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Keilu - Mapa de Servicios</title>
+  <meta name="description" content="Encuentra servicios y proveedores cerca de ti en el mapa interactivo de Keilu.">
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- MapLibre GL JS CSS -->
+  <link href="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.css" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Outfit', 'sans-serif'] },
+          colors: {
+            keiluBlue: { 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' },
+            keiluGreen: { 500: '#10b981', 600: '#059669' }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Mock Data (40 proveedores Zona 0) -->
+  <script src="mock_data.js"></script>
+  <script src="js/utils.js"></script>
+  <!-- MapLibre GL JS Library -->
+  <script src="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.js"></script>
+
+  <style>
+    /* === RESET TOTAL === */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* === SCROLLBARS === */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: rgba(15,23,42,0.05); }
+    ::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.25); border-radius: 4px; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+
+    /* === VARIABLES === */
+    :root {
+      --keilu-blue: #1A3D63;
+      --keilu-green: #337553;
+      --keilu-dark-text: #1E293B;
+    }
+
+    /* === MAPA FULL SCREEN === */
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
+    /* Neutralizar filtros CSS (brillo/saturación) para limpiar el color base del mapa */
+    #map, .maplibregl-map, .maplibregl-canvas, .maplibregl-canvas-container, .leaflet-tile-pane {
+      filter: none !important;
+    }
+    .maplibregl-ctrl-bottom-right,
+    .maplibregl-ctrl-bottom-left { display: none !important; }
+    .maplibregl-marker { overflow: visible !important; }
+    .maplibregl-canvas-container,
+    .maplibregl-canvas { width: 100% !important; height: 100% !important; }
+
+    /* === BARRA DE BÚSQUEDA — FIJA, CENTRADA === */
+    .top-search-dock {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 500px;
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 22px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      border: 1px solid rgba(255,255,255,0.5);
+      z-index: 50;
+    }
+    .search-bar-container {
+      background: transparent;
+      border: none;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 10px;
+    }
+
+    /* === BARRA DE NAVEGACIÓN INFERIOR — FIJA === */
+    .map-control-deck {
+      position: fixed;
+      bottom: 1.25rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 380px;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 35px;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.6);
+      border: 1px solid rgba(210, 210, 210, 0.5);
+      z-index: 50;
+    }
+
+    /* === BOTONES DE NAVEGACIÓN === */
+    .btn-nav-common {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s ease;
+    }
+    .btn-nav-common:active { transform: scale(0.93); }
+    .btn-nav-gps-highlight {
+      background: rgba(26, 61, 99, 0.08);
+      border-radius: 12px;
+      padding: 6px 12px;
+      color: var(--keilu-blue) !important;
+      font-weight: bold;
+    }
+    .nav-btn-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--keilu-dark-text);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* === CATEGORÍAS — Columna en PC, scroll horizontal en móvil === */
+    .categories-panel {
+      position: fixed;
+      z-index: 40;
+      /* PC: columna vertical a la derecha */
+      top: 4.5rem;
+      right: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(2, 6, 23, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 8px;
+      max-width: 170px;
+    }
+    /* Móvil: fila horizontal debajo, encima del nav */
+    @media (max-width: 640px) {
+      .categories-panel {
+        top: auto;
+        bottom: 6rem;
+        right: auto;
+        left: 0;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+        background: transparent;
+        backdrop-filter: none;
+        border: none;
+        padding: 0 8px;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 8px;
+        scrollbar-width: none;
+      }
+      .categories-panel::-webkit-scrollbar { display: none; }
+      .cat-label { display: none; }
+    }
+
+    /* === PANEL DE AJUSTES (Settings Sidebar) === */
+    #settings-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 320px;
+      background: rgba(2, 6, 23, 0.96);
+      border-right: 1px solid rgba(255,255,255,0.08);
+      z-index: 100;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      padding: 1.25rem;
+      overflow-y: auto;
+    }
+    /* En móvil: ocupa pantalla completa */
+    @media (max-width: 640px) {
+      #settings-sidebar {
+        width: 100%;
+        border-right: none;
+      }
+    }
+    #settings-sidebar.open {
+      transform: translateX(0);
+    }
+    /* Overlay oscuro al abrir el panel en móvil */
+    #settings-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 90;
+    }
+    #settings-overlay.visible { display: block; }
+
+    /* === ANIMACIONES DE PINES === */
+    @keyframes radarPulse {
+      0% { transform: scale(0.6); opacity: 0.9; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+    .pulse-ring-blue {
+      position: absolute; width: 32px; height: 32px;
+      border: 2px solid rgba(26, 61, 99, 0.6);
+      border-radius: 50%; top: -4px; left: -4px;
+      animation: radarPulse 2s infinite ease-out;
+      pointer-events: none;
+    }
+    .pulse-ring-green {
+      position: absolute; width: 32px; height: 32px;
+      border: 2px solid rgba(51, 117, 83, 0.6);
+      border-radius: 50%; top: -4px; left: -4px;
+      animation: radarPulse 2s infinite ease-out;
+      pointer-events: none;
+    }
+    .custom-pin-v37 { overflow: visible !important; white-space: nowrap !important; }
+
+    /* === EMOJI ANIMATIONS === */
+    @keyframes wrenchTurn { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(45deg)} }
+    .anim-wrench { animation: wrenchTurn 1.6s infinite ease-in-out; }
+    @keyframes lightningFlicker { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.9)} }
+    .anim-lightning { animation: lightningFlicker 0.6s infinite alternate; }
+    @keyframes truckDrive { 0%,100%{transform:translateX(0)} 50%{transform:translateX(2px)} }
+    .anim-truck { animation: truckDrive 0.8s infinite linear; }
+    @keyframes eatingTilt { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} }
+    .anim-eat { animation: eatingTilt 2s infinite ease-in-out; }
+    @keyframes pizzaFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+    .anim-pizza { animation: pizzaFloat 2s infinite ease-in-out; }
+    @keyframes breadRise { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(1.1)} }
+    .anim-bread { animation: breadRise 1.8s infinite ease-in-out; }
+    @keyframes scissorSnip { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-15deg)} }
+    .anim-scissors { animation: scissorSnip 1s infinite ease-in-out; }
+    @keyframes nailsPolish { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
+    .anim-nails { animation: nailsPolish 2s infinite ease-in-out; }
+
+    /* === NUEVAS ANIMACIONES WAZE-STYLE STICKERS === */
+    @keyframes floatLevitate { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    .anim-float { animation: floatLevitate 3s ease-in-out infinite; }
+    @keyframes nailPaint { 0%, 100% { transform: rotate(0deg) translateX(0); } 50% { transform: rotate(-8deg) translateX(-1px); } }
+    .anim-paint { transform-origin: top right; animation: nailPaint 2s ease-in-out infinite; }
+    @keyframes sparkFlicker { 0%, 100% { opacity: 0.2; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } }
+    .anim-spark { animation: sparkFlicker 0.4s ease-in-out infinite; }
+    @keyframes hammerStrike { 0%, 100% { transform: rotate(0deg) translate(0, 0); } 30% { transform: rotate(-15deg) translate(-2px, -3px); } 50% { transform: rotate(5deg) translate(1px, 2px); } }
+    .anim-strike { transform-origin: bottom right; animation: hammerStrike 1.5s ease-in-out infinite; }
+    @keyframes smokeRise { 0% { opacity: 0; transform: translateY(2px) scale(0.8); } 50% { opacity: 0.6; } 100% { opacity: 0; transform: translateY(-6px) scale(1.2); } }
+    .anim-smoke-1 { animation: smokeRise 2.5s ease-in-out infinite; }
+    .anim-smoke-2 { animation: smokeRise 2.5s ease-in-out infinite; animation-delay: 1.25s; }
+
+    /* === ANIMACIONES SISTEMA DE RUTA EN VIVO === */
+    @keyframes ping {
+      75%, 100% { transform: scale(2.2); opacity: 0; }
+    }
+    @keyframes gpsPulseRing {
+      0% { transform: scale(0.8); opacity: 0.6; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+    @keyframes destBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    @keyframes hudSlideIn {
+      from { transform: translate(-50%, -20px); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+    @keyframes arrivedPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      50% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+    }
+
+    /* === BURBUJA AD === */
+    .ad-note-bubble {
+      opacity: 0;
+      transform: translate(-50%, 8px);
+      pointer-events: none;
+      transition: all 0.25s ease;
+    }
+    .ad-note-revealed .ad-note-bubble {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    /* === TARJETA EMERGENTE === */
+    #tarjeta-emergente {
+      position: fixed;
+      bottom: 5.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(140%);
+      width: 90%;
+      max-width: 480px;
+      z-index: 50;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+    }
+    #tarjeta-emergente.visible {
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+
+    /* === PANEL DE EXPLORAR === */
+    #explorar-feed-container {
+      position: fixed;
+      inset: 0;
+      background-color: #F8FAFC;
+      z-index: 40;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    #explorar-feed-container.open {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Overlay para cuando el panel de ajustes está abierto -->
+  <div id="settings-overlay" onclick="toggleSettingsPanel()"></div>
+
+  <!-- Botón Engranaje (Ajustes) — FIJO, esquina inferior izquierda -->
+  <button id="btn-settings" onclick="toggleSettingsPanel()"
+    class="fixed bottom-24 left-4 z-50 bg-slate-900/90 hover:bg-slate-800 backdrop-blur text-white p-3 rounded-full border border-slate-700 shadow-xl flex items-center justify-center opacity-85 hover:opacity-100 transition select-none"
+    title="Ajustes de Diseño">
+    <i data-lucide="settings" class="w-5 h-5" style="animation: spin 8s linear infinite;"></i>
+  </button>
+  <style>@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} } </style>
+
+  <!-- ===== PANEL LATERAL DE AJUSTES ===== -->
+  <div id="settings-sidebar">
+    <!-- Cabecera del panel -->
+    <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-5">
+      <div class="flex items-center gap-2 text-blue-400">
+        <i data-lucide="palette" class="w-5 h-5"></i>
+        <h3 class="text-sm font-black text-white">Opciones del Mapa</h3>
+      </div>
+      <button onclick="toggleSettingsPanel()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="flex flex-col gap-5 text-xs text-slate-300">
+
+      <!-- Accesos rápidos -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex flex-col gap-2">
+        <span class="text-[9px] font-black text-blue-400 uppercase tracking-wider">🛠 Herramientas</span>
+        <a href="../index.html" class="flex items-center gap-2 py-2 px-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-[10px] font-bold text-white transition">
+          <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> Panel Principal (Portal)
+        </a>
+        <a href="profile_editor_worker.html?mode=new" class="flex items-center gap-2 py-2 px-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-[10px] font-bold text-white transition">
+          <i data-lucide="user" class="w-3.5 h-3.5"></i> Editor Perfil Trabajador
+        </a>
+        <a href="profile_editor_company.html?mode=new" class="flex items-center gap-2 py-2 px-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-[10px] font-bold text-white transition">
+          <i data-lucide="building-2" class="w-3.5 h-3.5"></i> Editor Perfil Empresa
+        </a>
+        <a href="subscription_editor.html" class="flex items-center gap-2 py-2 px-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-[10px] font-bold text-white transition">
+          <i data-lucide="credit-card" class="w-3.5 h-3.5"></i> Centro de Suscripción
+        </a>
+      </div>
+
+      <!-- Estilo de mapa base -->
+      <div class="flex flex-col gap-2">
+        <label class="font-black text-slate-400 uppercase tracking-wider text-[10px]">🗺 Estilo de Mapa</label>
+        <button onclick="selectMapStyle('streets')" id="map-btn-streets" class="p-2.5 rounded-xl bg-slate-800 border-2 border-blue-500 text-white font-bold flex items-center justify-between px-4 text-xs">
+          <span>🏙 Urbano Premium (Streets v2)</span>
+          <span class="text-[10px] text-blue-400">Activo</span>
+        </button>
+        <button onclick="selectMapStyle('hybrid')" id="map-btn-hybrid" class="p-2.5 rounded-xl bg-slate-800 border-2 border-transparent hover:border-slate-600 text-slate-400 font-bold flex items-center justify-between px-4 text-xs">
+          <span>🛰 Satélite (Hybrid)</span>
+        </button>
+        <button onclick="selectMapStyle('dataviz')" id="map-btn-dataviz" class="p-2.5 rounded-xl bg-slate-800 border-2 border-transparent hover:border-slate-600 text-slate-400 font-bold flex items-center justify-between px-4 text-xs">
+          <span>🌑 Oscuro (Dataviz Dark)</span>
+        </button>
+      </div>
+
+      <!-- Colores del mapa -->
+      <div class="flex flex-col gap-2">
+        <label class="font-black text-slate-400 uppercase tracking-wider text-[10px]">🎨 Colores del Mapa</label>
+
+        <!-- Calles -->
+        <div class="flex flex-col gap-1">
+          <span class="text-[9px] font-bold text-slate-500 uppercase">🛣 Calles</span>
+          <div class="grid grid-cols-3 gap-1">
+            <button onclick="changeMapColor('road', null)" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition">Original</button>
+            <button onclick="changeMapColor('road', '#2C2C2C')" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-blue-500 transition">Gris Waze</button>
+            <button onclick="changeMapColor('road', '#111111')" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition">Negro</button>
+          </div>
+        </div>
+
+        <!-- Agua -->
+        <div class="flex flex-col gap-1">
+          <span class="text-[9px] font-bold text-slate-500 uppercase">💧 Agua</span>
+          <div class="grid grid-cols-2 gap-1">
+            <button onclick="changeMapColor('water', '#7cd4f7')" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-cyan-500 transition">Celeste</button>
+            <button onclick="changeMapColor('water', '#1E3A8A')" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-blue-600 transition">Azul Real</button>
+          </div>
+        </div>
+
+        <!-- Parques -->
+        <div class="flex flex-col gap-1">
+          <span class="text-[9px] font-bold text-slate-500 uppercase">🌲 Parques</span>
+          <div class="grid grid-cols-2 gap-1">
+            <button onclick="changeMapColor('park', '#a1e1b8')" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-green-500 transition">Menta</button>
+            <button onclick="changeMapColor('park', '#2D6A4F')" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-green-700 transition">Bosque</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estilo de badge / pin -->
+      <div class="flex flex-col gap-2">
+        <label class="font-black text-slate-400 uppercase tracking-wider text-[10px]">📍 Estilo de Pines</label>
+        <div class="grid grid-cols-2 gap-1">
+          <button onclick="changeBadgeStyle('glass')" id="badge-btn-glass" class="py-2 text-[10px] font-bold rounded-xl bg-slate-800 border-2 border-blue-500 text-white transition">Cápsula</button>
+          <button onclick="changeBadgeStyle('minimal')" id="badge-btn-minimal" class="py-2 text-[10px] font-bold rounded-xl bg-slate-800 border-2 border-transparent text-slate-400 hover:border-slate-600 transition">Minimal</button>
+        </div>
+      </div>
+
+      <!-- Viaje Rápido -->
+      <div class="flex flex-col gap-2">
+        <label class="font-black text-slate-400 uppercase tracking-wider text-[10px]">✈️ Viaje Rápido</label>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button onclick="flyToCity(-36.7946, -73.1118, 'Hualpén')" class="py-2 px-1 text-[10px] font-bold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-blue-500 hover:bg-blue-950/30 transition truncate">🏠 Hualpén</button>
+          <button onclick="flyToCity(-33.4489, -70.6693, 'Santiago')" class="py-2 px-1 text-[10px] font-bold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500 hover:bg-emerald-950/30 transition truncate">🏙 Santiago</button>
+          <button onclick="flyToCity(-33.0153, -71.5500, 'Viña del Mar')" class="py-2 px-1 text-[10px] font-bold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-cyan-500 hover:bg-cyan-950/30 transition truncate">🏖 Viña del Mar</button>
+          <button onclick="flyToCity(-39.2829, -71.9625, 'Pucón')" class="py-2 px-1 text-[10px] font-bold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-orange-500 hover:bg-orange-950/30 transition truncate">🌋 Pucón</button>
+          <button onclick="flyToCity(-34.6037, -58.3816, 'Buenos Aires')" class="py-2 px-1 text-[10px] font-bold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-blue-400 hover:bg-blue-950/30 transition truncate">🇦🇷 Buenos Aires</button>
+          <button onclick="flyToCity(6.2442, -75.5812, 'Medellín')" class="py-2 px-1 text-[10px] font-bold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-pink-500 hover:bg-pink-950/30 transition truncate">🇨🇴 Medellín</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== MAPA ===== -->
+  <div id="map"></div>
+
+  <!-- ===== BARRA DE BÚSQUEDA ===== -->
+  <div class="top-search-dock pointer-events-auto">
+    <div class="search-bar-container">
+      <i data-lucide="search" class="w-5 h-5 text-slate-500 shrink-0"></i>
+      <input type="text" id="search-input" placeholder="¿Qué necesitas hoy?"
+        oninput="ejecutarBusqueda()"
+        class="bg-transparent text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none flex-1 py-0.5">
+      <button onclick="clearSearch()" id="clear-search-btn" class="hidden text-slate-400 hover:text-slate-700 transition shrink-0">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== CATEGORÍAS (REMOVIDO A PETICIÓN DEL USUARIO) ===== -->
+
+  <!-- ===== HUD DE RUTA ACTIVA (Banner Flotante Superior Estilo Tarjeta Perfil) ===== -->
+  <div id="panel-ruta-activa" style="display:none;" class="fixed top-14 left-1/2 -translate-x-1/2 z-[60] w-[95%] max-w-lg bg-[#052659] text-white rounded-2xl p-3 shadow-2xl border border-blue-400/40 flex items-center justify-between pointer-events-auto">
+    <div style="display:flex;align-items:center;gap:9px;min-width:0;flex:1;">
+      <!-- Foto de Perfil del Proveedor con borde blanco (como en Imagen 2) -->
+      <img id="ruta-hud-foto" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid white;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.3);" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400'">
+      
+      <!-- Información del Perfil (como en Imagen 2) + Stats de Ruta -->
+      <div style="min-width:0;flex:1;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;">
+          <h5 id="ruta-titulo-destino" style="font-size:13px;font-weight:900;color:white;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Sebastián Pino</h5>
+          <span id="ruta-hud-rating" style="font-size:9.5px;font-weight:900;color:#fcd34d;white-space:nowrap;">⭐ 4.9 <span style="color:#dbeafe;font-weight:600;">(18)</span></span>
+        </div>
+        <p id="ruta-hud-especialidad" style="font-size:9.5px;font-weight:700;color:#dbeafe;margin:1px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Mantención de jardines y poda de árboles</p>
+        <p id="ruta-info-tiempo" style="font-size:10px;font-weight:800;color:#fcd34d;margin:0;">🚶 15 min (1.2 km) · 🚗 2 min</p>
+      </div>
+
+      <!-- Stickers de Referencia del Rol (como en Imagen 2) -->
+      <div id="ruta-hud-stickers" style="display:flex;gap:4px;margin-left:4px;flex-shrink:0;">
+        <div style="width:26px;height:26px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:2px;">
+          <img src="stickers/appmojis/ubicacion.gif" style="width:18px;height:18px;object-fit:contain;" onerror="this.outerHTML='📍'">
+        </div>
+        <div style="width:26px;height:26px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:2px;">
+          <img src="stickers/appmojis/seguro.gif" style="width:18px;height:18px;object-fit:contain;" onerror="this.outerHTML='🏠'">
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón Cerrar -->
+    <button onclick="cancelarRutaActiva()" style="background:rgba(255,255,255,0.15);color:white;border:none;border-radius:12px;padding:8px 12px;font-size:10.5px;font-weight:900;margin-left:8px;cursor:pointer;transition:background 0.15s;flex-shrink:0;" onmouseover="this.style.background='rgba(239,68,68,0.85)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+      ✕ Cerrar
+    </button>
+  </div>
+
+  <!-- ===== TARJETA DE PROVEEDOR (pop-up) ===== -->
+  <div id="tarjeta-emergente">
+    <div class="bg-[#f8fafc] text-slate-800 rounded-3xl p-5 shadow-2xl border border-slate-100 relative">
+      <button onclick="cerrarTarjeta()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-sm font-bold transition">✕</button>
+      <div id="tarjeta-contenido"></div>
+    </div>
+  </div>
+
+  <!-- ===== SECCIÓN EXPLORAR (FEED DE BARRIO) ===== -->
+  <div id="explorar-feed-container" class="overflow-y-auto pb-24">
+    <!-- Header de Explorar -->
+    <div class="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-100 px-4 py-4 flex items-center justify-between z-50">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🔎</span>
+        <div>
+          <h2 class="text-xs font-black text-slate-800 tracking-tight">Explorar tu Barrio</h2>
+          <p class="text-[8px] text-slate-400 font-extrabold uppercase tracking-wider">Locales y Servicios Cercanos</p>
+        </div>
+      </div>
+      <button onclick="toggleExplorarFeed()" class="bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 p-2 rounded-full transition flex items-center justify-center">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Feed Cards Container -->
+    <div id="explorar-feed-list" class="p-4 flex flex-col gap-4 max-w-md mx-auto w-full">
+      <!-- Inyectado dinámicamente -->
+    </div>
+  </div>
+
+  <!-- ===== BARRA DE NAVEGACIÓN INFERIOR ===== -->
+  <div class="map-control-deck pointer-events-auto">
+    <!-- Suscripción -->
+    <a href="subscription_editor.html" class="btn-nav-common">
+      <i data-lucide="gem" class="w-5 h-5 text-slate-600"></i>
+      <span class="nav-btn-label">Suscripción</span>
+    </a>
+    <!-- Explorar -->
+    <button onclick="toggleExplorarFeed()" id="btn-nav-explorar" class="btn-nav-common">
+      <i data-lucide="search" class="w-5 h-5 text-slate-600"></i>
+      <span class="nav-btn-label">Explorar</span>
+    </button>
+    <!-- GPS -->
+    <button onclick="recenterMapOnGPS()" class="btn-nav-common btn-nav-gps-highlight">
+      <div class="flex items-center gap-1">
+        <i data-lucide="target" class="w-4.5 h-4.5"></i>
+        <span class="text-[11px] uppercase tracking-wider font-extrabold">GPS</span>
+      </div>
+    </button>
+    <!-- Perfil -->
+    <button onclick="openProfileEditor()" class="btn-nav-common">
+      <i data-lucide="user" class="w-5 h-5 text-slate-600"></i>
+      <span class="nav-btn-label">Perfil</span>
+    </button>
+  </div>
+
+  <!-- MODAL DE SELECCIÓN DE REGISTRO DE PERFIL -->
+  <div id="modal-registro-selector" onclick="cerrarModalRegistro()" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+    <div onclick="event.stopPropagation()" class="bg-white rounded-3xl p-6 w-[90%] max-w-[420px] shadow-2xl border border-slate-100 relative text-slate-800">
+      <button onclick="cerrarModalRegistro()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      
+      <div class="text-center mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="user-plus" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-black text-slate-900">¿Qué deseas registrar?</h3>
+        <p class="text-xs text-slate-500 mt-1">Selecciona el tipo de cuenta para ingresar tus datos</p>
+      </div>
+
+      <div class="space-y-3">
+        <!-- OPCIÓN TRABAJADOR -->
+        <a href="profile_editor_worker.html?mode=new" class="flex items-center gap-4 p-4 rounded-2xl border border-blue-100 bg-blue-50/50 hover:bg-blue-100/80 transition-all group text-left">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform">
+            <i data-lucide="user-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="font-extrabold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">Trabajador / Oficio Independiente</h4>
+            <p class="text-[11px] text-slate-500 mt-0.5">Plomero, mecánico, manicurista, fletes, profesor, etc.</p>
+          </div>
+        </a>
+
+        <!-- OPCIÓN EMPRESA / LOCAL -->
+        <a href="profile_editor_company.html?mode=new" class="flex items-center gap-4 p-4 rounded-2xl border border-emerald-100 bg-emerald-50/50 hover:bg-emerald-100/80 transition-all group text-left">
+          <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform">
+            <i data-lucide="store" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="font-extrabold text-sm text-slate-900 group-hover:text-emerald-600 transition-colors">Comercio / Empresa / Local</h4>
+            <p class="text-[11px] text-slate-500 mt-0.5">Sushi, minimarket, pizzería, ferretería, botillería, etc.</p>
+          </div>
+        </a>
+
+        <!-- OPCIÓN EVENTO COMUNITARIO -->
+        <a href="profile_editor_community.html?mode=new" class="flex items-center gap-4 p-4 rounded-2xl border border-orange-100 bg-orange-50/50 hover:bg-orange-100/80 transition-all group text-left">
+          <div class="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform">
+            <i data-lucide="megaphone" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="font-extrabold text-sm text-slate-900 group-hover:text-orange-600 transition-colors">Evento / Actividad Comunitaria</h4>
+            <p class="text-[11px] text-slate-500 mt-0.5">Completadas, rifas, bingos solidarios, talleres deportivos, etc.</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===================== ESTADO ===================== */
+    const MAPTILER_KEY = 'MQuOUJQLNwoXkS6nnqxw';
+    let map;
+    let marcadores = [];
+    let badgeStyle = 'glass';
+    let userCoords = [-36.7820, -73.1000];
+
+    let currentColors = {
+      water: null,
+      park:  null,
+      road:  null
+    };
+
+    /* ===================== PROVEEDORES — desde mock_data.js + localStorage ===================== */
+    const proveedores = typeof providersData !== 'undefined' ? [...providersData] : [];
+    
+    // Cargar proveedor registrado por el usuario si existe en localStorage
+    const savedUserRaw = localStorage.getItem('keilu_user_provider');
+    if (savedUserRaw) {
+      try {
+        const savedUser = JSON.parse(savedUserRaw);
+        if (savedUser && (savedUser.nombre || savedUser.identidad?.nombre)) {
+          savedUser.rankingScore = 200;
+          savedUser.verificado = true;
+          proveedores.unshift(savedUser);
+        }
+      } catch(e) {
+        console.error('Error al cargar proveedor registrado:', e);
+      }
+    }
+
+    // Cargar evento comunitario registrado (ID 999) si existe en localStorage
+    const savedCommunityRaw = localStorage.getItem('keilu_provider_999');
+    if (savedCommunityRaw) {
+      try {
+        const savedCommunity = JSON.parse(savedCommunityRaw);
+        if (savedCommunity && (savedCommunity.nombre || savedCommunity.identidad?.nombre)) {
+          savedCommunity.rankingScore = 200;
+          savedCommunity.verificado = true;
+          // Quitar elemento antiguo con id 999 si existiera en la lista
+          const idx = proveedores.findIndex(p => p.id === 999);
+          if (idx > -1) proveedores.splice(idx, 1);
+          proveedores.unshift(savedCommunity);
+        }
+      } catch(e) {
+        console.error('Error al cargar evento comunitario registrado:', e);
+      }
+    }
+
+    /* ===================== INIT ===================== */
+    document.addEventListener("DOMContentLoaded", async () => {
+      lucide.createIcons();
+      
+      // Intentar geolocalizar por IP por defecto para centrar en su ciudad (sin pedir permiso de GPS aún)
+      try {
+        const ipRes = await fetch("https://freeipapi.com/api/json");
+        if (ipRes.ok) {
+          const ipData = await ipRes.json();
+          if (ipData.latitude && ipData.longitude) {
+            userCoords = [ipData.latitude, ipData.longitude];
+          }
+        }
+      } catch (e) {
+        console.warn("Error en geolocalización por IP:", e);
+      }
+
+      initMap(userCoords[0], userCoords[1]);
+      
+      // Opcional: Refinar con GPS de alta precisión si el usuario otorga permiso (solo si NO estamos viendo la ubicación de un proveedor en particular)
+      const urlCheck = new URLSearchParams(window.location.search);
+      const hasTargetParam = urlCheck.get('preview') || urlCheck.get('id');
+
+      if (navigator.geolocation && !hasTargetParam) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            if (map) {
+              map.setCenter([pos.coords.longitude, pos.coords.latitude]);
+            }
+          },
+          err => {
+            console.warn("GPS de alta precisión no disponible, permaneciendo en la ciudad de la IP.", err);
+          },
+          { enableHighAccuracy: true, timeout: 4000 }
+        );
+      }
+    });
+
+    /* ===================== MAPA ===================== */
+    function initMap(lat, lng) {
+      if (map) return;
+      map = new maplibregl.Map({
+        container: 'map',
+        style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
+        center: [lng, lat],
+        zoom: 13,
+        maxZoom: 20,
+        attributionControl: false
+      });
+
+      map.on('load', () => {
+        setTimeout(() => map.resize(), 250);
+        applyAllCustomColors();
+        renderizarPines(proveedores);
+
+        // Auto-abrir vista previa de un proveedor si se pasa ?preview=id o ?id=id en la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const previewId = urlParams.get('preview') || urlParams.get('id');
+        if (previewId) {
+          const targetP = proveedores.find(x => x.id == previewId || (previewId === '999' && x.id === 999));
+          if (targetP) {
+            // Calcular coordenadas destino (con pin aleatorio de sesión si es privado)
+            let targetLat = targetP.ubicacion ? targetP.ubicacion.lat : targetP.lat;
+            let targetLng = targetP.ubicacion ? targetP.ubicacion.lng : targetP.lng;
+
+            const pins = targetP.ubicacion?.pinesAleatorios;
+            if (pins && pins.length > 0 && targetP.ubicacion?.privacidad !== 'exacta') {
+              window.keilu_pins = window.keilu_pins || {};
+              if (window.keilu_pins[targetP.id] === undefined) {
+                window.keilu_pins[targetP.id] = Math.floor(Math.random() * pins.length);
+              }
+              const randomPin = pins[window.keilu_pins[targetP.id]];
+              targetLat = randomPin.lat;
+              targetLng = randomPin.lng;
+            }
+
+            // Vuelo inmediato al centro del proveedor
+            if (targetLat && targetLng) {
+              map.jumpTo({ center: [targetLng, targetLat], zoom: 15 });
+            }
+
+            // Mostrar tarjeta + flyTo animado después de que el mapa esté listo
+            setTimeout(() => {
+              mostrarTarjetaProveedor(targetP);
+              if (targetLat && targetLng) {
+                map.flyTo({ center: [targetLng, targetLat], zoom: 16.5, duration: 1200 });
+              }
+            }, 600);
+
+            // Refuerzo: segundo flyTo por si el primer vuelo fue interrumpido por resize/tiles
+            setTimeout(() => {
+              if (targetLat && targetLng) {
+                map.flyTo({ center: [targetLng, targetLat], zoom: 16.5, duration: 800 });
+              }
+            }, 2200);
+          }
+        }
+      });
+
+      map.on('style.load', () => applyAllCustomColors());
+    }
+
+    function hidePOIsAndTransit() {
+      if (!map) return;
+      const style = map.getStyle();
+      if (!style || !style.layers) return;
+      style.layers.forEach(layer => {
+        const sl = layer['source-layer'];
+        const id = layer.id || '';
+        
+        // Ocultar por completo TODOS los puntos de interés (POIs), iconos de negocios, paraderos y etiquetas ajenas
+        const isPOIOrTransit = (
+          sl === 'poi' ||
+          sl === 'transit_stop' ||
+          sl === 'transit' ||
+          id.includes('poi') ||
+          id.includes('transit') ||
+          id.includes('bus') ||
+          id.includes('station') ||
+          id.includes('stop') ||
+          id.includes('amenity') ||
+          id.includes('shop') ||
+          id.includes('restaurant') ||
+          id.includes('bar') ||
+          id.includes('cafe') ||
+          id.includes('store') ||
+          id.includes('fast_food') ||
+          id.includes('church') ||
+          id.includes('worship') ||
+          id.includes('school') ||
+          id.includes('hospital') ||
+          id.includes('clinic') ||
+          id.includes('health') ||
+          id.includes('airport') ||
+          id.includes('aerodrome') ||
+          id.includes('police') ||
+          id.includes('fire') ||
+          id.includes('emergency') ||
+          id.includes('government') ||
+          id.includes('townhall')
+        );
+
+        if (isPOIOrTransit) {
+          try {
+            map.setLayoutProperty(layer.id, 'visibility', 'none');
+          } catch(e) {}
+        }
+      });
+    }
+
+    function applyAllCustomColors() {
+      if (!map) return;
+      hidePOIsAndTransit();
+      const style = map.getStyle();
+      if (!style || !style.layers) return;
+      style.layers.forEach(layer => {
+        const sl = layer['source-layer'];
+        // Water
+        if (layer.type === 'fill' && (sl === 'water' || (layer.id && (layer.id.includes('water') || layer.id.includes('sea') || layer.id.includes('lake') || layer.id.includes('river'))))) {
+          try {
+            if (currentColors.water === null) {
+              // No aplicar color personalizado en el arranque si es null
+            } else {
+              map.setPaintProperty(layer.id, 'fill-color', currentColors.water);
+            }
+          } catch(e) {}
+        }
+        // Parks
+        if (layer.type === 'fill' && (sl === 'landcover' || sl === 'landuse' || (layer.id && (layer.id.includes('park') || layer.id.includes('forest') || layer.id.includes('wood') || layer.id.includes('green') || layer.id.includes('garden')))) && layer.id && !layer.id.includes('residential') && !layer.id.includes('commercial') && !layer.id.includes('industrial')) {
+          try {
+            if (currentColors.park === null) {
+              // No aplicar
+            } else {
+              map.setPaintProperty(layer.id, 'fill-color', currentColors.park);
+            }
+          } catch(e) {}
+        }
+        // Roads
+        if (layer.type === 'line' && (sl === 'transportation' || (layer.id && (layer.id.includes('road') || layer.id.includes('highway') || layer.id.includes('street') || layer.id.includes('bridge') || layer.id.includes('tunnel') || layer.id.includes('path') || layer.id.includes('track') || layer.id.includes('route'))))) {
+          try {
+            if (currentColors.road === null) {
+              // No aplicar
+            } else {
+              map.setPaintProperty(layer.id, 'line-color', currentColors.road);
+            }
+          } catch(e) {}
+        }
+      });
+    }
+
+    function changeMapColor(type, value) {
+      currentColors[type] = value;
+      applyAllCustomColors();
+    }
+
+    function selectMapStyle(styleName) {
+      ['streets', 'hybrid', 'dataviz'].forEach(s => {
+        const btn = document.getElementById(`map-btn-${s}`);
+        if (!btn) return;
+        if (s === styleName) { btn.classList.add('border-blue-500', 'text-white'); btn.classList.remove('border-transparent', 'text-slate-400'); }
+        else { btn.classList.remove('border-blue-500', 'text-white'); btn.classList.add('border-transparent', 'text-slate-400'); }
+      });
+      const styleUrls = {
+        streets: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
+        hybrid:  `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`,
+        dataviz: `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`
+      };
+      if (map && styleUrls[styleName]) {
+        map.setStyle(styleUrls[styleName]);
+        map.once('styledata', () => {
+          applyAllCustomColors();
+          renderizarPines(proveedores);
+        });
+      }
+    }
+
+    /* ===================== GPS ===================== */
+    function recenterMapOnGPS() {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(
+        pos => map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 15, duration: 1500 }),
+        ()  => map.flyTo({ center: [userCoords[1], userCoords[0]], zoom: 15, duration: 1500 }),
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    }
+
+    function flyToCity(lat, lng) {
+      if (map) map.flyTo({ center: [lng, lat], zoom: 12, duration: 1800 });
+    }
+
+    /* ===================== PANEL DE AJUSTES ===================== */
+    function toggleSettingsPanel() {
+      const panel   = document.getElementById('settings-sidebar');
+      const overlay = document.getElementById('settings-overlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('visible');
+    }
+
+    /* ===================== PINES — renderizado por plan ===================== */
+    function renderizarPines(lista) {
+      marcadores.forEach(m => m.remove());
+      marcadores = [];
+
+      // Ordenar: ultra_pro primero, luego pro, luego gratis
+      const ordenados = [...lista].sort((a, b) => (b.rankingScore || 0) - (a.rankingScore || 0));
+
+      const coordsRegistradas = [];
+      const offsetPaso = 0.00035; // Distancia de dispersión en grados (aprox 35-40 metros físicos)
+
+      ordenados.forEach(p => {
+        try {
+          // Soporte doble schema: nuevo (mock_data.js) y legacy plano
+          const isNew     = !!p.identidad;
+          const tipo      = p.tipo;
+          const plan      = isNew ? p.plan : (p.dePago ? 'pro' : 'gratis');
+          const emoji     = isNew ? p.identidad.emoji     : p.emoji;
+          const animClass = isNew ? p.visualMapa.animClass : (p.animClass || '');
+          const nombre    = isNew ? p.identidad.nombre    : p.nombre;
+          let lat         = isNew ? p.ubicacion.lat       : p.lat;
+          let lng         = isNew ? p.ubicacion.lng       : p.lng;
+
+          // Si el proveedor tiene ubicación privada, renderizar en su pin aleatorio por recarga de página
+          const pins = isNew ? p.ubicacion?.pinesAleatorios : p.pinesAleatorios;
+          const privacidad = isNew ? p.ubicacion?.privacidad : p.privacidad;
+          if (pins && pins.length > 0 && privacidad !== 'exacta') {
+            window.keilu_pins = window.keilu_pins || {};
+            if (window.keilu_pins[p.id] === undefined) {
+              window.keilu_pins[p.id] = Math.floor(Math.random() * pins.length);
+            }
+            const randomPin = pins[window.keilu_pins[p.id]];
+            lat = randomPin.lat;
+            lng = randomPin.lng;
+          }
+          const foto      = isNew ? p.identidad.foto      : (p.foto || '');
+          const estadoVivo = isNew ? p.tiemposYAcciones?.estadoVivo : null;
+          const notaAd    = isNew ? (estadoVivo?.activo ? estadoVivo.texto : '') : (p.notaAd || '');
+
+          // BLINDAJE DE COLOR ESTRICTO (Azul vs Verde)
+          const isAzul     = tipo === 'azul';
+          const colorClass = isAzul ? 'bg-blue-600' : 'bg-emerald-600';
+
+          coordsRegistradas.push({ lat, lng });
+
+          // Stickers de rubro y acción
+          let rubroStickerPath = (typeof KeiluUtils !== 'undefined') ? KeiluUtils.fixStickerPath(p.stickerRubro || p.identidad?.stickerRubro) : (p.stickerRubro || p.identidad?.stickerRubro);
+          let actionStickerPath = (typeof KeiluUtils !== 'undefined') ? KeiluUtils.fixStickerPath(p.stickerAccion || p.identidad?.stickerAccion) : (p.stickerAccion || p.identidad?.stickerAccion);
+          
+          const isProPlan = (plan === 'pro' || plan === 'ultra_pro');
+          const boostIds = [107, 108, 109, 127, 128, 129];
+          const tieneBoost = boostIds.includes(p.id) || (isNew && p.tiemposYAcciones?.boostGratis?.activo) || !!rubroStickerPath || isProPlan;
+          
+          let pinHtml = '';
+          const isNaranja = p.tipo === 'naranja';
+          const innerColor = isNaranja ? 'bg-orange-500' : (isAzul ? 'bg-blue-600' : 'bg-emerald-600');
+          const borderColorClass = isNaranja ? 'border-orange-500' : (isAzul ? 'border-blue-600' : 'border-emerald-600');
+          const shadowColor = isNaranja ? 'bg-orange-500/30' : (isAzul ? 'bg-blue-600/30' : 'bg-emerald-600/30');
+
+          const esPrivado = (isNew ? p.ubicacion?.privacidad : p.privacidad) !== 'exacta';
+
+          if (isAzul && isProPlan && (rubroStickerPath || actionStickerPath)) {
+            // 🌟 PIN PRO COMPACTO SIN CUADRO AZUL GRANDE ALREDEDOR DE LOS EMOJIS:
+            // - EMOJIS CUADRADOS (34px) FLOTANDO DIRECTAMENTE
+            // - CAJA DE TEXTO AZUL MARINO (#052659) MÁS GRANDE Y DESTACADA ABAJO
+            let rubroContent = rubroStickerPath
+              ? `<img src="${rubroStickerPath}" class="w-[26px] h-[26px] object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji}</span>';">`
+              : `<span style="font-size:13.5px;">${emoji}</span>`;
+
+            if (!actionStickerPath) {
+              actionStickerPath = 'stickers/acciones trabajadores/02-domicilio/00-default.gif';
+            }
+
+            let actionContent = `<img src="${actionStickerPath}" class="w-[26px] h-[26px] object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>⚡</span>';">`;
+
+            // Extraer nombre del oficio/trabajo (ej: Gasfiter, Fletes, Técnico PC, Jardinero)
+            let oficioNombre = '';
+            if (p.identidad?.nombre && p.identidad.nombre.includes('—')) {
+              oficioNombre = p.identidad.nombre.split('—')[1].trim();
+            } else if (p.nombre && p.nombre.includes('—')) {
+              oficioNombre = p.nombre.split('—')[1].trim();
+            } else if (p.identidad?.especialidad) {
+              oficioNombre = p.identidad.especialidad.replace(/^[^\w\s]+/, '').trim().split(',')[0];
+            } else {
+              oficioNombre = p.rubro || 'Profesional';
+            }
+
+            pinHtml = `
+              <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-105" style="position: absolute; transform: translate(-50%, -50%);">
+                <!-- 1. LOS 2 STICKERS CUADRADOS DE 34px SIN NINGÚN MARCO AZUL GRANDE ATRÁS -->
+                <div class="flex items-center gap-1 z-20">
+                  <div class="w-[34px] h-[34px] rounded-lg bg-white flex items-center justify-center border-2 border-white shadow-md overflow-hidden ring-1 ring-slate-900/10">
+                    ${rubroContent}
+                  </div>
+                  <div class="w-[34px] h-[34px] rounded-lg bg-white flex items-center justify-center border-2 border-white shadow-md overflow-hidden ring-1 ring-slate-900/10">
+                    ${actionContent}
+                  </div>
+                </div>
+
+                <!-- 2. CAJA AZUL MARINO (#052659) MÁS GRANDE Y DESTACADA SOLO PARA EL TEXTO -->
+                <div class="relative z-10 -mt-1.5 py-1.5 px-3 rounded-lg bg-[#052659] text-white shadow-xl flex items-center justify-center border-2 border-white min-w-[80px]">
+                  <span class="text-[11px] font-black text-white tracking-wide whitespace-nowrap leading-none drop-shadow-xs">${oficioNombre}</span>
+                </div>
+                
+                <!-- 3. PUNTA TRIANGULAR ABAJO -->
+                <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-[#052659] -mt-0.5 z-10"></div>
+                
+                <!-- 4. SOMBRA DISCRETA DE PISO -->
+                <div class="w-8 h-1 bg-slate-900/35 rounded-full blur-[1px] -mt-0.5 pointer-events-none"></div>
+              </div>`;
+          } else if (tieneBoost) {
+            // 🚀 REDISEÑO DE GOTA PREMIUM 3D INDIVIDUAL
+            let stickerContent = '';
+            
+            if (rubroStickerPath) {
+              stickerContent = `<img src="${rubroStickerPath}" class="w-[28px] h-[28px] object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji}</span>';">`;
+            } else if (p.id === 128) {
+              stickerContent = `<img src="gif/hamburguesa_boost.gif" class="w-[28px] h-[28px] object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji}</span>';">`;
+            } else if (p.id === 127) {
+              stickerContent = `<img src="gif/sushi_boost.gif" class="w-[28px] h-[28px] object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji}</span>';">`;
+            } else if (p.id === 129) {
+              stickerContent = `<img src="gif/pollo_boost.gif" class="w-[28px] h-[28px] object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji}</span>';">`;
+            } else {
+              stickerContent = `<span class="${animClass}" style="font-size: 13.5px; display: inline-block; line-height: 1;">${emoji}</span>`;
+            }
+
+            pinHtml = `
+              <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-110" style="position: absolute; transform: translate(-50%, -50%);">
+                <!-- 1. CUERPO PRINCIPAL DE LA GOTA (Blanco exterior, color interior) -->
+                <div class="relative z-10 w-9 h-9 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-200/50">
+                  <div class="w-[28px] h-[28px] rounded-full ${innerColor} flex items-center justify-center text-white border border-white/20 overflow-hidden">
+                    ${stickerContent}
+                  </div>
+                </div>
+                
+                <!-- 2. PUNTA INFERIOR -->
+                <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[7px] border-t-white -mt-0.5 z-10 shadow-sm"></div>
+                
+                <!-- 3. SOMBRA DE LEVITACIÓN EN EL PISO 3D -->
+                <div class="w-4.5 h-1 ${shadowColor} rounded-full blur-[1px] -mt-0.5 pointer-events-none"></div>
+              </div>`;
+          } else {
+            // ESTRUCTURA DE PIN CON EMOJI VISIBLE
+            pinHtml = `
+              <div class="relative flex items-center justify-center pointer-events-auto cursor-pointer transition-transform duration-200 hover:scale-125 select-none shadow-md group" style="position: absolute; transform: translate(-50%, -50%);">
+                <div class="w-7 h-7 rounded-full bg-white border-2 ${borderColorClass} shadow-sm flex items-center justify-center text-xs overflow-hidden z-20">
+                  ${rubroStickerPath 
+                    ? `<img src="${rubroStickerPath}" class="w-5 h-5 object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<span>${emoji}</span>';">`
+                    : `<span>${emoji}</span>`}
+                </div>
+              </div>`;
+          }
+
+          const el = document.createElement('div');
+          el.className = 'pointer-events-auto cursor-pointer';
+          el.innerHTML = pinHtml;
+          el.style.overflow = 'visible';
+          el.style.cursor = 'pointer';
+          el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mostrarTarjetaProveedor(p);
+          });
+
+          // ASIGNACIÓN DE Z-INDEX JERÁRQUICO ESTRICTO
+          if (plan === 'ultra_pro') {
+            el.style.zIndex = '50';
+          } else if (plan === 'pro') {
+            el.style.zIndex = '30';
+          } else {
+            el.style.zIndex = '10';
+          }
+          
+          // Centrar exactamente en las coordenadas GPS
+          const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+            .setLngLat([lng, lat]).addTo(map);
+          marcadores.push(marker);
+
+        } catch (err) {
+          console.error(`Error al procesar o renderizar el proveedor ID ${p?.id || 'desconocido'}:`, err);
+        }
+      });
+    }
+
+    /* ===================== FAVORITOS Y RESEÑAS ===================== */
+    function toggleFavorito(id) {
+      try {
+        let favoritos = JSON.parse(localStorage.getItem('keilu_favoritos') || '[]');
+        const idx = favoritos.indexOf(id);
+        if (idx > -1) {
+          favoritos.splice(idx, 1);
+        } else {
+          favoritos.push(id);
+        }
+        localStorage.setItem('keilu_favoritos', JSON.stringify(favoritos));
+        
+        // Refrescar tarjeta actual para ver el estado de guardado
+        const p = proveedores.find(item => item.id === id);
+        if (p) mostrarTarjetaProveedor(p);
+      } catch(e) {
+        console.error("Error al guardar favorito:", e);
+      }
+    }
+
+    function obtenerReseñaSnippet(p) {
+      const rubro = p.stickerRubro || p.identidad?.stickerRubro || '';
+      const id = p.id || 0;
+      
+      const foodReviews = [
+        "¡La comida llegó súper caliente y deliciosa! El delivery fue rapidísimo.",
+        "Excelente sabor y porciones abundantes. Don Pedro y su equipo son muy amables.",
+        "Pizzas con ingredientes frescos y masa crujiente. ¡Volveré a pedir sin duda!",
+        "El mejor sushi del barrio. El salmón fresquísimo y la presentación impecable."
+      ];
+      
+      const serviceReviews = [
+        "Muy profesional y puntual. Explicó todo con claridad y solucionó la fuga de inmediato.",
+        "Excelente electricista. Dejó todo ordenado y certificado. Muy recomendado.",
+        "Trabajo en madera de primera calidad. Construyó el closet a medida exactamente como quería.",
+        "Muy cuidadoso con el flete. Embaló todo perfecto y llegó sin ningún rasguño."
+      ];
+      
+      const beautyReviews = [
+        "Me encantó el servicio. Súper profesional, simpática y el resultado final fue hermoso.",
+        "Excelente corte de cabello y atención. El local es muy limpio y cómodo.",
+        "Muy detallista con el manicure, mis uñas quedaron perfectas y duraron semanas."
+      ];
+      
+      const genericReviews = [
+        "Excelente atención, puntual con el horario y muy buenos precios en el sector.",
+        "Muy recomendable. Trato sumamente amable y resolvió todas mis consultas rápido.",
+        "Un servicio de primera. Se nota la experiencia y la buena disposición."
+      ];
+
+      if (rubro.includes('gastronomia') || rubro.includes('comida') || rubro.includes('panaderia') || rubro.includes('licoreria') || rubro.includes('carnes')) {
+        return foodReviews[id % foodReviews.length];
+      } else if (rubro.includes('agua') || rubro.includes('electricidad') || rubro.includes('hogar') || rubro.includes('madera') || rubro.includes('metales') || rubro.includes('transporte') || rubro.includes('vehiculos') || rubro.includes('tecnologia')) {
+        return serviceReviews[id % serviceReviews.length];
+      } else if (rubro.includes('estetica') || rubro.includes('textil') || rubro.includes('salud') || rubro.includes('mascotas')) {
+        return beautyReviews[id % beautyReviews.length];
+      } else {
+        return genericReviews[id % genericReviews.length];
+      }
+    }
+
+    /* ===================== RUTA EN VIVO NATIVA DENTRO DE KEILU ===================== */
+    /* Motor de navegación nivel Waze: GPS continuo, animación, recálculo, seguimiento */
+
+    let userGpsMarker = null;
+    let destMarker = null;
+    let gpsWatchId = null;
+    let routeAnimFrame = null;
+    let rutaActivaData = null;
+    let animStep = 0;
+    let cameraFollowing = true;
+    let ultimoRecalculo = 0;
+
+    // ── Marcador GPS del usuario (punto azul pulsante estilo Google Maps) ──
+    function actualizarMarcadorGPSUsuario(lat, lng) {
+      if (!map) return;
+      if (!userGpsMarker) {
+        const el = document.createElement('div');
+        el.id = 'marcador-gps-usuario';
+        el.style.cssText = 'pointer-events:none;';
+        el.innerHTML = `
+          <div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+            <div style="position:absolute;inset:-4px;background:rgba(59,130,246,0.25);border-radius:50%;animation:gpsPulseRing 2s cubic-bezier(0,0,0.2,1) infinite;"></div>
+            <div style="position:absolute;inset:2px;background:rgba(59,130,246,0.12);border-radius:50%;"></div>
+            <div style="width:18px;height:18px;background:#2563eb;border:3px solid white;border-radius:50%;box-shadow:0 2px 10px rgba(37,99,235,0.55);z-index:2;position:relative;"></div>
+          </div>
+        `;
+        userGpsMarker = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map);
+      } else {
+        userGpsMarker.setLngLat([lng, lat]);
+      }
+    }
+
+    // ── Marcador de destino animado (pin rojo con nombre del proveedor) ──
+    function crearMarcadorDestino(lat, lng, nombre) {
+      if (destMarker) { destMarker.remove(); destMarker = null; }
+      const el = document.createElement('div');
+      el.style.cssText = 'display:flex;flex-direction:column;align-items:center;animation:destBounce 2.5s ease-in-out infinite;';
+      el.innerHTML = `
+        <div style="background:#052659;color:white;padding:5px 12px;border-radius:12px;font-size:10px;font-weight:900;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,0.35);margin-bottom:5px;max-width:160px;overflow:hidden;text-overflow:ellipsis;letter-spacing:0.3px;border:1px solid rgba(255,255,255,0.15);">
+          📍 ${nombre || 'Destino'}
+        </div>
+        <div style="position:relative;width:22px;height:22px;display:flex;align-items:center;justify-content:center;">
+          <div style="position:absolute;inset:-8px;background:rgba(239,68,68,0.25);border-radius:50%;animation:gpsPulseRing 2.2s cubic-bezier(0,0,0.2,1) infinite;"></div>
+          <div style="width:16px;height:16px;background:#dc2626;border:3px solid white;border-radius:50%;box-shadow:0 3px 10px rgba(220,38,38,0.45);z-index:2;"></div>
+        </div>
+        <div style="width:2px;height:6px;background:linear-gradient(to bottom,#dc2626,transparent);"></div>
+      `;
+      destMarker = new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([lng, lat]).addTo(map);
+    }
+
+    // ── Cálculo de distancia Haversine (en metros) ──
+    function haversineMetros(lat1, lng1, lat2, lng2) {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180, φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180, Δλ = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(Δφ/2)**2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    // ── Distancia mínima del usuario a la polilínea de la ruta (metros) ──
+    function distanciaDesdeRuta(lat, lng, routeCoords) {
+      if (!routeCoords || routeCoords.length === 0) return 0;
+      let minDist = Infinity;
+      const cosLat = Math.cos(lat * Math.PI / 180);
+      for (let i = 0; i < routeCoords.length; i++) {
+        const dLat = (lat - routeCoords[i][1]) * 111320;
+        const dLng = (lng - routeCoords[i][0]) * 111320 * cosLat;
+        const dist = dLat * dLat + dLng * dLng; // sin sqrt para velocidad
+        if (dist < minDist) minDist = dist;
+      }
+      return Math.sqrt(minDist);
+    }
+
+    // ── Llamada a OSRM para obtener ruta real por calles ──
+    async function obtenerRutaOSRM(originLng, originLat, destLng, destLat) {
+      try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${destLng},${destLat}?overview=full&geometries=geojson`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.routes && data.routes.length > 0) return data.routes[0];
+        }
+      } catch(err) {
+        console.warn("OSRM error:", err);
+      }
+      return null;
+    }
+
+    // ── Dibujar capas de ruta en MapLibre (glow + sólida + animada) ──
+    function dibujarRutaEnMapa(routeGeoJSON) {
+      cancelarRutaActivaCapas();
+
+      map.addSource('ruta-source', {
+        type: 'geojson',
+        data: { type: 'Feature', properties: {}, geometry: routeGeoJSON }
+      });
+
+      // Capa 1: Resplandor exterior suave (glow)
+      map.addLayer({
+        id: 'ruta-linea-bg',
+        type: 'line',
+        source: 'ruta-source',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#1d4ed8', 'line-width': 14, 'line-opacity': 0.2 }
+      });
+
+      // Capa 2: Línea sólida principal azul
+      map.addLayer({
+        id: 'ruta-linea',
+        type: 'line',
+        source: 'ruta-source',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#3b82f6', 'line-width': 6, 'line-opacity': 0.92 }
+      });
+
+      // Capa 3: Línea de flujo animada (dashes que fluyen hacia destino)
+      map.addLayer({
+        id: 'ruta-linea-anim',
+        type: 'line',
+        source: 'ruta-source',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-color': '#bfdbfe',
+          'line-width': 3,
+          'line-dasharray': [0, 4, 3],
+          'line-opacity': 0.85
+        }
+      });
+    }
+
+    // ── Animación fluida de dashes (estilo Waze/Google Maps) ──
+    const dashSequence = [
+      [0, 4, 3], [0.5, 4, 2.5], [1, 4, 2], [1.5, 4, 1.5],
+      [2, 4, 1], [2.5, 4, 0.5], [3, 4, 0],
+      [0, 0.5, 3, 3.5], [0, 1, 3, 3], [0, 1.5, 3, 2.5],
+      [0, 2, 3, 2], [0, 2.5, 3, 1.5], [0, 3, 3, 1], [0, 3.5, 3, 0.5]
+    ];
+
+    function animarRutaDash(timestamp) {
+      if (!map || !map.getLayer('ruta-linea-anim')) return;
+      const newStep = Math.floor((timestamp / 80) % dashSequence.length);
+      if (newStep !== animStep) {
+        animStep = newStep;
+        try {
+          map.setPaintProperty('ruta-linea-anim', 'line-dasharray', dashSequence[animStep]);
+        } catch(e) {}
+      }
+      routeAnimFrame = requestAnimationFrame(animarRutaDash);
+    }
+
+    // ── Actualizar HUD con distancia y tiempo ──
+    function actualizarHUD(distMetros, durSegundos, destNombre) {
+      const hudTiempo = document.getElementById('ruta-info-tiempo');
+      const hudDestino = document.getElementById('ruta-titulo-destino');
+      if (!hudTiempo) return;
+
+      const distText = distMetros > 1000
+        ? `${(distMetros / 1000).toFixed(1)} km`
+        : `${Math.round(distMetros)} m`;
+      const walkMin = Math.max(1, Math.round(distMetros / 80));
+      const carMin = Math.max(1, Math.round(durSegundos / 60));
+
+      hudTiempo.textContent = `🚶 ${walkMin} min (${distText}) · 🚗 ${carMin} min`;
+      if (hudDestino) hudDestino.textContent = `En camino a ${destNombre || 'Proveedor'}`;
+    }
+
+    // ── Recálculo automático de ruta (cuando el usuario se desvía) ──
+    async function recalcularRuta(originLat, originLng) {
+      if (!rutaActivaData) return;
+      const ahora = Date.now();
+      if (ahora - ultimoRecalculo < 6000) return; // debounce 6 segundos
+      ultimoRecalculo = ahora;
+
+      const hudTiempo = document.getElementById('ruta-info-tiempo');
+      if (hudTiempo) hudTiempo.textContent = `🔄 Recalculando ruta...`;
+
+      const ruta = await obtenerRutaOSRM(originLng, originLat, rutaActivaData.destLng, rutaActivaData.destLat);
+      if (ruta && rutaActivaData) {
+        rutaActivaData.routeCoords = ruta.geometry.coordinates;
+
+        // Actualizar ruta visualmente sin parpadeo
+        const source = map.getSource('ruta-source');
+        if (source) {
+          source.setData({
+            type: 'Feature',
+            properties: {},
+            geometry: ruta.geometry
+          });
+        }
+        actualizarHUD(ruta.distance, ruta.duration, rutaActivaData.destNombre);
+      }
+    }
+
+    // ── Callback de cada actualización GPS continua (watchPosition) ──
+    function onPosicionGPSActualizada(pos) {
+      if (!rutaActivaData || !map) return;
+
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      userCoords = [lat, lng];
+
+      // Mover punto azul del usuario
+      actualizarMarcadorGPSUsuario(lat, lng);
+
+      // Cámara sigue al usuario suavemente (estilo Waze)
+      if (cameraFollowing) {
+        map.easeTo({
+          center: [lng, lat],
+          duration: 1000,
+          easing: t => t * (2 - t) // easeOutQuad
+        });
+      }
+
+      // ¿Llegó al destino? (dentro de 35 metros)
+      const distAlDestino = haversineMetros(lat, lng, rutaActivaData.destLat, rutaActivaData.destLng);
+      if (distAlDestino < 35) {
+        const hudTiempo = document.getElementById('ruta-info-tiempo');
+        if (hudTiempo) hudTiempo.textContent = `🎉 ¡Has llegado a tu destino!`;
+        const hud = document.getElementById('panel-ruta-activa');
+        if (hud) hud.style.animation = 'arrivedPulse 1.5s ease-in-out 3';
+        return;
+      }
+
+      // ¿Se desvió de la ruta? (más de 60 metros de la polilínea)
+      const distDesdeRutaM = distanciaDesdeRuta(lat, lng, rutaActivaData.routeCoords);
+      if (distDesdeRutaM > 60) {
+        recalcularRuta(lat, lng);
+      } else {
+        // Actualizar distancia restante al destino en tiempo real
+        const durEstimada = distAlDestino / 8.33; // ~30 km/h en auto ≈ 8.33 m/s
+        actualizarHUD(distAlDestino, durEstimada, rutaActivaData.destNombre);
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ██  FUNCIÓN PRINCIPAL: TRAZAR RUTA A PROVEEDOR             ██
+    // ══════════════════════════════════════════════════════════════
+    async function trazarRutaAProveedor(destLat, destLng, targetInput) {
+      try {
+        if (!map) return;
+
+        // Si ya hay una ruta activa, limpiar primero
+        if (rutaActivaData) cancelarRutaActiva();
+
+        // Buscar objeto proveedor por ID o usar objeto/string
+        let providerObj = null;
+        if (typeof targetInput === 'object' && targetInput !== null) {
+          providerObj = targetInput;
+        } else if (typeof targetInput === 'number' || (!isNaN(targetInput) && targetInput !== '')) {
+          providerObj = proveedores.find(item => item.id == targetInput);
+        }
+
+        const isNew = providerObj && !!providerObj.identidad;
+        const destNombre = (isNew ? providerObj.identidad?.nombre : providerObj?.nombre) || (typeof targetInput === 'string' ? targetInput : 'Proveedor');
+        const fotoUrl = (isNew ? providerObj.identidad?.foto : providerObj?.foto) || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400';
+        const especialidadTexto = (isNew ? providerObj.identidad?.especialidad : providerObj?.rubro) || 'Servicio Profesional';
+        const pId = providerObj ? providerObj.id : 107;
+        const ratingVal = (4.4 + ((pId * 7) % 7) * 0.1).toFixed(1);
+        const opinionesVal = (10 + (pId * 13) % 85);
+
+        // 1. Mostrar HUD e inyectar datos idénticos al Perfil de la Imagen 2
+        const hud = document.getElementById('panel-ruta-activa');
+        const hudFoto = document.getElementById('ruta-hud-foto');
+        const hudDestino = document.getElementById('ruta-titulo-destino');
+        const hudEspecialidad = document.getElementById('ruta-hud-especialidad');
+        const hudRating = document.getElementById('ruta-hud-rating');
+        const hudStickers = document.getElementById('ruta-hud-stickers');
+        const hudTiempo = document.getElementById('ruta-info-tiempo');
+
+        if (hudFoto) hudFoto.src = fotoUrl;
+        if (hudDestino) hudDestino.textContent = destNombre;
+        if (hudEspecialidad) hudEspecialidad.textContent = especialidadTexto;
+        if (hudRating) hudRating.innerHTML = `⭐ ${ratingVal} <span style="color:#dbeafe;font-weight:600;">(${opinionesVal} Opiniones)</span>`;
+
+        // Renderizar stickers dinámicos de referencia
+        if (hudStickers) {
+          let rubroSticker = providerObj ? ((typeof KeiluUtils !== 'undefined') ? KeiluUtils.fixStickerPath(providerObj.stickerRubro || providerObj.identidad?.stickerRubro) : (providerObj.stickerRubro || providerObj.identidad?.stickerRubro)) : null;
+          let actionSticker = providerObj ? ((typeof KeiluUtils !== 'undefined') ? KeiluUtils.fixStickerPath(providerObj.stickerAccion || providerObj.identidad?.stickerAccion) : (providerObj.stickerAccion || providerObj.identidad?.stickerAccion)) : null;
+
+          let stickersHtml = '';
+          if (rubroSticker) {
+            stickersHtml += `<div style="width:26px;height:26px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:2px;"><img src="${rubroSticker}" style="width:18px;height:18px;object-fit:contain;" onerror="this.outerHTML='📍'"></div>`;
+          }
+          if (actionSticker) {
+            stickersHtml += `<div style="width:26px;height:26px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:2px;"><img src="${actionSticker}" style="width:18px;height:18px;object-fit:contain;" onerror="this.outerHTML='✂️'"></div>`;
+          }
+          if (!stickersHtml) {
+            stickersHtml = `
+              <div style="width:26px;height:26px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:2px;">
+                <img src="stickers/appmojis/ubicacion.gif" style="width:18px;height:18px;object-fit:contain;" onerror="this.outerHTML='📍'">
+              </div>
+              <div style="width:26px;height:26px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:2px;">
+                <img src="stickers/appmojis/seguro.gif" style="width:18px;height:18px;object-fit:contain;" onerror="this.outerHTML='🏠'">
+              </div>`;
+          }
+          hudStickers.innerHTML = stickersHtml;
+        }
+
+        if (hud) {
+          if (hudTiempo) hudTiempo.textContent = `📍 Obteniendo tu ubicación GPS exacta...`;
+          hud.style.display = 'flex';
+          hud.style.animation = 'hudSlideIn 0.4s ease-out';
+        }
+
+        // 2. Cerrar tarjeta emergente
+        cerrarTarjeta();
+
+        // 3. Obtener ubicación GPS real del dispositivo
+        let originLat = null;
+        let originLng = null;
+
+        if (navigator.geolocation) {
+          try {
+            const pos = await new Promise((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
+              });
+            });
+            if (pos && pos.coords) {
+              originLat = pos.coords.latitude;
+              originLng = pos.coords.longitude;
+              userCoords = [originLat, originLng];
+              actualizarMarcadorGPSUsuario(originLat, originLng);
+            }
+          } catch(e) {
+            console.warn("GPS denegado o timeout:", e);
+          }
+        }
+
+        // Fallback: coordenadas de sesión o centro del mapa
+        if (!originLat || !originLng) {
+          if (userCoords && userCoords[0]) {
+            originLat = userCoords[0];
+            originLng = userCoords[1];
+          } else {
+            const c = map.getCenter();
+            originLat = c.lat;
+            originLng = c.lng;
+          }
+          actualizarMarcadorGPSUsuario(originLat, originLng);
+        }
+
+        if (hudTiempo) hudTiempo.textContent = `⚡ Calculando la mejor ruta por calles...`;
+
+        // 4. Obtener ruta real de OSRM
+        const ruta = await obtenerRutaOSRM(originLng, originLat, destLng, destLat);
+
+        let routeGeoJSON, distMetros, durSegundos;
+
+        if (ruta) {
+          routeGeoJSON = ruta.geometry;
+          distMetros = ruta.distance;
+          durSegundos = ruta.duration;
+        } else {
+          // Fallback: línea recta
+          routeGeoJSON = {
+            type: 'LineString',
+            coordinates: [[originLng, originLat], [destLng, destLat]]
+          };
+          distMetros = haversineMetros(originLat, originLng, destLat, destLng);
+          durSegundos = distMetros / 8.33;
+        }
+
+        // 5. Guardar datos de ruta activa
+        rutaActivaData = {
+          destLat, destLng, destNombre,
+          routeCoords: routeGeoJSON.coordinates
+        };
+        ultimoRecalculo = Date.now();
+
+        // 6. Dibujar ruta en el mapa (3 capas: glow + sólida + animada)
+        dibujarRutaEnMapa(routeGeoJSON);
+
+        // 7. Crear marcador de destino animado con nombre
+        crearMarcadorDestino(destLat, destLng, destNombre);
+
+        // 8. Actualizar HUD con distancia y tiempo
+        actualizarHUD(distMetros, durSegundos, destNombre);
+
+        // 9. Encuadrar el mapa suavemente para mostrar toda la ruta
+        const allCoords = routeGeoJSON.coordinates;
+        let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
+        for (const [cLng, cLat] of allCoords) {
+          if (cLng < minLng) minLng = cLng;
+          if (cLng > maxLng) maxLng = cLng;
+          if (cLat < minLat) minLat = cLat;
+          if (cLat > maxLat) maxLat = cLat;
+        }
+        map.fitBounds([[minLng, minLat], [maxLng, maxLat]], {
+          padding: { top: 100, bottom: 80, left: 50, right: 50 },
+          maxZoom: 17,
+          duration: 1500
+        });
+
+        // 10. Iniciar animación fluida de dashes
+        animStep = 0;
+        routeAnimFrame = requestAnimationFrame(animarRutaDash);
+
+        // 11. Iniciar rastreo GPS continuo (watchPosition — estilo Waze)
+        cameraFollowing = true;
+        if (navigator.geolocation) {
+          if (gpsWatchId !== null) navigator.geolocation.clearWatch(gpsWatchId);
+          gpsWatchId = navigator.geolocation.watchPosition(
+            onPosicionGPSActualizada,
+            (err) => console.warn("GPS watch error:", err),
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 3000 }
+          );
+        }
+
+      } catch (err) {
+        console.error("Error al trazar ruta:", err);
+      }
+    }
+
+    // ── Limpiar capas de ruta del mapa ──
+    function cancelarRutaActivaCapas() {
+      if (!map) return;
+      try {
+        if (map.getLayer('ruta-linea-anim')) map.removeLayer('ruta-linea-anim');
+        if (map.getLayer('ruta-linea')) map.removeLayer('ruta-linea');
+        if (map.getLayer('ruta-linea-bg')) map.removeLayer('ruta-linea-bg');
+        if (map.getSource('ruta-source')) map.removeSource('ruta-source');
+      } catch(e) {}
+    }
+
+    // ── Cancelar ruta activa completa (limpieza total) ──
+    function cancelarRutaActiva() {
+      // Detener rastreo GPS continuo
+      if (gpsWatchId !== null) {
+        navigator.geolocation.clearWatch(gpsWatchId);
+        gpsWatchId = null;
+      }
+
+      // Detener animación de dashes
+      if (routeAnimFrame) {
+        cancelAnimationFrame(routeAnimFrame);
+        routeAnimFrame = null;
+      }
+
+      // Remover capas de ruta
+      cancelarRutaActivaCapas();
+
+      // Remover marcadores
+      if (userGpsMarker) { userGpsMarker.remove(); userGpsMarker = null; }
+      if (destMarker) { destMarker.remove(); destMarker = null; }
+
+      // Limpiar datos
+      rutaActivaData = null;
+      cameraFollowing = false;
+      animStep = 0;
+
+      // Ocultar HUD
+      const hud = document.getElementById('panel-ruta-activa');
+      if (hud) { hud.style.display = 'none'; hud.style.animation = ''; }
+    }
+
+    /* ===================== TARJETA (bottom sheet) ===================== */
+    function mostrarTarjetaProveedor(p) {
+      try {
+        if (!p) return;
+        const isNew     = !!p.identidad;
+        const emoji     = (isNew ? p.identidad?.emoji     : p.emoji) || '📍';
+        const nombre    = (isNew ? p.identidad?.nombre    : p.nombre) || 'Proveedor';
+        const contacto  = (isNew ? p.identidad?.atendidoPor : p.contacto) || nombre;
+        const rawFono   = (isNew ? p.contacto?.fono       : p.fono) || '';
+        const fono      = String(rawFono || '');
+        const horario   = (isNew ? p.contacto?.horario    : p.horario) || '09:00 - 18:00 hrs';
+        const foto      = (isNew ? p.identidad?.foto      : p.foto) || '';
+        const plan      = isNew ? p.plan : (p.dePago ? 'pro' : 'gratis');
+        const isAzul    = p.tipo === 'azul';
+        const isNaranja = p.tipo === 'naranja';
+        const planLabel = plan === 'ultra_pro' ? '👑 Ultra Pro' : plan === 'pro' ? '🟡 Pro' : '⚪ Gratis';
+        
+        // Link al perfil público
+        const targetViewLink = isNaranja 
+          ? `profile_view_community.html?id=${p.id || '999'}`
+          : (isAzul ? `profile_view_worker.html?id=${p.id || '999'}` : `profile_view_company.html?id=${p.id || '999'}`);
+
+        const isNewLayout = (p.id == 107 || p.id == 102);
+
+        // Cambiar dinámicamente el color de fondo de la tarjeta emergente según catálogo
+        const cardWrapper = document.querySelector('#tarjeta-emergente > div');
+        if (cardWrapper && !isNewLayout) {
+          if (isNaranja) {
+            cardWrapper.style.backgroundColor = '#ffedd5'; // Naranja pastel
+            cardWrapper.style.borderColor = '#f97316';
+          } else if (isAzul) {
+            cardWrapper.style.backgroundColor = '#eff6ff'; // Celeste pastel de los cuadros del perfil
+            cardWrapper.style.borderColor = '#dbeafe';
+          } else {
+            cardWrapper.style.backgroundColor = '#e6f4ea'; // Verde menta pastel de los cuadros del perfil
+            cardWrapper.style.borderColor = '#d1fae5';
+          }
+          cardWrapper.style.borderRadius = '24px';
+          cardWrapper.style.padding = '20px';
+        }
+
+        const borderCol = isNaranja ? '#ea580c' : (isAzul ? '#1e3a8a' : '#064e3b');
+        const fotoSection = foto
+          ? `<img src="${foto}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:3px solid ${borderCol};flex-shrink:0;" onerror="this.style.display='none'">` : '';
+
+        // Render de stickers dobles en cabecera
+        let rubroSticker = (typeof KeiluUtils !== 'undefined') ? KeiluUtils.fixStickerPath(p.stickerRubro || p.identidad?.stickerRubro) : (p.stickerRubro || p.identidad?.stickerRubro);
+        let actionSticker = (typeof KeiluUtils !== 'undefined') ? KeiluUtils.fixStickerPath(p.stickerAccion || p.identidad?.stickerAccion) : (p.stickerAccion || p.identidad?.stickerAccion);
+        const swapStickers = p.swapStickerOrder || false;
+
+        let titleEmojiHtml = `<span style="display:inline-block;vertical-align:middle;margin-right:4px;font-size:16px;">${emoji}</span>`;
+        if (rubroSticker || actionSticker) {
+          const rubroImg = rubroSticker 
+            ? `<img src="${rubroSticker}" style="width:22px;height:22px;object-fit:contain;display:inline-block;vertical-align:middle;" onerror="this.onerror=null; this.outerHTML='<span style=\'font-size:16px;\'>${emoji}</span>';">` 
+            : `<span style="font-size:16px;">${emoji}</span>`;
+          const actionImg = actionSticker 
+            ? `<img src="${actionSticker}" style="width:22px;height:22px;object-fit:contain;display:inline-block;vertical-align:middle;" onerror="this.style.display='none'">` 
+            : '';
+          
+          if (swapStickers) {
+            titleEmojiHtml = `<div style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle;margin-right:6px;">${actionImg}${rubroImg}</div>`;
+          } else {
+            titleEmojiHtml = `<div style="display:inline-flex;align-items:center;gap:4px;vertical-align:middle;margin-right:6px;">${rubroImg}${actionImg}</div>`;
+          }
+        }
+
+        // Estado Favorito (Guardado)
+        const favoritos = JSON.parse(localStorage.getItem('keilu_favoritos') || '[]');
+        const isFavorito = favoritos.includes(p.id);
+
+        const heartButton = `
+          <button onclick="toggleFavorito(${p.id})" class="absolute top-4 right-10 p-1.5 rounded-full hover:bg-white/60 transition flex items-center justify-center select-none" style="border:none;background:transparent;outline:none;" title="Guardar a Favoritos">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transition-transform duration-200 active:scale-125" viewBox="0 0 24 24" fill="${isFavorito ? '#ef4444' : 'none'}" stroke="${isFavorito ? '#ef4444' : '#94a3b8'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+            </svg>
+          </button>
+        `;
+
+        // Valoración y Reseña
+        const rating = (4.4 + ((p.id * 7) % 7) * 0.1).toFixed(1);
+        const opinionesCount = (10 + (p.id * 13) % 85);
+
+        // Distancia relativa
+        const distancias = [120, 250, 310, 450, 600, 750, 920];
+        const distanciaText = `📍 A ${distancias[p.id % distancias.length]} metros`;
+
+        // Abierto / Cerrado inteligente según hora real del dispositivo
+        let isOpen = true;
+        if (horario && horario.includes('-')) {
+          try {
+            const parts = horario.split('-');
+            // Extract hour correctly: '10:00' -> 10, not 1000
+            const startHour = parseInt(parts[0].trim().split(':')[0]) || 8;
+            const endHour = parseInt(parts[1].trim().split(':')[0]) || 20;
+            const currentHour = new Date().getHours();
+            isOpen = currentHour >= startHour && currentHour < endHour;
+          } catch(e) {}
+        }
+        
+        // Estilo de cápsulas blancas flotantes
+        const statusLabel = isOpen 
+          ? `<span style="font-size:9px;font-weight:800;color:${isNaranja ? '#c2410c' : '#047857'};background:#ffffff;border:1px solid rgba(0,0,0,0.06);box-shadow:0 1px 2px rgba(0,0,0,0.02);padding:2.5px 7px;border-radius:6px;display:inline-flex;align-items:center;gap:3.5px;"><span style="width:5px;height:5px;background:${isNaranja ? '#ea580c' : '#10b981'};border-radius:50%;display:inline-block;animation:pulse 1.5s infinite;"></span>Abierto ahora</span>`
+          : `<span style="font-size:9px;font-weight:800;color:#64748b;background:#ffffff;border:1px solid rgba(0,0,0,0.06);box-shadow:0 1px 2px rgba(0,0,0,0.02);padding:2.5px 7px;border-radius:6px;display:inline-flex;align-items:center;gap:3.5px;"><span style="width:5px;height:5px;background:#94a3b8;border-radius:50%;display:inline-block;"></span>Cerrado</span>`;
+
+        const distanceLabel = `<span style="font-size:9.5px;font-weight:750;color:#334155;background:#ffffff;border:1px solid rgba(0,0,0,0.06);box-shadow:0 1px 2px rgba(0,0,0,0.02);padding:2.5px 7px;border-radius:6px;">${distanciaText}</span>`;
+
+        // Banner En Vivo (si está activo)
+        const estadoVivo = isNew ? p.tiemposYAcciones?.estadoVivo : null;
+        let liveSection = '';
+        if (estadoVivo?.activo) {
+          const liveTextCol = isNaranja ? '#c2410c' : '#047857';
+          const livePulseBg = isNaranja ? '#ea580c' : '#10b981';
+          liveSection = `
+            <div style="display:flex;align-items:center;gap:6px;background:#ffffff;border:1px solid rgba(0,0,0,0.06);box-shadow:0 1px 2px rgba(0,0,0,0.02);border-radius:10px;padding:8px 12px;margin:8px 0;">
+              <span style="width:7px;height:7px;border-radius:50%;background:${livePulseBg};display:inline-block;animation:pulse 1.5s infinite;"></span>
+              <span style="font-size:10px;font-weight:800;color:${liveTextCol};text-transform:uppercase;letter-spacing:0.5px;">${estadoVivo.texto}</span>
+            </div>`;
+        }
+
+        if (isNewLayout) {
+          // ==================== DISEÑO MINI-PERFIL (SEBASTIÁN PINO #107 Y ROBERTO SANHUEZA #102) ====================
+          const cardWrapperEl = document.querySelector('#tarjeta-emergente > div');
+          if (cardWrapperEl) {
+            cardWrapperEl.style.backgroundColor = '#E5F0FF';
+            cardWrapperEl.style.borderColor = '#BFDBFE';
+            cardWrapperEl.style.borderRadius = '28px';
+            cardWrapperEl.style.padding = '14px';
+          }
+
+          const rawGaleria = p.identidad?.galeria || p.galeria || [];
+          const fallbackGallery = [
+            'https://images.unsplash.com/photo-1558904541-efa843a96f01?auto=format&fit=crop&w=400',
+            'https://images.unsplash.com/photo-1592417817098-8f3d69116e0e?auto=format&fit=crop&w=400',
+            'https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&w=400',
+            'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=400'
+          ];
+          const imgsToDisplay = (rawGaleria && rawGaleria.length >= 2) ? rawGaleria.slice(0, 4) : fallbackGallery;
+          const circles = imgsToDisplay.map(img => `
+            <img src="${img}" style="width:72px;height:72px;border-radius:14px;object-fit:cover;flex-shrink:0;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
+          `).join('');
+
+          const especialidadTexto = (isNew ? p.identidad?.especialidad : (p.rubro || '')) || 'Servicio Profesional';
+
+          document.getElementById('tarjeta-contenido').innerHTML = `
+            <div onclick="window.location.href='${targetViewLink}'" style="cursor:pointer;">
+              
+              <!-- FILA SUPERIOR: CUADRO AZUL DEL ROL + CONTENEDOR DERECHO DE BOTONES -->
+              <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:10px;">
+                
+                <!-- CUADRO AZUL OSCURO DEL ROL -->
+                <div style="background:#052659;color:white;border-radius:22px;padding:9px 12px;flex:1;display:flex;align-items:center;justify-content:space-between;min-width:0;box-shadow:0 2px 6px rgba(0,0,0,0.12);">
+                  <div style="display:flex;align-items:center;gap:9px;min-width:0;flex:1;">
+                    <img src="${foto}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid white;flex-shrink:0;" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400'">
+                    <div style="min-width:0;flex:1;">
+                      <h4 style="font-size:13px;font-weight:900;color:white;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nombre}</h4>
+                      <p style="font-size:9.5px;font-weight:700;color:#dbeafe;margin:1px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${especialidadTexto}</p>
+                      <div style="display:flex;align-items:center;gap:4px;font-size:9.5px;font-weight:900;color:#fcd34d;">
+                        <span>⭐ ${rating}</span>
+                        <span style="color:#bfdbfe;font-weight:600;">(18 Opiniones)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Stickers GIF dentro del cuadro azul -->
+                  <div style="display:flex;gap:4px;margin-left:6px;flex-shrink:0;">
+                    <div style="width:26px;height:26px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:2px;">
+                      <img src="stickers/appmojis/ubicacion.gif" style="width:18px;height:18px;object-fit:contain;" onerror="this.outerHTML='📍'">
+                    </div>
+                    <div style="width:26px;height:26px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:2px;">
+                      <img src="stickers/appmojis/seguro.gif" style="width:18px;height:18px;object-fit:contain;" onerror="this.outerHTML='🏠'">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- COLUMNA DERECHA: BOTÓN SUPERIOR (CÓMO LLEGAR RUTA NATIVA) Y BOTÓN INFERIOR (VER PERFIL) -->
+                <div style="display:flex;flex-direction:column;gap:5px;width:105px;flex-shrink:0;justify-content:space-between;">
+                  <button onclick="event.stopPropagation(); trazarRutaAProveedor(${p.ubicacion?.lat || -36.802952}, ${p.ubicacion?.lng || -73.101704}, ${p.id})" style="height:30px;background:white;border:1px solid #bfdbfe;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:3px;color:#052659;font-size:9.5px;font-weight:900;letter-spacing:0.3px;box-shadow:0 1px 3px rgba(0,0,0,0.04);cursor:pointer;outline:none;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='white'">
+                    📍 CÓMO LLEGAR
+                  </button>
+                  <a href="${targetViewLink}" onclick="event.stopPropagation()" style="height:30px;background:white;border:1px solid #bfdbfe;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#052659;font-size:9.5px;font-weight:900;letter-spacing:0.5px;box-shadow:0 1px 3px rgba(0,0,0,0.04);text-decoration:none;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='white'">
+                    VER PERFIL
+                  </a>
+                </div>
+              </div>
+
+              <!-- FOTOS DE GALERÍA DE TRABAJOS (COMPACTO Y LIMPIO) -->
+              <div style="display:flex;gap:8px;margin:4px 0;overflow-x:auto;" class="no-scrollbar">
+                ${circles}
+              </div>
+
+            </div>`;
+        } else {
+          // ==================== DISEÑO CLÁSICO (TODOS LOS DEMÁS PROVEEDORES PARA COMPARAR) ====================
+          let galleryHtml = '';
+          const rawGaleria = p.identidad?.galeria || p.galeria || [];
+          if (rawGaleria && rawGaleria.length > 0) {
+            const imgs = rawGaleria.slice(0, 4);
+            const circles = imgs.map(img => `
+              <img src="${img}" style="width:52px;height:52px;border-radius:12px;object-fit:cover;border:1.5px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,0.05);" onerror="this.style.display='none'">
+            `).join('');
+            galleryHtml = `
+              <div style="margin:10px 0 12px;">
+                <p style="font-size:8.5px;color:#94a3b8;font-weight:900;text-transform:uppercase;margin:0 0 6px;letter-spacing:0.5px;">TRABAJOS / GALERÍA</p>
+                <div style="display:flex;gap:8px;">
+                  ${circles}
+                </div>
+              </div>
+            `;
+          }
+
+          const btnBg = isNaranja
+            ? 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)'
+            : (isAzul 
+                ? 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)' 
+                : 'linear-gradient(135deg, #064e3b 0%, #059669 100%)');
+          const btnShadow = isNaranja
+            ? '0 4px 12px rgba(249, 115, 22, 0.25)'
+            : (isAzul 
+                ? '0 4px 12px rgba(37, 99, 235, 0.2)' 
+                : '0 4px 12px rgba(5, 150, 105, 0.2)');
+
+          document.getElementById('tarjeta-contenido').innerHTML = `
+            ${heartButton}
+            <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
+              ${fotoSection}
+              <div style="flex:1;min-width:0;padding-right:20px;">
+                <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:2px;">
+                  <span style="font-size:9.5px;font-weight:900;color:#b91c1c;background:#fee2e2;padding:1.5px 5px;border-radius:5px;letter-spacing:0.5px;">#${p.id}</span>
+                  <span style="font-size:9px;font-weight:900;color:#94a3b8;text-transform:uppercase;">${planLabel}</span>
+                  ${p.verificado ? '<span style="font-size:8px;color:#3b82f6;font-weight:800;">✅ Verificado</span>' : ''}
+                </div>
+                <h4 style="font-size:14px;font-weight:900;color:#0f172a;margin:0 0 2px;display:flex;align-items:center;gap:4px;letter-spacing:-0.3px;">${titleEmojiHtml} ${nombre}</h4>
+                <p style="font-size:10px;color:#64748b;margin:0 0 4px;font-weight:500;">${(isNew ? p.identidad?.especialidad : (p.rubro || '')) || 'Servicio'}</p>
+                <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+                  <span style="font-size:11px;font-weight:800;color:#d97706;display:flex;align-items:center;gap:2px;">⭐ ${rating}</span>
+                  <span style="font-size:9.5px;color:#94a3b8;font-weight:600;">(${opinionesCount} opiniones)</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+              ${statusLabel}
+              ${distanceLabel}
+            </div>
+
+            ${liveSection}
+
+            ${galleryHtml}
+
+            <div style="display:flex;flex-direction:column;margin-top:4px;">
+              <a href="${targetViewLink}" style="display:flex;align-items:center;justify-content:center;gap:6px;background:${btnBg};color:white;font-weight:800;padding:12px;border-radius:16px;font-size:11px;text-decoration:none;box-shadow:${btnShadow};transition:transform 0.15s;text-transform:uppercase;letter-spacing:0.5px;" onmouseover="this.style.transform='scale(1.015)'" onmouseout="this.style.transform='scale(1)'">
+                ✨ Ver Perfil Completo
+              </a>
+            </div>`;
+        }
+
+        document.getElementById('tarjeta-emergente').classList.add('visible');
+      } catch (err) {
+        console.error("Error al mostrar tarjeta del proveedor:", err);
+      }
+    }
+
+    function cerrarTarjeta() {
+      document.getElementById('tarjeta-emergente').classList.remove('visible');
+    }
+
+    /* ===================== FILTROS ===================== */
+    function filtrarCategoriaQuick(category) {
+      ['todos','fletes','pan','comida'].forEach(c => {
+        const btn = document.getElementById(`cat-btn-${c}`);
+        if (!btn) return;
+        if (c === category) { btn.classList.add('bg-white','text-slate-900'); btn.classList.remove('bg-slate-900/90','text-white'); }
+        else { btn.classList.remove('bg-white','text-slate-900'); btn.classList.add('bg-slate-900/90','text-white'); }
+      });
+      if (category === 'todos') { renderizarPines(proveedores); return; }
+      // Búsqueda en nuevo schema (especialidad + rubroId) y legacy (rubro)
+      const matches = proveedores.filter(p => {
+        const texto = p.identidad
+          ? `${p.identidad.especialidad} ${p.identidad.rubroId} ${p.identidad.nombre}`.toLowerCase()
+          : (p.rubro || '').toLowerCase();
+        return texto.includes(category);
+      });
+      renderizarPines(matches);
+    }
+
+    function ejecutarBusqueda() {
+      const query = document.getElementById("search-input").value.toLowerCase().trim();
+      const clearBtn = document.getElementById("clear-search-btn");
+      if (clearBtn) { query ? clearBtn.classList.remove("hidden") : clearBtn.classList.add("hidden"); }
+      if (!query) { renderizarPines(proveedores); return; }
+      renderizarPines(proveedores.filter(p => {
+        const nombre = (p.identidad?.nombre || p.nombre || '').toLowerCase();
+        const especialidad = (p.identidad?.especialidad || p.rubro || '').toLowerCase();
+        const rubroId = (p.identidad?.rubroId || '').toLowerCase();
+        return nombre.includes(query) || especialidad.includes(query) || rubroId.includes(query);
+      }));
+    }
+
+    function clearSearch() {
+      document.getElementById("search-input").value = "";
+      document.getElementById("clear-search-btn")?.classList.add("hidden");
+      renderizarPines(proveedores);
+      cerrarTarjeta();
+    }
+
+    /* ===================== BADGE STYLE ===================== */
+    function changeBadgeStyle(style) {
+      badgeStyle = style;
+      ['glass','minimal'].forEach(s => {
+        const btn = document.getElementById(`badge-btn-${s}`);
+        if (!btn) return;
+        if (s === style) { btn.classList.add('border-blue-500','text-white'); btn.classList.remove('border-transparent','text-slate-400'); }
+        else { btn.classList.remove('border-blue-500','text-white'); btn.classList.add('border-transparent','text-slate-400'); }
+      });
+      renderizarPines(proveedores);
+    }
+
+    /* ===================== SECCIÓN EXPLORAR ===================== */
+    function toggleExplorarFeed() {
+      const container = document.getElementById('explorar-feed-container');
+      const btn = document.getElementById('btn-nav-explorar');
+      if (!container) return;
+
+      const isOpen = container.classList.contains('open');
+      if (isOpen) {
+        container.classList.remove('open');
+        if (btn) btn.classList.remove('btn-nav-gps-highlight');
+      } else {
+        // Render feed first
+        renderizarExplorarFeed();
+        container.classList.add('open');
+        if (btn) btn.classList.add('btn-nav-gps-highlight');
+        // Close other panels
+        cerrarTarjeta();
+        cerrarModalRegistro();
+      }
+    }
+
+    function renderizarExplorarFeed() {
+      const listContainer = document.getElementById('explorar-feed-list');
+      if (!listContainer) return;
+      listContainer.innerHTML = "";
+
+      // Clone providers list
+      let feedProviders = [...proveedores];
+
+      // Load custom profile if registered
+      const customRaw = localStorage.getItem('keilu_user_provider');
+      if (customRaw) {
+        try {
+          const parsed = JSON.parse(customRaw);
+          if (parsed && parsed.nombre) {
+            // Give it a negative ID or high ID to avoid collisions
+            parsed.id = parsed.id || 9999;
+            // Prepend so user sees their custom profile first
+            feedProviders.unshift(parsed);
+          }
+        } catch(e) {}
+      }
+
+      feedProviders.forEach(p => {
+        const isNew = !!p.identidad;
+        const isAzul = p.tipo === 'azul';
+        const isNaranja = p.tipo === 'naranja';
+        const nombre = isNew ? p.identidad.nombre : p.nombre;
+        const especialidad = isNew ? p.identidad.especialidad : (p.rubro || 'Servicio');
+        const plan = isNew ? p.plan : (p.dePago ? 'pro' : 'gratis');
+        const verificado = isNew ? !!p.verificado : false;
+        const descripcion = isNew ? p.identidad.descripcion : (p.descripcion || p.notaAd || '');
+        const foto = isNew ? p.identidad.foto : (p.foto || '');
+        const emoji = isNew ? p.identidad.emoji : p.emoji;
+        const animClass = isNew ? p.visualMapa.animClass : (p.animClass || '');
+        const fono = isNew ? p.contacto?.fono : p.fono;
+        const rawFono = String(fono || '');
+        const galeria = isNew ? (p.identidad.galeria || []) : (p.galeria || []);
+
+        // Animated icon lookup
+        let iconHtml = "";
+        let rubroStickerPath = (typeof KeiluUtils !== 'undefined') ? KeiluUtils.fixStickerPath(p.stickerRubro || p.identidad?.stickerRubro) : (p.stickerRubro || p.identidad?.stickerRubro);
+        const boostIds = [107, 108, 109, 127, 128, 129];
+        const tieneBoost = boostIds.includes(p.id) || (isNew && p.tiemposYAcciones?.boostGratis?.activo) || !!rubroStickerPath;
+        
+        if (tieneBoost) {
+          let gifUrl = "";
+          if (p.id === 128) gifUrl = 'gif/hamburguesa_boost.gif';
+          else if (p.id === 127) gifUrl = 'gif/sushi_boost.gif';
+          else if (p.id === 129) gifUrl = 'gif/pollo_boost.gif';
+          else if (p.id === 109) gifUrl = 'gif/carpintero_boost.gif';
+          else if (p.id === 108) gifUrl = 'gif/soldador_boost.gif';
+          else if (p.id === 107) gifUrl = 'gif/manicura_boost.gif';
+          else if (rubroStickerPath) gifUrl = rubroStickerPath;
+
+          if (gifUrl) {
+            iconHtml = `<img src="${gifUrl}" class="w-7 h-7 object-contain block" onerror="this.onerror=null; this.outerHTML='<span class=\'${animClass} inline-block text-lg\'>${emoji}</span>';">`;
+          } else {
+            iconHtml = `<span class="${animClass} inline-block text-lg">${emoji}</span>`;
+          }
+        } else {
+          iconHtml = `<span class="${animClass} inline-block text-lg">${emoji}</span>`;
+        }
+
+        // Render card
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-3xl p-5 shadow-sm border border-slate-100/90 flex flex-col gap-4 relative overflow-hidden transition hover:shadow-md text-left";
+        
+        // Ribbon styling
+        const ribbonClass = plan === 'ultra_pro' 
+          ? 'bg-amber-100 text-amber-700 border-l border-b border-amber-200' 
+          : plan === 'pro' 
+            ? (isNaranja ? 'bg-orange-100 text-orange-700 border-l border-b border-orange-200' : 'bg-blue-100 text-blue-700 border-l border-b border-blue-200')
+            : 'bg-slate-100 text-slate-500 border-l border-b border-slate-200';
+        const ribbonLabel = plan === 'ultra_pro' ? '👑 Ultra Pro' : plan === 'pro' ? '⭐ Pro' : 'Gratis';
+
+        let galleryHtml = "";
+        if (galeria && galeria.length > 0) {
+          galleryHtml = `
+            <div class="flex gap-2 overflow-x-auto py-1 no-scrollbar">
+              ${galeria.map(img => `<img src="${img}" class="w-20 h-20 rounded-xl object-cover border border-slate-100 shrink-0 shadow-inner">`).join('')}
+            </div>
+          `;
+        }
+
+        let contactActionsHtml = "";
+        if (rawFono) {
+          const waUrl = (typeof KeiluUtils !== 'undefined')
+            ? KeiluUtils.buildWhatsAppUrl(rawFono, 'Hola, vi tu servicio en Keilu y me gustaría consultar...')
+            : `https://wa.me/${String(rawFono).replace(/\D/g, '')}`;
+          contactActionsHtml = `
+            <a href="tel:${String(rawFono).replace(/\s+/g, '')}" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center justify-center" title="Llamar">
+              <i data-lucide="phone" class="w-4 h-4"></i>
+            </a>
+            <a href="${waUrl}" target="_blank" class="p-2 bg-slate-100 hover:bg-slate-200 text-emerald-600 rounded-xl transition flex items-center justify-center" title="Enviar WhatsApp">
+              <i data-lucide="message-circle" class="w-4 h-4"></i>
+            </a>
+          `;
+        }
+
+        const latVal = p.ubicacion ? p.ubicacion.lat : (p.lat || p.realLat || 0);
+        const lngVal = p.ubicacion ? p.ubicacion.lng : (p.lng || p.realLng || 0);
+
+        const borderColor = isNaranja ? 'border-orange-500' : (isAzul ? 'border-blue-500' : 'border-emerald-500');
+        const btnBgClass = isNaranja 
+          ? 'bg-orange-600 hover:bg-orange-700 text-white shadow-orange-200' 
+          : (isAzul 
+              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200' 
+              : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200');
+
+        card.innerHTML = `
+          <!-- Ribbon de Plan -->
+          <div class="absolute top-0 right-0 px-3 py-1 text-[8px] font-black uppercase tracking-wider rounded-bl-xl ${ribbonClass}">
+            ${ribbonLabel}
+          </div>
+
+          <!-- Cabecera -->
+          <div class="flex items-start gap-3 mt-1">
+            <!-- Avatar -->
+            <div class="relative shrink-0">
+              <div class="w-12 h-12 rounded-full overflow-hidden border-2 ${borderColor} shadow-sm bg-slate-50 flex items-center justify-center">
+                ${foto ? `<img src="${foto}" class="w-full h-full object-cover">` : `<div class="text-xl">${emoji}</div>`}
+              </div>
+              <!-- Mini Sticker Icon -->
+              <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-white shadow flex items-center justify-center border border-slate-100 overflow-hidden text-xs">
+                ${iconHtml}
+              </div>
+            </div>
+
+            <!-- Nombres e info -->
+            <div class="flex-1 min-w-0 pr-12">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <h3 class="text-xs font-black text-slate-800 truncate">${nombre}</h3>
+                ${verificado ? '<span class="text-[8px] font-bold text-blue-500 bg-blue-50 px-1 py-0.5 rounded border border-blue-100 shrink-0">✅ Verificado</span>' : ''}
+              </div>
+              <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">${especialidad}</p>
+            </div>
+          </div>
+
+          <!-- Descripción -->
+          ${descripcion ? `
+          <div class="text-xs text-slate-600 leading-relaxed font-medium bg-slate-50/50 p-3.5 rounded-2xl border border-slate-100/50">
+            ${descripcion}
+          </div>
+          ` : ''}
+
+          <!-- Galería Horizontal -->
+          ${galleryHtml}
+
+          <!-- Botones de Acción -->
+          <div class="flex items-center gap-2 mt-1">
+            <button onclick="verEnMapaDesdeFeed(${latVal}, ${lngVal}, ${p.id})" class="flex-1 py-2 px-3 rounded-xl text-[10px] font-extrabold transition-all duration-200 flex items-center justify-center gap-1 shadow-sm ${btnBgClass}">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Ver en Mapa
+            </button>
+            ${contactActionsHtml}
+          </div>
+        `;
+        listContainer.appendChild(card);
+      });
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function verEnMapaDesdeFeed(lat, lng, pId) {
+      toggleExplorarFeed();
+      
+      // Find provider
+      let provider = proveedores.find(x => x.id === pId);
+      if (!provider) {
+        const customRaw = localStorage.getItem('keilu_user_provider');
+        if (customRaw) {
+          try {
+            const parsed = JSON.parse(customRaw);
+            if (parsed && parsed.id === pId) {
+              provider = parsed;
+            }
+          } catch(e){}
+        }
+      }
+
+      if (map) {
+        map.flyTo({ center: [lng, lat], zoom: 15.8, duration: 1500 });
+        setTimeout(() => {
+          if (provider) {
+            mostrarTarjetaProveedor(provider);
+          }
+        }, 1600);
+      }
+    }
+
+    /* ===================== PERFIL ===================== */
+    function openProfileEditor() {
+      const modal = document.getElementById('modal-registro-selector');
+      if (modal) {
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100', 'pointer-events-auto');
+        lucide.createIcons();
+      }
+    }
+
+    function cerrarModalRegistro() {
+      const modal = document.getElementById('modal-registro-selector');
+      if (modal) {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.classList.remove('opacity-100', 'pointer-events-auto');
+      }
+    }
+  </script>
+</body>
+</html>

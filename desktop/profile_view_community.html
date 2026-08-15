@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Keilu - Detalle de Actividad Comunitaria</title>
+  
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Outfit', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Mock Data -->
+  <script src="mock_data.js"></script>
+  <script src="js/utils.js"></script>
+
+  <!-- MapLibre GL CSS & JS -->
+  <link href="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.js"></script>
+  
+  <style>
+    :root {
+      --keilu-community-header: #7C2D12;
+      --keilu-community-accent: #EA580C;
+    }
+
+    body {
+      background-color: #F8FAFC !important;
+      color: #0F172A !important;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 4px;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hero-header {
+      position: relative;
+      height: 160px;
+      background-color: #7C2D12;
+      border-bottom-left-radius: 50% 15%;
+      border-bottom-right-radius: 50% 15%;
+      transition: background-color 0.3s ease;
+      flex-shrink: 0;
+      z-index: 30;
+    }
+
+    /* Readonly value card display */
+    .readonly-field {
+      width: 100%;
+      background-color: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      color: #1E293B;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    }
+
+    /* Day tags styling */
+    .day-tag {
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: bold;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      user-select: none;
+    }
+    .day-tag.active {
+      background-color: #7C2D12 !important;
+      color: #FFFFFF !important;
+      border: 1px solid #7C2D12 !important;
+    }
+    .day-tag.inactive {
+      background-color: #F1F5F9 !important;
+      color: #94A3B8 !important;
+      border: 1px solid #E2E8F0 !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen p-0 sm:p-6 font-sans">
+
+  <!-- Main Container -->
+  <div class="max-w-4xl mx-auto flex flex-col bg-white border-0 sm:border border-slate-100 rounded-none sm:rounded-3xl overflow-hidden shadow-xl pb-12 min-h-screen sm:min-h-0 relative">
+    
+    <!-- Hero Header -->
+    <div id="hero-header-container" class="hero-header">
+      <!-- Top buttons row -->
+      <div class="flex justify-between items-center w-full px-4 sm:px-8 pt-4">
+        <a href="javascript:history.back()" class="text-white/95 hover:text-white flex items-center gap-1.5 text-xs font-bold transition">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver
+        </a>
+        <div class="flex items-center gap-2">
+          <a id="btn-call-header" href="tel:" class="bg-white text-slate-800 hover:bg-slate-50 px-3.5 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-md no-underline">
+            <i data-lucide="phone" class="w-3.5 h-3.5 text-orange-650"></i> Coordinador
+          </a>
+          <a id="btn-whatsapp-header" href="https://wa.me/" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-black transition flex items-center gap-1.5 shadow-md no-underline">
+            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> WhatsApp
+          </a>
+        </div>
+      </div>
+      <!-- Center Title -->
+      <div class="text-center text-white mt-1">
+        <span id="hero-subtitle" class="text-[10px] font-black uppercase tracking-wider opacity-75">Catálogo Naranjo 🟠</span>
+        <h1 id="hero-title" class="text-xl font-black mt-0.5">Ficha de Actividad</h1>
+      </div>
+      <!-- Avatar overlapping bottom wave curve -->
+      <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 z-40">
+        <div class="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md bg-slate-100 flex items-center justify-center">
+          <img id="profile-avatar" src="" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80'">
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Form Content Area (Step layout matching image 2) -->
+    <div class="px-4 sm:px-8 pt-16 grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+      
+      <!-- Column 1: Info General (Pasos 1 al 5) -->
+      <div class="flex flex-col gap-6">
+        <h3 class="text-xs font-black text-[#7C2D12] uppercase tracking-widest border-b border-orange-100 pb-2 flex items-center justify-between">
+          <span>DATOS DE LA ACTIVIDAD VECINAL</span>
+          <span id="profile-id-badge" class="text-[9.5px] font-bold text-red-700 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full uppercase tracking-wider">#000</span>
+        </h3>
+
+        <!-- PASO 1: Nombre y Oficio -->
+        <div class="flex flex-col gap-3.5 p-4 bg-orange-50/50 border border-orange-100 rounded-2xl">
+          <label class="text-[10px] text-[#7C2D12] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+            <span class="w-4.5 h-4.5 rounded-full bg-[#7C2D12] text-white text-[9px] flex items-center justify-center font-black">1</span>
+            DETALLES DEL EVENTO
+          </label>
+          
+          <div class="flex flex-col gap-1.5">
+            <span class="text-[8.5px] text-[#7C2D12] font-black uppercase tracking-wider">Nombre del Evento o Actividad</span>
+            <div id="field-name" class="readonly-field">Cargando...</div>
+          </div>
+
+          <div class="flex flex-col gap-1.5 border-t border-orange-200/20 pt-2.5">
+            <span class="text-[8.5px] text-[#7C2D12] font-black uppercase tracking-wider">Especialidad o Tipo de Evento</span>
+            <div id="field-rubro" class="readonly-field font-medium">Cargando...</div>
+          </div>
+        </div>
+
+        <!-- PASO 2: Afiches / Fotos de la Actividad - Carrusel Estilo App / Instagram -->
+        <div class="flex flex-col gap-3 p-4 bg-orange-50/50 border border-orange-100 rounded-2xl">
+          <label class="text-[10px] text-[#7C2D12] font-extrabold uppercase tracking-wider flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="w-4.5 h-4.5 rounded-full bg-[#7C2D12] text-white text-[9px] flex items-center justify-center font-black">2</span>
+              AFICHES / FOTOS DE LA ACTIVIDAD
+            </div>
+            <span id="gallery-count-badge" class="text-[9px] font-extrabold text-orange-800 bg-orange-100/80 px-2.5 py-0.5 rounded-full">
+              📷 Fotos Reales
+            </span>
+          </label>
+
+          <!-- Carrusel deslizable (3 fotos visibles a la vez) -->
+          <div class="relative group mt-0.5">
+            <div id="gallery-container" class="flex gap-2.5 overflow-x-auto snap-x snap-mandatory scroll-smooth py-1 px-0.5" style="scrollbar-width: none; -ms-overflow-style: none;">
+              <!-- Fotos cargadas dinámicamente -->
+            </div>
+
+            <!-- Botones de navegación del carrusel -->
+            <button type="button" onclick="moverCarrusel(-1)" class="absolute -left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-900/75 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-sm opacity-90 transition shadow-md z-10 cursor-pointer text-base font-bold">
+              ‹
+            </button>
+            <button type="button" onclick="moverCarrusel(1)" class="absolute -right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-900/75 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-sm opacity-90 transition shadow-md z-10 cursor-pointer text-base font-bold">
+              ›
+            </button>
+          </div>
+
+          <div id="no-gallery-msg" class="text-xs font-semibold text-slate-400 py-4 text-center bg-white border border-slate-100 rounded-xl hidden">
+            No se han subido afiches o fotos del evento.
+          </div>
+        </div>
+
+        <!-- PASO 3: Categorías de tu Servicio -->
+        <div class="flex flex-col gap-3.5 p-4 bg-orange-50/50 border border-orange-100 rounded-2xl">
+          <label class="text-[10px] text-[#7C2D12] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+            <span class="w-4.5 h-4.5 rounded-full bg-[#7C2D12] text-white text-[9px] flex items-center justify-center font-black">3</span>
+            CATEGORÍAS DE LA ACTIVIDAD
+          </label>
+
+          <div class="flex flex-col gap-1.5">
+            <span class="text-[8.5px] text-[#7C2D12] font-black uppercase tracking-wider">Emoji Representativo</span>
+            <div class="flex items-center gap-2">
+              <div id="field-cat-rubro" class="readonly-field flex-1">Cargando...</div>
+              <div class="w-10 h-10 rounded-xl bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center shrink-0 overflow-hidden text-xl">
+                🟠
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1.5 border-t border-orange-200/20 pt-2.5">
+            <span class="text-[8.5px] text-[#7C2D12] font-black uppercase tracking-wider">Sticker de Categoría Vecinal</span>
+            <div class="flex items-center gap-2">
+              <div id="field-cat-accion" class="readonly-field flex-1">Cargando...</div>
+              <div class="w-10 h-10 rounded-xl bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center shrink-0 overflow-hidden p-1">
+                <img id="sticker-rubro-img" src="" class="w-full h-full object-contain" onerror="this.style.display='none'">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PASO 4: Descripción del Evento -->
+        <div class="flex flex-col gap-3.5 p-4 bg-orange-50/50 border border-orange-100 rounded-2xl">
+          <label class="text-[10px] text-[#7C2D12] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+            <span class="w-4.5 h-4.5 rounded-full bg-[#7C2D12] text-white text-[9px] flex items-center justify-center font-black">4</span>
+            DESCRIPCIÓN DEL EVENTO
+          </label>
+          <div id="field-desc" class="w-full bg-white border border-slate-200 rounded-2xl p-4 text-xs text-slate-600 font-medium leading-relaxed min-h-[80px]">
+            Cargando descripción...
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 2: Ubicación y Contacto (Pasos 6 al 7) -->
+      <div class="flex flex-col gap-6">
+        <h3 class="text-xs font-black text-[#7C2D12] uppercase tracking-widest border-b border-orange-100 pb-2 flex items-center justify-between">
+          <span>UBICACIÓN Y COORDINACIÓN</span>
+          <span id="profile-verified-badge" class="text-[9px] font-black text-[#7C2D12] bg-orange-50 border border-orange-150 px-2.5 py-0.5 rounded-full">🟠 Autorizado</span>
+        </h3>
+
+        <!-- PASO 5: Ubicación del Evento -->
+        <div class="flex flex-col gap-3.5 p-4 bg-orange-50/50 border border-orange-100 rounded-2xl">
+          <label class="text-[10px] text-[#7C2D12] font-extrabold uppercase tracking-wider flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="w-4.5 h-4.5 rounded-full bg-[#7C2D12] text-white text-[9px] flex items-center justify-center font-black">5</span>
+              UBICACIÓN DEL EVENTO
+            </div>
+            <span class="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-orange-100 border border-orange-200 text-orange-800">
+              📍 Evento Comunitario
+            </span>
+          </label>
+
+          <!-- Dirección y Sector -->
+          <div class="bg-white border border-slate-200/80 rounded-xl p-3 shadow-sm flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-base">📍</span>
+              <div>
+                <span class="text-[8px] text-[#7C2D12] uppercase font-black tracking-wider block">Sector / Comuna</span>
+                <span id="field-sector-display" class="text-xs font-bold text-slate-800">Cargando sector...</span>
+              </div>
+            </div>
+            <div class="border-t border-slate-100 pt-2 flex items-center gap-2">
+              <span class="text-base">🏠</span>
+              <div>
+                <span class="text-[8px] text-[#7C2D12] uppercase font-black tracking-wider block">Sede / Dirección</span>
+                <span id="field-address-display" class="text-xs font-semibold text-slate-700">Cargando dirección...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTÓN DIRECTO "VER EN EL MAPA INTERACTIVO" -->
+          <button type="button" onclick="irAlMapaInteractivo()" class="w-full py-2.5 bg-orange-600 hover:bg-orange-700 active:scale-95 text-white rounded-full text-xs font-extrabold transition-all duration-200 flex items-center justify-center gap-2 shadow-md cursor-pointer select-none">
+            <i data-lucide="map-pin" class="w-4 h-4"></i>
+            <span>Ver posición en el Mapa Interactivo 🗺️</span>
+          </button>
+        </div>
+
+        <!-- PASO 7: Contacto y Disponibilidad -->
+        <div class="flex flex-col gap-3.5 p-4 bg-orange-50/50 border border-orange-100 rounded-2xl">
+          <label class="text-[10px] text-[#7C2D12] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+            <span class="w-4.5 h-4.5 rounded-full bg-[#7C2D12] text-white text-[9px] flex items-center justify-center font-black">6</span>
+            FECHA Y CONTACTO
+          </label>
+
+          <!-- Días -->
+          <div class="flex flex-col gap-1.5 pt-1">
+            <span class="text-[8.5px] text-[#7C2D12] font-black uppercase tracking-wider">Día del Evento</span>
+            <div class="flex gap-1.5 flex-wrap" id="days-container">
+              <span class="day-tag inactive" data-day="Lunes">Lu</span>
+              <span class="day-tag inactive" data-day="Martes">Ma</span>
+              <span class="day-tag inactive" data-day="Miércoles">Mi</span>
+              <span class="day-tag inactive" data-day="Jueves">Ju</span>
+              <span class="day-tag inactive" data-day="Viernes">Vi</span>
+              <span class="day-tag inactive" data-day="Sábado">Sá</span>
+              <span class="day-tag inactive" data-day="Domingo">Do</span>
+            </div>
+          </div>
+
+          <!-- Rango Horario -->
+          <div class="flex flex-col gap-1.5 pt-1 border-b border-orange-200/25 pb-3">
+            <span class="text-[8.5px] text-[#7C2D12] font-black uppercase tracking-wider">Horario de Actividad</span>
+            <div id="field-hours" class="readonly-field font-extrabold text-center text-slate-800">
+              Cargando horarios...
+            </div>
+          </div>
+
+          <!-- Datos de Contacto Directos -->
+          <div class="flex flex-col gap-2.5 pt-1">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="flex flex-col gap-1">
+                <span class="text-[8px] text-[#7C2D12] uppercase font-black tracking-wider">Organizado Por</span>
+                <div id="field-attendant" class="readonly-field font-semibold text-slate-700">Cargando...</div>
+              </div>
+              <div class="flex flex-col gap-1">
+                <span class="text-[8px] text-[#7C2D12] uppercase font-black tracking-wider">Contacto Directo</span>
+                <div id="field-phone" class="readonly-field font-bold text-orange-750">Cargando...</div>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1 mt-1">
+              <span class="text-[8px] text-[#7C2D12] uppercase font-black tracking-wider">Mensaje WhatsApp Predefinido</span>
+              <div id="field-whatsapp-msg" class="readonly-field font-medium text-slate-500 italic truncate">Cargando...</div>
+            </div>
+          </div>
+
+          <!-- Plan Activo (Suscripción Info) -->
+          <div class="flex flex-col gap-2.5 border-t border-orange-200/25 pt-3.5 mt-1 bg-orange-50/30 p-3 rounded-xl border border-orange-200/25">
+            <span class="text-[8.5px] text-[#7C2D12] font-black uppercase tracking-wider">Costo de Registro</span>
+            <div class="flex items-center justify-between">
+              <span id="field-plan-active" class="text-xs text-slate-650 font-bold">Actividad Comunitaria</span>
+              <span id="field-plan-price" class="text-xs font-black text-slate-700 bg-white px-3 py-1 border border-slate-100 rounded-lg shadow-sm">$0 CLP</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    var galeriaGlobal = [];
+    var lightboxIdx = 0;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadProfileData();
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+
+    function obtenerNombreRubro(rubroPath) {
+      if (!rubroPath) return 'Comunidad Vecinal';
+      const parts = rubroPath.split('/');
+      if (parts.length < 3) return 'Comunidad Vecinal';
+      const folder = parts[parts.length - 2] || '';
+      const rubroNames = {
+        '01-solidario': 'Actividad Solidaria 🤝',
+        '02-deportes': 'Deportes y Recreación ⚽',
+        '03-reunion': 'Reunión Vecinal 👥',
+        '04-cultura': 'Cultura y Festivales 🎭',
+        '05-seguridad': 'Seguridad y Prevención 🛡️'
+      };
+      return rubroNames[folder] || 'Evento Vecinal';
+    }
+
+    function isDayActive(diasStr, dayName) {
+      const normalized = diasStr.toLowerCase();
+      if (normalized.includes("24/7") || normalized.includes("lunes a domingo") || normalized.includes("todos los días") || normalized.includes("siempre")) {
+        return true;
+      }
+      if (normalized.includes("lunes a viernes")) {
+        const weekdays = ["lunes", "martes", "miércoles", "jueves", "viernes"];
+        return weekdays.includes(dayName.toLowerCase());
+      }
+      return normalized.includes(dayName.toLowerCase());
+    }
+
+    function loadProfileData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const profileId = urlParams.get('id');
+
+      let p = null;
+      if (profileId) {
+        const commRaw = localStorage.getItem('keilu_provider_999');
+        if (commRaw) {
+          const commObj = JSON.parse(commRaw);
+          if (commObj.id == profileId || profileId == 999) {
+            p = commObj;
+          }
+        }
+        
+        if (!p && typeof providersData !== 'undefined') {
+          p = providersData.find(item => item.id == profileId);
+        }
+      }
+
+      if (!p) {
+        if (typeof providersData !== 'undefined') {
+          p = providersData.find(item => item.id == 201 || item.tipo === 'naranja');
+        }
+      }
+      if (!p) {
+        document.getElementById("hero-title").textContent = "Actividad no encontrada";
+        return;
+      }
+
+      const isNew = !!p.identidad;
+      const nombre = (isNew ? p.identidad?.nombre : p.nombre) || 'Actividad Vecinal';
+      const contacto = (isNew ? p.identidad?.atendidoPor : p.contacto) || 'Organizador';
+      const rawFono = (isNew ? p.contacto?.fono : p.fono) || '';
+      const fono = String(rawFono || '');
+      const horario = (isNew ? p.contacto?.horario : p.horario) || 'Por definir';
+      const dias = (isNew ? p.contacto?.dias : p.dias) || 'Por definir';
+      const sector = (isNew ? p.ubicacion?.sector : (p.sector || 'Hualpén')) || 'Hualpén';
+      const calle = (isNew ? p.ubicacion?.calle : (p.calle || 'Dirección por definir')) || 'Dirección por definir';
+      const foto = (isNew ? p.identidad?.foto : p.foto) || '';
+      const especialidad = (isNew ? p.identidad?.especialidad : (p.rubro || '')) || 'Actividad Comunitaria';
+      const desc = isNew ? p.identidad?.descripcion : (p.desc || p.rubro || 'Evento solidario/comunitario organizado por los vecinos del barrio.');
+      let rubroSticker = p.stickerRubro || p.identidad?.stickerRubro;
+      const emojiVal = p.identidad?.emoji || p.emoji || '🟠';
+      if (rubroSticker) {
+        if (rubroSticker.startsWith('/')) rubroSticker = rubroSticker.substring(1);
+        if (rubroSticker.startsWith('./')) rubroSticker = rubroSticker.substring(2);
+        if (rubroSticker.startsWith('stickers/')) rubroSticker = '../' + rubroSticker;
+      }
+      const tarifaPagada = (isNew ? p.suscripcionInfo?.tarifaPagada : '$0 CLP') || '$0 CLP';
+      const duracionActiva = (isNew ? p.suscripcionInfo?.duracionActiva : 'Evento Único') || 'Evento Único';
+
+      // Inyectar datos en Paso 1
+      document.getElementById("field-name").textContent = nombre;
+      document.getElementById("field-rubro").textContent = especialidad;
+      document.getElementById("hero-title").textContent = `Detalle de Actividad`;
+
+      // Inyectar Paso 2
+      document.getElementById("field-cat-rubro").textContent = emojiVal;
+      document.getElementById("field-cat-accion").textContent = obtenerNombreRubro(rubroSticker);
+      const stickerImgEl = document.getElementById("sticker-rubro-img");
+      if (rubroSticker && stickerImgEl) {
+        stickerImgEl.src = rubroSticker;
+        stickerImgEl.onerror = function() {
+          this.onerror = null;
+          if (this.parentElement) this.parentElement.innerHTML = `<span class="text-lg">${emojiVal}</span>`;
+        };
+      } else if (stickerImgEl && stickerImgEl.parentElement) {
+        stickerImgEl.parentElement.style.display = 'none';
+      }
+
+      // Paso 3: Descripción
+      document.getElementById("field-desc").textContent = desc;
+
+      // Paso 2: Vitrina (Fotos del evento)
+      galeriaGlobal = p.identidad?.galeria || p.galeria || [];
+      const galleryDiv = document.getElementById("gallery-container");
+      galleryDiv.innerHTML = "";
+      if (galeriaGlobal.length > 0) {
+        const countBadge = document.getElementById("gallery-count-badge");
+        if (countBadge) countBadge.textContent = `📷 ${galeriaGlobal.length} Fotos`;
+        galeriaGlobal.forEach((img, idx) => {
+          const card = document.createElement("div");
+          card.className = "shrink-0 w-[31%] snap-start relative rounded-xl overflow-hidden border border-slate-200 shadow-sm transition hover:scale-105 hover:shadow-md duration-200 cursor-pointer bg-slate-100 group/img aspect-square";
+          card.onclick = () => abrirAmpliacion(idx);
+          
+          card.innerHTML = `
+            <img src="${img}" alt="Afiche ${idx + 1}" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-slate-900/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+              <span class="text-white text-xs font-bold bg-slate-900/60 px-2 py-1 rounded-lg backdrop-blur-sm">🔍 Agrandar</span>
+            </div>
+          `;
+          galleryDiv.appendChild(card);
+        });
+      } else {
+        document.getElementById("no-gallery-msg").classList.remove("hidden");
+      }
+
+      // Paso 5: Ubicación
+      const fieldSectorDisplay = document.getElementById("field-sector-display");
+      const fieldAddressDisplay = document.getElementById("field-address-display");
+      if (fieldAddressDisplay) fieldAddressDisplay.textContent = calle;
+      if (fieldSectorDisplay) fieldSectorDisplay.textContent = sector;
+
+      // Paso 6: Horario & Días & Contacto
+      document.getElementById("field-hours").textContent = horario;
+      
+      const tags = document.querySelectorAll("#days-container .day-tag");
+      tags.forEach(tag => {
+        const name = tag.getAttribute("data-day");
+        if (isDayActive(dias, name)) {
+          tag.className = "day-tag active";
+        } else {
+          tag.className = "day-tag inactive";
+        }
+      });
+
+      document.getElementById("field-attendant").textContent = contacto;
+      document.getElementById("field-phone").textContent = fono || "No registrado";
+
+      const whatsappMsg = p.whatsappMsg || (isNew ? p.contacto?.whatsappMsg : p.whatsappMsg) || `Hola, me contacto por el evento vecinal: ${nombre}.`;
+      document.getElementById("field-whatsapp-msg").textContent = whatsappMsg;
+
+      // Costo
+      document.getElementById("field-plan-active").textContent = duracionActiva;
+      document.getElementById("field-plan-price").textContent = tarifaPagada;
+
+      // Inyectar foto y badges en el Hero
+      if (foto) {
+        document.getElementById("profile-avatar").src = foto;
+      }
+      document.getElementById("profile-id-badge").textContent = `#${p.id || '999'}`;
+
+      // Configurar botones del header
+      const btnCall = document.getElementById("btn-call-header");
+      if (btnCall) {
+        btnCall.href = fono ? `tel:${fono.replace(/\s+/g, '')}` : 'javascript:alert("Número telefónico no registrado")';
+      }
+
+      const btnWa = document.getElementById("btn-whatsapp-header");
+      if (btnWa) {
+        if (fono) {
+          btnWa.href = (typeof KeiluUtils !== 'undefined') 
+            ? KeiluUtils.buildWhatsAppUrl(fono, whatsappMsg) 
+            : `https://wa.me/${fono.replace(/\D/g,'')}?text=${encodeURIComponent(whatsappMsg)}`;
+        } else {
+          btnWa.href = 'javascript:alert("Número de WhatsApp no registrado")';
+        }
+      }
+    }
+
+    function moverCarrusel(direccion) {
+      const track = document.getElementById("gallery-container");
+      if (track) {
+        const scrollAmount = track.clientWidth * 0.75;
+        track.scrollBy({ left: direccion * scrollAmount, behavior: 'smooth' });
+      }
+    }
+
+    function abrirAmpliacion(idx) {
+      lightboxIdx = idx;
+      const modal = document.getElementById("lightbox-modal");
+      const img = document.getElementById("lightbox-img");
+      const counter = document.getElementById("lightbox-counter");
+      
+      if (galeriaGlobal.length > 0 && galeriaGlobal[lightboxIdx]) {
+        img.src = galeriaGlobal[lightboxIdx];
+        counter.textContent = `${lightboxIdx + 1} / ${galeriaGlobal.length}`;
+        modal.classList.remove("hidden");
+      }
+    }
+
+    function cerrarAmpliacion() {
+      const modal = document.getElementById("lightbox-modal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function navegarAmpliacion(dir) {
+      if (galeriaGlobal.length === 0) return;
+      lightboxIdx = (lightboxIdx + dir + galeriaGlobal.length) % galeriaGlobal.length;
+      document.getElementById("lightbox-img").src = galeriaGlobal[lightboxIdx];
+      document.getElementById("lightbox-counter").textContent = `${lightboxIdx + 1} / ${galeriaGlobal.length}`;
+    }
+
+    document.addEventListener("keydown", (e) => {
+      const modal = document.getElementById("lightbox-modal");
+      if (modal && !modal.classList.contains("hidden")) {
+        if (e.key === "Escape") cerrarAmpliacion();
+        if (e.key === "ArrowLeft") navegarAmpliacion(-1);
+        if (e.key === "ArrowRight") navegarAmpliacion(1);
+      }
+    });
+
+    function irAlMapaInteractivo() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pId = urlParams.get('id') || 201;
+      window.location.href = `index.html?id=${pId}`;
+    }
+  </script>
+
+  <!-- Modal Lightbox Ampliador de Fotos tipo Instagram App -->
+  <div id="lightbox-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 hidden transition-all duration-300 select-none">
+    <!-- Botón Cerrar -->
+    <button type="button" onclick="cerrarAmpliacion()" class="absolute top-4 right-4 text-white/80 hover:text-white bg-slate-800/80 hover:bg-slate-800 rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold transition z-50 cursor-pointer shadow-lg">
+      ✕
+    </button>
+
+    <!-- Botón Anterior -->
+    <button type="button" onclick="navegarAmpliacion(-1)" class="absolute left-3 top-1/2 -translate-y-1/2 text-white bg-slate-800/80 hover:bg-slate-800 rounded-full w-12 h-12 flex items-center justify-center text-2xl font-bold transition z-50 cursor-pointer shadow-lg">
+      ‹
+    </button>
+
+    <!-- Foto Ampliada -->
+    <div class="max-w-3xl max-h-[80vh] flex flex-col items-center justify-center relative px-6">
+      <img id="lightbox-img" src="" class="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl border border-white/20">
+      <div class="mt-3 flex items-center gap-2 text-white text-xs font-bold bg-slate-900/90 px-4 py-1.5 rounded-full border border-white/10 shadow-md">
+        <span id="lightbox-counter">1 / 10</span>
+      </div>
+    </div>
+
+    <!-- Botón Siguiente -->
+    <button type="button" onclick="navegarAmpliacion(1)" class="absolute right-3 top-1/2 -translate-y-1/2 text-white bg-slate-800/80 hover:bg-slate-800 rounded-full w-12 h-12 flex items-center justify-center text-2xl font-bold transition z-50 cursor-pointer shadow-lg">
+      ›
+    </button>
+  </div>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "keilu-spa",
+  "version": "1.0.0",
+  "description": "Keilu single page web application with mobile mockup",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx http-server -p 8080"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

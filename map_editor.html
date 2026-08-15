@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keilu - Personalización del Mapa Base</title>
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    /* Styling range inputs */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: #E2E8F0;
+      height: 6px;
+      border-radius: 3px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #1A3D63;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* ZONA ROJA: Blindaje absoluto e inviolable de la capa de marcadores */
+    .leaflet-marker-pane, .leaflet-marker-icon {
+      filter: none !important;
+      mix-blend-mode: normal !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans overflow-hidden relative">
+
+  <!-- Map Container -->
+  <div id="map-preview" class="w-screen h-screen z-10"></div>
+
+  <!-- Floating Back Button -->
+  <a href="index.html" class="absolute top-6 left-6 p-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 rounded-2xl transition shadow-xl z-50 flex items-center justify-center">
+    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+  </a>
+
+  <!-- Floating Minimalistic Controls Panel -->
+  <div class="absolute bottom-8 left-6 w-[340px] bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-3xl p-5 shadow-2xl z-50 text-slate-800 space-y-4">
+    <div>
+      <span class="text-[9px] font-black uppercase tracking-widest text-[#1A3D63]">Ajustes de Capa</span>
+      <h2 class="text-base font-extrabold text-slate-900">Personalización del Mapa</h2>
+    </div>
+
+    <!-- Sliders -->
+    <div class="space-y-4 pt-2">
+      <!-- Tierra / Calles -->
+      <div class="space-y-1">
+        <div class="flex justify-between text-xs font-bold text-slate-700">
+          <span>Tierra y Calles</span>
+          <span id="label-tierra">100%</span>
+        </div>
+        <input type="range" id="slider-tierra" min="50" max="150" value="100" oninput="updateMapLayers()" class="w-full">
+        <div class="flex justify-between text-[8px] text-slate-400 font-medium">
+          <span>Oscuro</span>
+          <span>Claro</span>
+        </div>
+      </div>
+
+      <!-- Agua -->
+      <div class="space-y-1">
+        <div class="flex justify-between text-xs font-bold text-slate-700">
+          <span>Agua (Ríos y Mar)</span>
+          <span id="label-water">100%</span>
+        </div>
+        <input type="range" id="slider-water" min="50" max="150" value="100" oninput="updateMapLayers()" class="w-full">
+        <div class="flex justify-between text-[8px] text-slate-400 font-medium">
+          <span>Oscuro</span>
+          <span>Claro</span>
+        </div>
+      </div>
+
+      <!-- Parques -->
+      <div class="space-y-1">
+        <div class="flex justify-between text-xs font-bold text-slate-700">
+          <span>Parques (Áreas Verdes)</span>
+          <span id="label-parks">100%</span>
+        </div>
+        <input type="range" id="slider-parks" min="50" max="150" value="100" oninput="updateMapLayers()" class="w-full">
+        <div class="flex justify-between text-[8px] text-slate-400 font-medium">
+          <span>Oscuro</span>
+          <span>Claro</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Mock Indicator -->
+  <div class="absolute top-6 right-6 bg-slate-950/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-slate-800 text-[10px] font-bold text-slate-300 flex items-center gap-1.5 shadow-lg z-50 select-none">
+    <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div> Ajustador en Vivo
+  </div>
+
+  <script>
+    let map;
+    const hualpenCoords = [-36.7946, -73.1118];
+
+    // RESTRICTED ZONE: Fixed hardcoded worker and company colors matching the main map
+    const workerColor = '#3B82F6'; // bg-blue-500
+    const companyColor = '#10B981'; // bg-emerald-500
+
+    const dummyProviders = [
+      { lat: -36.7930, lng: -73.1100, nombre: "Plomería Don Luis", emoji: "🔧", tipo: "azul" },
+      { lat: -36.7960, lng: -73.1140, nombre: "Panadería Miraflor", emoji: "🥖", tipo: "verde" },
+      { lat: -36.7915, lng: -73.1150, nombre: "Maestro Soldadura", emoji: "👨‍🏭", tipo: "azul" }
+    ];
+
+    function initMap() {
+      map = L.map('map-preview', { zoomControl: false, attributionControl: false }).setView(hualpenCoords, 14);
+      
+      const url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+      L.tileLayer(url, { maxZoom: 19 }).addTo(map);
+
+      // Render pins with strictly protected brand colors matching main map
+      dummyProviders.forEach(p => {
+        const colorClass = p.tipo === 'verde' ? 'bg-emerald-500' : 'bg-blue-500';
+        const pinHtml = `
+          <div class="relative flex items-center gap-1 pointer-events-auto">
+            <div class="${colorClass} w-2.5 h-2.5 rounded-full border-2 border-white shadow shrink-0 z-10"></div>
+            <div class="bg-white/95 text-slate-850 px-2 py-1.5 shadow-lg border border-slate-100 rounded-full flex items-center gap-1.5 select-none shrink-0 z-20">
+              <span class="text-xs shrink-0 inline-block">${p.emoji}</span>
+              <span class="text-[9px] font-extrabold text-slate-900">${p.nombre}</span>
+            </div>
+          </div>`;
+        
+        const customIcon = L.divIcon({
+          html: pinHtml,
+          className: 'custom-mock-pin',
+          iconAnchor: [8, 8]
+        });
+        L.marker([p.lat, p.lng], { icon: customIcon }).addTo(map);
+      });
+    }
+
+    function updateMapLayers() {
+      const tierraVal = parseInt(document.getElementById('slider-tierra').value);
+      const waterVal = parseInt(document.getElementById('slider-water').value);
+      const parksVal = parseInt(document.getElementById('slider-parks').value);
+
+      document.getElementById('label-tierra').textContent = tierraVal + '%';
+      document.getElementById('label-water').textContent = waterVal + '%';
+      document.getElementById('label-parks').textContent = parksVal + '%';
+
+      const brightness = (tierraVal * 0.7) + (waterVal * 0.15) + (parksVal * 0.15);
+      const contrast = 100 + (100 - tierraVal) * 1.2;
+      const saturate = 100 + (waterVal - 100) * 1.5 + (parksVal - 100) * 1.5;
+
+      const filterStr = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)`;
+
+      const tilePane = document.querySelector('.leaflet-tile-pane');
+      if (tilePane) {
+        tilePane.style.filter = filterStr;
+      }
+    }
+
+    window.onload = () => {
+      initMap();
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor de Suscripción - Keilu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+    body {
+      font-family: 'Outfit', sans-serif;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Radar Pulse Animations */
+    @keyframes radarPulse {
+      0% {
+        transform: scale(0.6);
+        opacity: 0.9;
+      }
+      100% {
+        transform: scale(2.4);
+        opacity: 0;
+      }
+    }
+    .pulse-ring-blue {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border: 2px solid rgba(37, 99, 235, 0.7);
+      border-radius: 50%;
+      top: -11px;
+      left: -11px;
+      animation: radarPulse 2s infinite ease-out;
+      pointer-events: none;
+    }
+    .pulse-ring-green {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border: 2px solid rgba(16, 185, 129, 0.7);
+      border-radius: 50%;
+      top: -11px;
+      left: -11px;
+      animation: radarPulse 2s infinite ease-out;
+      pointer-events: none;
+    }
+    .pulse-ring-orange {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border: 2px solid rgba(249, 115, 22, 0.7);
+      border-radius: 50%;
+      top: -11px;
+      left: -11px;
+      animation: radarPulse 2s infinite ease-out;
+      pointer-events: none;
+    }
+
+    /* Floating emoji animation */
+    @keyframes floatingEmoji {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(5deg); }
+    }
+    .anim-float {
+      animation: floatingEmoji 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen p-4 sm:p-6 font-sans">
+
+  <div class="max-w-4xl mx-auto flex flex-col gap-6">
+    
+    <!-- Top Header -->
+    <header class="flex justify-between items-center bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-black text-[#052659]">Editor de Suscripción / Impulso</h1>
+        <p class="text-xs text-slate-500 mt-1 font-medium">Configura el plan de visibilidad de tu pin y activa los beneficios destacados de Keilu.</p>
+      </div>
+      <a href="../index.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Portal
+      </a>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+      
+      <!-- Lado Izquierdo: Configuración y Selección de Planes -->
+      <main class="bg-white border border-slate-200/90 rounded-3xl p-6 md:p-8 flex flex-col gap-6 shadow-xl">
+        <div>
+          <h2 class="text-xs sm:text-sm font-black text-[#052659] uppercase tracking-wider mb-1">Selecciona tu Plan de Publicación</h2>
+          <p class="text-xs text-slate-500 font-medium">Elige la modalidad de suscripción para potenciar tu pin en el mapa.</p>
+        </div>
+
+        <!-- Módulo de Selección de Planes -->
+        <div class="flex flex-col gap-3.5" id="plans-container">
+          <!-- Dynamic cards injected via Javascript -->
+        </div>
+
+        <!-- Anuncio Expreso (Only for Verde Pro) -->
+        <div id="anuncio-expreso-container" class="flex flex-col gap-2 hidden border-t border-slate-200 pt-4">
+          <div class="flex justify-between items-center">
+            <label class="text-[10px] text-[#052659] font-black uppercase tracking-wider">Anuncio Expreso (Beneficio Pro - Máx 60 caracteres)</label>
+            <span id="ad-counter" class="text-[10px] text-slate-500 font-bold">0 / 60</span>
+          </div>
+          <input type="text" id="edit-ad" maxlength="60" value="¡Gran descuento de almuerzo hoy!" placeholder="Ej: ¡20% de descuento hoy!" oninput="updateLivePreview()" 
+            class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-xs text-slate-800 focus:bg-white focus:outline-none transition focus:border-emerald-600 shadow-inner">
+        </div>
+
+        <!-- Action Button -->
+        <button onclick="guardarSuscripcion()" class="w-full py-4 bg-[#052659] hover:bg-blue-900 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all duration-300 shadow-xl mt-2 flex items-center justify-center gap-2 border border-blue-900/30 hover:scale-[1.01] cursor-pointer">
+          <i data-lucide="rocket" class="w-4 h-4 animate-bounce"></i> Guardar y Publicar Suscripción
+        </button>
+      </main>
+
+      <!-- Lado Derecho: Previsualización en Tiempo Real -->
+      <section class="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-xl flex flex-col gap-4 relative overflow-hidden">
+        <div>
+          <span class="text-xs font-black text-[#052659] uppercase tracking-wider block">Previsualización Interactiva del Pin</span>
+          <p class="text-xs text-slate-500 mt-1 font-medium">Vista previa de cómo se renderizará tu marcador en el mapa real de Hualpén.</p>
+        </div>
+        
+        <!-- Mockup Map Container -->
+        <div class="h-64 bg-slate-100 rounded-2xl border border-slate-200/80 flex items-center justify-center relative overflow-hidden shadow-inner">
+          <!-- Simulated grid lines background -->
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(148,163,184,0.25)_1px,transparent_1px)] bg-[size:16px_16px]"></div>
+          
+          <!-- Simulated Pin -->
+          <div class="relative flex items-center gap-1.5" id="prev-pin-container">
+            <!-- Radar Pulse Ring (Conditional on Pro Plan) -->
+            <div id="prev-radar-pulse" class="pulse-ring-blue hidden"></div>
+            
+            <!-- Color Dot (Blue/Green/Orange) -->
+            <div id="prev-pin-dot" class="bg-blue-600 w-3 h-3 rounded-full border-2 border-white shadow-md z-10"></div>
+            
+            <!-- Badge Container -->
+            <div id="prev-pin-badge" class="bg-white text-slate-900 px-3 py-1.5 shadow-md border border-slate-200 rounded-full flex items-center gap-1.5 select-none z-20 transition-all duration-300">
+              <span id="prev-pin-emoji" class="text-xs transition-transform duration-300">👤</span>
+              <div class="flex flex-col text-left leading-none pr-1">
+                <span id="prev-pin-name" class="text-[10px] font-black text-slate-900">Proveedor</span>
+              </div>
+            </div>
+
+            <!-- Express Ad bubble for Green Pro -->
+            <div id="prev-pin-ad-bubble" class="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white border border-slate-800 text-[9px] font-bold px-2.5 py-1.5 rounded-xl shadow-xl whitespace-nowrap z-30 transition-all duration-300 hidden">
+              <span id="prev-pin-ad-text">¡Anuncio Express!</span>
+              <div class="absolute bottom-[-4px] left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-900 border-r border-b border-slate-800 rotate-45"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-600 space-y-2">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-600 block shrink-0"></span>
+            <span>Marcadores <b>Azules</b>: Para trabajadores independientes.</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 block shrink-0"></span>
+            <span>Marcadores <b>Verdes</b>: Para locales comerciales y tiendas fijas.</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-orange-500 block shrink-0"></span>
+            <span>Marcadores <b>Naranjas</b>: Para eventos y actividades comunitarias.</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+
+  <script>
+    let providerData = {
+      nombre: "Juan Pérez",
+      tipo: "azul",
+      dePago: false,
+      emoji: "🔧",
+      notaAd: ""
+    };
+
+    let selectedPlan = 'basico';
+    const plansData = {
+      azul: [
+        { id: 'basico', name: 'Plan Básico', price: 0, textText: 'Tu pin en el mapa de forma permanente. Punto azul estático y mudo.', priceLabel: 'Gratis' },
+        { id: 'pro_semanal', name: 'Plan Pro Semanal', price: 1990, textText: 'Pulso radar constante + Tu Emoji 3D seleccionado flotando y animado.', priceLabel: '$1.990 CLP / semana' },
+        { id: 'pro_mensual', name: 'Plan Pro Mensual', price: 5990, textText: 'Mismos beneficios Pro con un 25% de ahorro integrado en el precio.', priceLabel: '$5.990 CLP / mes' }
+      ],
+      verde: [
+        { id: 'basico', name: 'Plan Básico', price: 0, textText: 'Tu punto verde en el mapa de forma permanente. Estático y mudo.', priceLabel: 'Gratis' },
+        { id: 'pro_diario', name: 'Plan Pro Diario', price: 1490, textText: 'Pulso radar constante + Tu Emoji Comercial 3D + Activación del Anuncio Expreso de 60 caracteres.', priceLabel: '$1.490 CLP / día' },
+        { id: 'pro_semanal', name: 'Plan Pro Semanal', price: 6990, textText: 'Mismos beneficios Pro con un 33% de ahorro por volumen diario.', priceLabel: '$6.990 CLP / semana' }
+      ],
+      naranja: [
+        { id: 'basico', name: 'Plan Básico', price: 0, textText: 'Tu punto naranja en el mapa por el tiempo de expiración del evento. Estático y mudo.', priceLabel: 'Gratis' },
+        { id: 'pro_diario', name: 'Plan Pro Diario', price: 990, textText: 'Pulso radar constante + Tu Emoji/Sticker animado de la actividad.', priceLabel: '$990 CLP / día' },
+        { id: 'pro_semanal', name: 'Plan Pro Semanal', price: 3990, textText: 'Mismos beneficios Pro con destaque y radar constante durante toda la semana.', priceLabel: '$3.990 CLP / semana' }
+      ]
+    };
+
+    function loadProvider() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const qType = urlParams.get('type') || 'azul';
+
+      if (qType === 'naranja') {
+        const raw = localStorage.getItem('keilu_provider_999');
+        if (raw) {
+          try {
+            providerData = JSON.parse(raw);
+          } catch(e){}
+        } else {
+          providerData = {
+            nombre: "Evento Comunitario",
+            tipo: "naranja",
+            dePago: false,
+            emoji: "🟠",
+            notaAd: ""
+          };
+        }
+        selectedPlan = providerData.dePago ? 'pro_diario' : 'basico';
+      } else {
+        const raw = localStorage.getItem('keilu_user_provider');
+        if (raw) {
+          try {
+            providerData = JSON.parse(raw);
+          } catch(e){}
+        } else {
+          providerData = {
+            nombre: "Proveedor Local",
+            tipo: qType,
+            dePago: false,
+            emoji: qType === 'azul' ? "👤" : "🏪",
+            notaAd: ""
+          };
+        }
+        selectedPlan = providerData.dePago ? (providerData.tipo === 'azul' ? 'pro_semanal' : 'pro_diario') : 'basico';
+      }
+
+      if (providerData.notaAd) {
+        document.getElementById("edit-ad").value = providerData.notaAd;
+      }
+
+      renderPlans();
+      updateLivePreview();
+    }
+
+    function renderPlans() {
+      const container = document.getElementById("plans-container");
+      if (!container) return;
+      container.innerHTML = "";
+      
+      const currentPlans = plansData[providerData.tipo] || plansData.azul;
+      currentPlans.forEach(plan => {
+        const isSelected = plan.id === selectedPlan;
+        
+        let colorClass = 'border-blue-600 bg-blue-50/80 shadow-sm';
+        if (providerData.tipo === 'verde') {
+          colorClass = 'border-emerald-600 bg-emerald-50/80 shadow-sm';
+        } else if (providerData.tipo === 'naranja') {
+          colorClass = 'border-amber-600 bg-amber-50/80 shadow-sm';
+        }
+
+        const inactiveBorder = 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50/50';
+        
+        const card = document.createElement("div");
+        card.className = `p-4 rounded-2xl border-2 transition-all duration-300 cursor-pointer flex flex-col gap-1.5 ${isSelected ? colorClass : inactiveBorder}`;
+        card.onclick = () => selectPlan(plan.id);
+        
+        let activeTextCol = 'text-blue-600';
+        if (providerData.tipo === 'verde') activeTextCol = 'text-emerald-600';
+        else if (providerData.tipo === 'naranja') activeTextCol = 'text-amber-600';
+
+        let priceTextCol = 'text-blue-700';
+        if (providerData.tipo === 'verde') priceTextCol = 'text-emerald-700';
+        else if (providerData.tipo === 'naranja') priceTextCol = 'text-amber-700';
+
+        card.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+              ${isSelected ? `<i data-lucide="check-circle-2" class="w-4 h-4 ${activeTextCol}"></i>` : `<span class="w-4 h-4 rounded-full border border-slate-300 block"></span>`}
+              ${plan.name}
+            </span>
+            <span class="text-xs font-black ${priceTextCol}">${plan.priceLabel}</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed font-medium mt-0.5">${plan.textText}</p>
+        `;
+        container.appendChild(card);
+      });
+      
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      updateButtonText();
+    }
+
+    function selectPlan(planId) {
+      selectedPlan = planId;
+      renderPlans();
+      updateLivePreview();
+    }
+
+    function updateButtonText() {
+      const btn = document.querySelector("button[onclick='guardarSuscripcion()']");
+      if (!btn) return;
+      
+      const currentPlans = plansData[providerData.tipo] || plansData.azul;
+      const activePlan = currentPlans.find(p => p.id === selectedPlan);
+      
+      if (!activePlan || activePlan.price === 0) {
+        btn.innerHTML = `<i data-lucide="rocket" class="w-4 h-4 animate-bounce"></i> Guardar y Activar Plan Gratis`;
+      } else {
+        const formattedPrice = activePlan.price.toLocaleString('es-CL');
+        btn.innerHTML = `<i data-lucide="credit-card" class="w-4 h-4"></i> Proceder al Pago Segurizado ($${formattedPrice} CLP)`;
+      }
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function updateLivePreview() {
+      const isPro = selectedPlan !== 'basico';
+      const radar = document.getElementById("prev-radar-pulse");
+      const pinDot = document.getElementById("prev-pin-dot");
+      const pinEmoji = document.getElementById("prev-pin-emoji");
+      const pinName = document.getElementById("prev-pin-name");
+      const adBubble = document.getElementById("prev-pin-ad-bubble");
+      const adText = document.getElementById("prev-pin-ad-text");
+
+      if (pinName) {
+        pinName.textContent = providerData.nombre || "Proveedor";
+      }
+
+      if (pinEmoji) {
+        pinEmoji.textContent = providerData.emoji || "👤";
+        pinEmoji.style.animation = ""; // Reset custom animations
+        if (isPro) {
+          pinEmoji.className = "text-xs transition-transform duration-300 anim-float block";
+        } else {
+          pinEmoji.className = "text-xs transition-transform duration-300 block";
+        }
+      }
+
+      if (pinDot) {
+        if (providerData.tipo === 'azul') {
+          pinDot.className = "bg-blue-600 w-3 h-3 rounded-full border-2 border-white shadow-md z-10";
+        } else if (providerData.tipo === 'verde') {
+          pinDot.className = "bg-emerald-600 w-3 h-3 rounded-full border-2 border-white shadow-md z-10";
+        } else {
+          pinDot.className = "bg-orange-500 w-3 h-3 rounded-full border-2 border-white shadow-md z-10";
+        }
+      }
+
+      if (radar) {
+        if (isPro) {
+          radar.classList.remove("hidden");
+          if (providerData.tipo === 'azul') {
+            radar.className = 'pulse-ring-blue';
+          } else if (providerData.tipo === 'verde') {
+            radar.className = 'pulse-ring-green';
+          } else {
+            radar.className = 'pulse-ring-orange';
+          }
+        } else {
+          radar.classList.add("hidden");
+        }
+      }
+
+      const expressAdContainer = document.getElementById("anuncio-expreso-container");
+      if (expressAdContainer) {
+        if (providerData.tipo === 'verde') {
+          expressAdContainer.classList.remove("hidden");
+          const adVal = document.getElementById("edit-ad").value.trim();
+          document.getElementById("ad-counter").textContent = `${adVal.length} / 60`;
+          
+          if (isPro && adVal.length > 0) {
+            adBubble.classList.remove("hidden");
+            adText.textContent = adVal;
+          } else {
+            adBubble.classList.add("hidden");
+          }
+        } else {
+          expressAdContainer.classList.add("hidden");
+          adBubble.classList.add("hidden");
+        }
+      }
+    }
+
+    function guardarSuscripcion() {
+      const isPaid = selectedPlan !== 'basico';
+      const adVal = (providerData.tipo === 'verde' && isPaid) ? document.getElementById("edit-ad").value.trim() : "";
+
+      providerData.dePago = isPaid;
+      providerData.notaAd = adVal;
+
+      if (providerData.tipo === 'naranja') {
+        localStorage.setItem('keilu_provider_999', JSON.stringify(providerData));
+      } else {
+        localStorage.setItem('keilu_user_provider', JSON.stringify(providerData));
+      }
+      alert("🚀 ¡Suscripción actualizada correctamente!");
+      window.location.href = "../index.html";
+    }
+
+    window.onload = loadProvider;
+  </script>
+</body>
+</html>

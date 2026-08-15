@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#052659">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Keilu - Perfil de Trabajador</title>
+  
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Outfit', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Mock Data -->
+  <script src="mock_data.js"></script>
+  <script src="js/utils.js"></script>
+  
+  <style>
+    :root {
+      --keilu-role-main: #052659;
+      --keilu-role-bg: #E5F0FF;
+      --keilu-role-border: #BFDBFE;
+    }
+
+    body {
+      background-color: #F8FAFC;
+      color: #0F172A;
+      font-family: 'Outfit', sans-serif;
+      padding-bottom: 84px; /* space for fixed bottom bar */
+    }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Hero header with curved bottom (Matching Image 1) */
+    .hero-header {
+      position: relative;
+      height: 135px;
+      background-color: #052659;
+      border-bottom-left-radius: 50% 18%;
+      border-bottom-right-radius: 50% 18%;
+      transition: background-color 0.3s ease;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    /* Truncated description */
+    .desc-truncated {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .desc-expanded {
+      display: block;
+      -webkit-line-clamp: unset;
+    }
+
+    /* Day tags */
+    .day-tag {
+      padding: 5px 10px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 800;
+      transition: all 0.2s ease;
+      border: 1.5px solid transparent;
+      user-select: none;
+    }
+    .day-tag.active {
+      background-color: #052659;
+      color: #FFFFFF;
+      border-color: #052659;
+    }
+    .day-tag.inactive {
+      background-color: #FFFFFF;
+      color: #94A3B8;
+      border-color: #CBD5E1;
+    }
+
+    /* Stronger Role Color Section Cards (Matching Image 1 exact blue background) */
+    .section-card {
+      background: #E5F0FF; /* Exact rich blue background from Image 1 */
+      border: 1.5px solid #BFDBFE; /* Stronger blue border */
+      border-radius: 22px;
+      padding: 16px 18px;
+      box-shadow: 0 2px 4px 0 rgba(5, 38, 89, 0.04);
+      transition: box-shadow 0.2s;
+    }
+
+    /* Fixed bottom bar */
+    .bottom-contact-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid #E2E8F0;
+      padding: 12px 16px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    }
+
+    /* Gallery thumbnail */
+    .gallery-thumb {
+      flex-shrink: 0;
+      width: 96px;
+      height: 96px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid #E2E8F0;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      background-color: #F1F5F9;
+    }
+    .gallery-thumb:hover {
+      border-color: #052659;
+      transform: scale(1.04);
+    }
+    .gallery-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body class="min-h-screen font-sans">
+
+  <!-- App Container (centered mobile view) -->
+  <div class="max-w-lg mx-auto bg-white min-h-screen shadow-xl relative">
+
+    <!-- HERO HEADER AZUL CON ONDA Y CÍRCULO DE AVATAR CENTRADO (EXACTAMENTE COMO LA IMAGEN 1) -->
+    <div class="hero-header px-4 pt-3.5 text-white relative">
+      <div class="flex justify-between items-center w-full">
+        <a href="javascript:history.back()" class="text-white/90 hover:text-white flex items-center gap-1.5 text-xs font-bold transition">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Mapa
+        </a>
+        <span class="text-[9.5px] font-black text-blue-200 uppercase tracking-widest bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15">
+          Catálogo Azul 🔵
+        </span>
+        <button onclick="irAlMapaInteractivo()" class="text-white/90 hover:text-white flex items-center gap-1 text-xs font-bold transition">
+          <i data-lucide="map-pin" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Título de la cabecera -->
+      <div class="text-center mt-1.5">
+        <h1 class="text-base font-black tracking-wide text-white">Ficha de Perfil (Trabajador)</h1>
+      </div>
+
+      <!-- Círculo grande de Avatar centrado sobre la onda azul (Perfectamente circular) -->
+      <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 z-30">
+        <div class="relative w-24 h-24 aspect-square rounded-full overflow-hidden border-4 border-white shadow-xl bg-slate-100 flex items-center justify-center shrink-0">
+          <img id="profile-avatar" src="" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400'">
+        </div>
+        <span id="dispo-dot" class="absolute bottom-0.5 right-0.5 w-4.5 h-4.5 rounded-full bg-slate-300 border-2 border-white"></span>
+      </div>
+    </div>
+
+    <!-- PROFILE INFO SUMMARY BELOW AVATAR (SITUADO LIMPIAMENTE DEBAJO DEL AVATAR) -->
+    <div class="px-4 pt-16 pb-4 text-center">
+      <div class="flex items-center justify-center gap-2 flex-wrap">
+        <h2 id="field-name" class="text-xl font-extrabold text-slate-900 leading-tight">Cargando...</h2>
+        <span id="profile-verified-badge" class="hidden text-[9px] font-black text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full whitespace-nowrap">✅ Verificado</span>
+      </div>
+      <p id="field-rubro" class="text-xs font-bold text-slate-600 mt-1">Cargando...</p>
+      
+      <div class="flex items-center justify-center gap-2 mt-2.5 flex-wrap">
+        <span id="profile-id-badge" class="text-[9.5px] font-extrabold text-slate-500 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">#000</span>
+        <span id="dispo-label" class="text-[9.5px] font-black text-slate-400 uppercase tracking-wide">Desconectado</span>
+        <span class="text-[9.5px] font-black text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">⭐ 4.9 (18 Opiniones)</span>
+      </div>
+
+      <!-- Live status message (if active) -->
+      <div id="dispo-msg-box" class="mt-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl p-3 text-xs font-semibold leading-relaxed hidden">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+
+    <!-- TABS BAR (PESTAÑAS ESTILO APP) -->
+    <div class="px-4 border-b border-slate-100 bg-white sticky top-0 z-30">
+      <div class="flex text-center">
+        <button id="tab-btn-info" onclick="switchTab('info')" class="flex-1 py-3 text-xs font-black uppercase tracking-wider text-[#052659] border-b-2 border-[#052659] transition cursor-pointer">
+          Información
+        </button>
+        <button id="tab-btn-gallery" onclick="switchTab('gallery')" class="flex-1 py-3 text-xs font-black uppercase tracking-wider text-slate-400 border-b-2 border-transparent transition cursor-pointer">
+          Fotos (10)
+        </button>
+        <button id="tab-btn-reviews" onclick="switchTab('reviews')" class="flex-1 py-3 text-xs font-black uppercase tracking-wider text-slate-400 border-b-2 border-transparent transition cursor-pointer">
+          Reseñas ⭐
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 1: INFORMACIÓN & DATOS IMPORTANTES (REDUCIDO A SÓLO 3 CUADROS CLAVE) -->
+    <div id="tab-content-info" class="px-4 py-4 flex flex-col gap-3.5">
+
+      <!-- CUADRO 1: SOBRE EL SERVICIO Y CATEGORÍAS -->
+      <div class="section-card">
+        <div class="flex items-center gap-2 mb-2.5">
+          <span class="w-5 h-5 rounded-full bg-[#052659] text-white text-[10px] flex items-center justify-center font-black">1</span>
+          <span class="text-xs font-black text-[#052659] uppercase tracking-wider">Sobre el Servicio</span>
+        </div>
+        
+        <!-- Bio/Descripción -->
+        <div id="field-desc" class="text-[13px] text-slate-700 font-medium leading-relaxed bg-white border border-blue-200/60 rounded-xl p-3 shadow-sm desc-truncated mb-3">
+          Cargando descripción...
+        </div>
+        <button id="btn-read-more" onclick="toggleDescripcion()" class="text-xs font-bold text-blue-700 hover:text-blue-900 -mt-1 mb-2 cursor-pointer transition hidden">
+          Leer más
+        </button>
+
+        <!-- Categorías (Rubro + Acción) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div class="flex items-center gap-2.5 bg-white border border-blue-200/60 rounded-xl p-2.5 shadow-sm">
+            <div class="w-8 h-8 rounded-lg bg-blue-50/70 border border-blue-100 flex items-center justify-center overflow-hidden shrink-0">
+              <img id="sticker-rubro-img" src="" class="w-full h-full object-contain" onerror="this.style.display='none'">
+            </div>
+            <span id="field-cat-rubro" class="text-xs font-bold text-slate-800 truncate">Cargando...</span>
+          </div>
+          <div class="flex items-center gap-2.5 bg-white border border-blue-200/60 rounded-xl p-2.5 shadow-sm">
+            <div class="w-8 h-8 rounded-lg bg-blue-50/70 border border-blue-100 flex items-center justify-center overflow-hidden shrink-0">
+              <img id="sticker-accion-img" src="" class="w-full h-full object-contain" onerror="this.style.display='none'">
+            </div>
+            <span id="field-cat-accion" class="text-xs font-bold text-slate-800 truncate">Cargando...</span>
+          </div>
+        </div>
+
+        <!-- Stickers animados del mapa -->
+        <div class="mt-3 pt-3 border-t border-blue-200/60">
+          <span class="text-[9px] font-black text-[#052659] uppercase tracking-widest block mb-2 text-center">Stickers en el Mapa</span>
+          <div class="flex justify-center gap-3" id="stickers-display-container">
+            <!-- Loaded dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- CUADRO 2: UBICACIÓN Y BOTÓN VER EN EL MAPA -->
+      <div class="section-card">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-[#052659] text-white text-[10px] flex items-center justify-center font-black">2</span>
+            <span class="text-xs font-black text-[#052659] uppercase tracking-wider">Ubicación y Cobertura</span>
+          </div>
+          <span id="privacy-pill-badge" class="text-[9px] font-black px-2.5 py-0.5 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-800">📍 Exacta</span>
+        </div>
+        
+        <div class="bg-white border border-blue-200/60 rounded-xl p-3 shadow-sm flex flex-col gap-2 mb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="text-base">📍</span>
+            <div>
+              <span class="text-[8px] text-[#052659] uppercase font-black tracking-wider block">Sector / Comuna</span>
+              <span id="field-sector-display" class="text-xs font-bold text-slate-800">Cargando sector...</span>
+            </div>
+          </div>
+          <div class="border-t border-slate-100 pt-2 flex items-center gap-2.5">
+            <span class="text-base">🏠</span>
+            <div>
+              <span class="text-[8px] text-[#052659] uppercase font-black tracking-wider block">Dirección / Referencia</span>
+              <span id="field-address-display" class="text-xs font-semibold text-slate-700">Cargando dirección...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón directo de Ver en el Mapa -->
+        <button type="button" onclick="irAlMapaInteractivo()" class="w-full py-2.5 bg-[#052659] hover:bg-[#0a3a8a] active:scale-[0.98] text-white rounded-2xl text-xs font-extrabold transition-all duration-200 flex items-center justify-center gap-2 shadow-md cursor-pointer">
+          <i data-lucide="map" class="w-4 h-4"></i>
+          <span id="btn-mapa-text">Ver posición en el Mapa Interactivo 🗺️</span>
+        </button>
+      </div>
+
+      <!-- CUADRO 3: CONTACTO Y ATENCIÓN (CON HORARIO RESUMIDO EN 1 LÍNEA) -->
+      <div class="section-card">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="w-5 h-5 rounded-full bg-[#052659] text-white text-[10px] flex items-center justify-center font-black">3</span>
+          <span class="text-xs font-black text-[#052659] uppercase tracking-wider">Contacto y Atención</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5 mb-2.5">
+          <div class="bg-white border border-blue-200/60 rounded-xl p-2.5 shadow-sm">
+            <span class="text-[8px] text-[#052659] uppercase font-black tracking-wider block mb-0.5">Atendido Por</span>
+            <span id="field-attendant" class="text-xs font-bold text-slate-800 block truncate">Cargando...</span>
+          </div>
+          <div class="bg-white border border-blue-200/60 rounded-xl p-2.5 shadow-sm">
+            <span class="text-[8px] text-[#052659] uppercase font-black tracking-wider block mb-0.5">Teléfono</span>
+            <span id="field-phone" class="text-xs font-bold text-blue-700 block truncate">Cargando...</span>
+          </div>
+          <div class="bg-white border border-blue-200/60 rounded-xl p-2.5 shadow-sm">
+            <span class="text-[8px] text-[#052659] uppercase font-black tracking-wider block mb-0.5">Instagram</span>
+            <span id="field-instagram" class="text-xs font-medium text-slate-500 block truncate">No registrado</span>
+          </div>
+          <div class="bg-white border border-blue-200/60 rounded-xl p-2.5 shadow-sm">
+            <span class="text-[8px] text-[#052659] uppercase font-black tracking-wider block mb-0.5">Mensaje Predefinido</span>
+            <span id="field-whatsapp-msg" class="text-xs font-medium text-slate-500 italic block truncate">Cargando...</span>
+          </div>
+        </div>
+
+        <!-- Horario de atención resumido en 1 sola línea limpia -->
+        <div id="field-hours" class="text-center text-xs font-extrabold text-slate-800 bg-white border border-blue-200/60 rounded-xl py-2.5 px-3 shadow-sm">
+          Cargando horarios...
+        </div>
+      </div>
+
+      <!-- Suscripción -->
+      <div class="section-card bg-blue-100/50">
+        <div class="flex items-center justify-between">
+          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Suscripción</span>
+          <div class="flex items-center gap-3">
+            <span id="field-plan-active" class="text-xs font-bold text-slate-700">Gratis</span>
+            <span id="field-plan-price" class="text-xs font-black text-slate-800 bg-white px-3 py-1 border border-blue-200 rounded-lg shadow-sm">$0 CLP</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: GALERÍA DE FOTOS -->
+    <div id="tab-content-gallery" class="px-4 py-4 flex flex-col gap-3.5 hidden">
+      <div class="section-card">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-[#052659] text-white text-[10px] flex items-center justify-center font-black">📷</span>
+            <span class="text-xs font-black text-[#052659] uppercase tracking-wider">Vitrina de Trabajos Reales</span>
+          </div>
+          <span id="gallery-count-badge" class="text-[9px] font-extrabold text-blue-700 bg-blue-100/90 px-2.5 py-0.5 rounded-full border border-blue-200">📷 10 Fotos</span>
+        </div>
+
+        <!-- Grid de 4 fotos destacadas estilizadas como tarjetas redondeadas -->
+        <div id="vitrina-4-grid" class="grid grid-cols-2 gap-2.5">
+          <!-- 4 fotos cargadas dinámicamente -->
+        </div>
+
+        <!-- Botón para expandir las otras 6 fotos -->
+        <button id="btn-expand-gallery" type="button" onclick="expandirGaleriaCompleta()" class="w-full mt-3 py-2.5 bg-white hover:bg-blue-50 border border-blue-200 text-[#052659] rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+          <span>✨ Ver las 6 fotos restantes (+6)</span>
+        </button>
+
+        <div id="no-gallery-msg" class="text-xs font-semibold text-slate-400 py-6 text-center bg-white border border-slate-100 rounded-2xl hidden">
+          Sin fotos en la vitrina
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: RESEÑAS Y OPINIONES DE VECINOS -->
+    <div id="tab-content-reviews" class="px-4 py-4 flex flex-col gap-3.5 hidden">
+      <div class="section-card">
+        <div class="flex items-center justify-between mb-3 pb-3 border-b border-blue-200/60">
+          <div>
+            <span class="text-xs font-black text-[#052659] uppercase tracking-wider block">Calificación de Vecinos</span>
+            <span class="text-xs font-medium text-slate-600">Basado en contrataciones locales</span>
+          </div>
+          <div class="text-right">
+            <span class="text-lg font-black text-amber-500 block">⭐ 4.9 / 5.0</span>
+            <span class="text-[9px] font-bold text-slate-500">18 Opiniones</span>
+          </div>
+        </div>
+
+        <!-- Ejemplos de Reseñas de Vecinos -->
+        <div class="flex flex-col gap-3">
+          <div class="bg-white border border-blue-200/60 rounded-xl p-3 shadow-sm">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs font-bold text-slate-800">Camila Soto</span>
+              <span class="text-[10px] text-amber-500 font-bold">⭐⭐⭐⭐⭐</span>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed font-medium">"Excelente servicio de jardinería. Sebastián fue muy puntual, dejó el pasto impecable y podó los árboles del patio trasero con mucho cuidado. 100% recomendado."</p>
+            <span class="text-[8.5px] font-bold text-slate-400 block mt-1">Vecina de Hualpén Residencial · Hace 3 días</span>
+          </div>
+
+          <div class="bg-white border border-blue-200/60 rounded-xl p-3 shadow-sm">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-xs font-bold text-slate-800">Marcelo Henríquez</span>
+              <span class="text-[10px] text-amber-500 font-bold">⭐⭐⭐⭐⭐</span>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed font-medium">"Muy responsable y amable. Limpió las jardineras y orilló todo el terreno rápido. Precios justos para la zona."</p>
+            <span class="text-[8.5px] font-bold text-slate-400 block mt-1">Vecino de Hualpén · Hace 1 semana</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- END APP CONTAINER -->
+
+  <!-- FIXED BOTTOM CONTACT BAR -->
+  <div class="bottom-contact-bar">
+    <div class="max-w-lg mx-auto flex gap-3">
+      <a id="btn-call-header" href="tel:" class="flex-1 flex items-center justify-center gap-2 bg-white border-2 border-[#052659] text-[#052659] rounded-2xl py-3 text-sm font-extrabold transition hover:bg-slate-50 active:scale-[0.97] no-underline shadow-sm">
+        <i data-lucide="phone" class="w-4.5 h-4.5"></i>
+        Llamar
+      </a>
+      <a id="btn-whatsapp-header" href="https://wa.me/" target="_blank" class="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl py-3 text-sm font-extrabold transition active:scale-[0.97] no-underline shadow-md">
+        <i data-lucide="message-circle" class="w-4.5 h-4.5"></i>
+        WhatsApp
+      </a>
+    </div>
+  </div>
+
+  <!-- LIGHTBOX MODAL PANTALLA COMPLETA -->
+  <div id="lightbox-modal" class="fixed inset-0 z-[60] bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 hidden transition-all duration-300 select-none">
+    <button type="button" onclick="cerrarAmpliacion()" class="absolute top-4 right-4 text-white/80 hover:text-white bg-slate-800/80 hover:bg-slate-800 rounded-full w-10 h-10 flex items-center justify-center text-xl font-bold transition z-50 cursor-pointer shadow-lg">✕</button>
+    <button type="button" onclick="navegarAmpliacion(-1)" class="absolute left-3 top-1/2 -translate-y-1/2 text-white bg-slate-800/80 hover:bg-slate-800 rounded-full w-12 h-12 flex items-center justify-center text-2xl font-bold transition z-50 cursor-pointer shadow-lg">‹</button>
+    <div class="max-w-3xl max-h-[80vh] flex flex-col items-center justify-center relative px-6">
+      <img id="lightbox-img" src="" class="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl border border-white/20">
+      <div class="mt-3 flex items-center gap-2 text-white text-xs font-bold bg-slate-900/90 px-4 py-1.5 rounded-full border border-white/10 shadow-md">
+        <span id="lightbox-counter">1 / 10</span>
+      </div>
+    </div>
+    <button type="button" onclick="navegarAmpliacion(1)" class="absolute right-3 top-1/2 -translate-y-1/2 text-white bg-slate-800/80 hover:bg-slate-800 rounded-full w-12 h-12 flex items-center justify-center text-2xl font-bold transition z-50 cursor-pointer shadow-lg">›</button>
+  </div>
+
+  <script>
+    var galeriaGlobal = [];
+    var lightboxIdx = 0;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadProfileData();
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+
+    // ── Switch Tabs ──
+    function switchTab(tabName) {
+      document.getElementById("tab-content-info").classList.add("hidden");
+      document.getElementById("tab-content-gallery").classList.add("hidden");
+      document.getElementById("tab-content-reviews").classList.add("hidden");
+
+      const tabs = ["info", "gallery", "reviews"];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (btn) {
+          btn.className = "flex-1 py-3 text-xs font-black uppercase tracking-wider text-slate-400 border-b-2 border-transparent transition cursor-pointer";
+        }
+      });
+
+      document.getElementById(`tab-content-${tabName}`).classList.remove("hidden");
+      const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+      if (activeBtn) {
+        activeBtn.className = "flex-1 py-3 text-xs font-black uppercase tracking-wider text-[#052659] border-b-2 border-[#052659] transition cursor-pointer";
+      }
+    }
+
+    function planChip(plan) {
+      const chips = {
+        ultra_pro: `<span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-yellow-400/15 border border-yellow-500/40 text-yellow-300 px-2 py-0.5 rounded-full">👑 Ultra Pro</span>`,
+        pro:       `<span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-amber-400/10 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded-full">🟡 Pro</span>`,
+        gratis:    `<span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-slate-700/50 border border-slate-600 text-slate-400 px-2 py-0.5 rounded-full">⚪ Gratis</span>`
+      };
+      return chips[plan] || chips.gratis;
+    }
+
+    function obtenerNombreRubro(rubroPath, p) {
+      if (p && p.identidad) {
+        const nombre = (p.identidad.nombre || "").toLowerCase();
+        if (nombre.includes("gasfiter") || nombre.includes("plomero")) return "Gasfitería y Plomería 💧";
+        if (nombre.includes("garzón") || nombre.includes("garzon") || nombre.includes("mesero")) return "Gastronomía y Banquetes 🤵";
+        if (nombre.includes("fletes") || nombre.includes("mudanza")) return "Fletes y Mudanzas 📦";
+        if (nombre.includes("estilista") || nombre.includes("peluquero") || nombre.includes("peluquera")) return "Estética y Peluquería 💇";
+        if (nombre.includes("manicurista") || nombre.includes("manicure") || nombre.includes("uñas")) return "Manicure y Uñas 💅";
+        if (nombre.includes("albañil") || nombre.includes("constructor") || nombre.includes("albañilería")) return "Albañilería y Obras 🧱";
+        if (nombre.includes("jardinero") || nombre.includes("jardinería")) return "Jardinería y Paisajismo 🌱";
+        if (nombre.includes("guardia") || nombre.includes("seguridad")) return "Seguridad y Guardia 🛡️";
+        if (nombre.includes("técnico pc") || nombre.includes("tecnico pc") || nombre.includes("computación") || nombre.includes("informática")) return "Informática y Soporte 💻";
+        if (nombre.includes("costurera") || nombre.includes("modista") || nombre.includes("costura")) return "Costura y Confección 🧵";
+        if (nombre.includes("soldador") || nombre.includes("soldadura")) return "Soldadura y Fierros 🧑‍🏭";
+        if (nombre.includes("tapices") || nombre.includes("limpieza") || nombre.includes("aseo")) return "Limpieza y Aseo 🧹";
+        if (nombre.includes("carpintero") || nombre.includes("mueblista") || nombre.includes("carpintería")) return "Carpintería y Muebles 🪚";
+        if (nombre.includes("kinesiólogo") || nombre.includes("kinesiologo") || nombre.includes("kine")) return "Rehabilitación y Kinesiología 🩺";
+        if (nombre.includes("mascotas") || nombre.includes("paseadora") || nombre.includes("perros")) return "Cuidado de Mascotas 🐕";
+        if (nombre.includes("baile") || nombre.includes("danza") || nombre.includes("zumba")) return "Música y Ritmos 💃";
+        if (nombre.includes("mecánico") || nombre.includes("mecanico") || nombre.includes("automotriz")) return "Mecánica Automotriz 🚗";
+        if (nombre.includes("cuidadora") || nombre.includes("tens") || nombre.includes("enfermería") || nombre.includes("enfermera")) return "Salud y Cuidados 🩺";
+        if (nombre.includes("profesora particular") || nombre.includes("clases") || nombre.includes("educación") || nombre.includes("tutoría")) return "Clases y Educación 📚";
+        if (nombre.includes("cerrajero") || nombre.includes("cerrajería") || nombre.includes("llave")) return "Cerrajería y Chapas 🔑";
+      }
+      if (!rubroPath) return 'Servicios Generales';
+      const parts = rubroPath.split('/');
+      if (parts.length < 3) return 'Servicios Generales';
+      const folder = parts[parts.length - 2] || '';
+      const rubroNames = {
+        '01-agua': 'Agua y Gasfitería 💧', '02-luz': 'Electricidad ⚡',
+        '03-jardin': 'Jardinería y Paisajismo 🌿', '04-maderas': 'Carpintería y Maderas 🪵',
+        '05-metales': 'Herrería y Estructuras Metálicas ⚙️', '06-transporte': 'Fletes y Mudanzas 🚚',
+        '07-limpieza': 'Limpieza y Desinfección 🧼', '08-textil': 'Confección y Sastrería 🪡',
+        '09-estetica': 'Peluquería y Estética 💈', '10-construccion': 'Albañilería y Obras 🧱',
+        '11-hogar': 'Servicios del Hogar 🏠', '12-tecnologia': 'Soporte Técnico y Computación 💻',
+        '13-vehiculos': 'Mecánica y Automotriz 🔧', '14-salud': 'Cuidado de la Salud y Terapia 🩺',
+        '15-mascotas': 'Cuidado de Mascotas 🐾', '16-ensenanza': 'Educación y Tutorías 📚',
+        '17-avatar': 'Servicios Especializados 💼', '18-avatar': 'Servicios Especializados 💼'
+      };
+      return rubroNames[folder] || 'Servicio Independiente';
+    }
+
+    function obtenerNombreAccion(actionPath) {
+      if (!actionPath) return 'Atención Regular';
+      const parts = actionPath.split('/');
+      if (parts.length < 3) return 'Atención Regular';
+      const folder = parts[parts.length - 2] || '';
+      const actionNames = {
+        '01-reparar': 'Reparación y Mantención 🛠️', '02-domicilio': 'Atención a Domicilio 🏠',
+        '03-urgencias-24hrs': 'Urgencias 24 Horas 🚨', '04-construir': 'Construcción y Montaje 🧱',
+        '05-limpiar': 'Limpieza e Higienización 🧼', '06-transportar': 'Traslados y Despacho 🚚',
+        '08-cortar': 'Corte, Poda y Mantención ✂️', '09-diagnosticar': 'Diagnóstico y Revisión 🔍',
+        '10-cuidar': 'Cuidado y Acompañamiento ❤️', '11-ensenar': 'Clases y Tutorías ✏️',
+        '13-animar': 'Servicios y Banquetes 🤵'
+      };
+      return actionNames[folder] || 'Atención Personalizada';
+    }
+
+    function isDayActive(diasStr, dayName) {
+      const normalized = (diasStr || '').toLowerCase();
+      if (!normalized) return false;
+      if (normalized.includes("24/7") || normalized.includes("lunes a domingo") || normalized.includes("todos los días") || normalized.includes("siempre")) return true;
+      if (normalized.includes("lunes a sábado") || normalized.includes("lunes a sabado")) {
+        return ["lunes","martes","miércoles","jueves","viernes","sábado"].includes(dayName.toLowerCase());
+      }
+      if (normalized.includes("lunes a viernes")) {
+        return ["lunes","martes","miércoles","jueves","viernes"].includes(dayName.toLowerCase());
+      }
+      if (normalized.includes("viernes a domingo")) {
+        return ["viernes","sábado","domingo"].includes(dayName.toLowerCase());
+      }
+      if (normalized.includes("martes a domingo")) {
+        return ["martes","miércoles","jueves","viernes","sábado","domingo"].includes(dayName.toLowerCase());
+      }
+      return normalized.includes(dayName.toLowerCase());
+    }
+
+    function expandirGaleriaCompleta() {
+      const vitrina4Grid = document.getElementById("vitrina-4-grid");
+      const btn = document.getElementById("btn-expand-gallery");
+      if (vitrina4Grid && galeriaGlobal.length > 0) {
+        vitrina4Grid.innerHTML = "";
+        const fallbackImg = 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=400&q=80';
+        galeriaGlobal.forEach((img, idx) => {
+          const card = document.createElement("div");
+          card.className = "relative rounded-2xl overflow-hidden h-28 border border-blue-100/80 shadow-sm cursor-pointer group bg-slate-100 transition hover:scale-[1.02]";
+          card.onclick = () => abrirAmpliacion(idx);
+          card.innerHTML = `
+            <img src="${img}" alt="Trabajo ${idx + 1}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.onerror=null;this.src='${fallbackImg}';">
+            <div class="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition duration-200 flex items-center justify-center">
+              <span class="text-white text-[10px] font-bold bg-slate-900/70 px-2 py-1 rounded-lg backdrop-blur-sm">🔍 Agrandar</span>
+            </div>
+          `;
+          vitrina4Grid.appendChild(card);
+        });
+        if (btn) btn.style.display = "none";
+      }
+    }
+
+    function toggleDescripcion() {
+      const desc = document.getElementById("field-desc");
+      const btn = document.getElementById("btn-read-more");
+      if (desc.classList.contains("desc-truncated")) {
+        desc.classList.remove("desc-truncated");
+        desc.classList.add("desc-expanded");
+        btn.textContent = "Leer menos";
+      } else {
+        desc.classList.add("desc-truncated");
+        desc.classList.remove("desc-expanded");
+        btn.textContent = "Leer más";
+      }
+    }
+
+    function abrirAmpliacion(idx) {
+      lightboxIdx = idx;
+      const modal = document.getElementById("lightbox-modal");
+      const img = document.getElementById("lightbox-img");
+      const counter = document.getElementById("lightbox-counter");
+      if (galeriaGlobal.length > 0 && galeriaGlobal[lightboxIdx]) {
+        img.src = galeriaGlobal[lightboxIdx];
+        counter.textContent = `${lightboxIdx + 1} / ${galeriaGlobal.length}`;
+        modal.classList.remove("hidden");
+      }
+    }
+
+    function cerrarAmpliacion() {
+      const modal = document.getElementById("lightbox-modal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function navegarAmpliacion(dir) {
+      if (galeriaGlobal.length === 0) return;
+      lightboxIdx = (lightboxIdx + dir + galeriaGlobal.length) % galeriaGlobal.length;
+      document.getElementById("lightbox-img").src = galeriaGlobal[lightboxIdx];
+      document.getElementById("lightbox-counter").textContent = `${lightboxIdx + 1} / ${galeriaGlobal.length}`;
+    }
+
+    document.addEventListener("keydown", (e) => {
+      const modal = document.getElementById("lightbox-modal");
+      if (modal && !modal.classList.contains("hidden")) {
+        if (e.key === "Escape") cerrarAmpliacion();
+        if (e.key === "ArrowLeft") navegarAmpliacion(-1);
+        if (e.key === "ArrowRight") navegarAmpliacion(1);
+      }
+    });
+
+    // Devuelve un pin aleatorio consistente por sesión para perfiles privados
+    function getRandomPinForSession(p) {
+      const pins = p.ubicacion?.pinesAleatorios;
+      if (!pins || pins.length === 0) return null;
+      const sessionKey = `keilu_pin_${p.id}`;
+      let idx = sessionStorage.getItem(sessionKey);
+      if (idx === null) {
+        idx = Math.floor(Math.random() * pins.length);
+        sessionStorage.setItem(sessionKey, idx);
+      }
+      return pins[parseInt(idx)];
+    }
+
+    function irAlMapaInteractivo() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pId = parseInt(urlParams.get('id') || 107);
+      // Use ?preview= so the map flies to and opens the provider's card
+      window.location.href = `index.html?preview=${pId}`;
+    }
+
+    function loadProfileData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const profileId = urlParams.get('id');
+
+      let p = null;
+      if (profileId) {
+        if (typeof providersData !== 'undefined') {
+          p = providersData.find(item => item.id == profileId);
+        }
+        if (!p) {
+          const userRaw = localStorage.getItem('keilu_user_provider');
+          if (userRaw) {
+            const userObj = JSON.parse(userRaw);
+            if (userObj.id == profileId || (profileId == 999 && userObj.id == 999)) {
+              p = userObj;
+            }
+          }
+        }
+      }
+      if (!p) {
+        if (typeof providersData !== 'undefined') {
+          p = providersData.find(item => item.id == 107);
+        }
+      }
+      if (!p) {
+        document.getElementById("field-name").textContent = "Perfil no encontrado";
+        return;
+      }
+
+      const isNew = !!p.identidad;
+      const nombre = (isNew ? p.identidad?.nombre : p.nombre) || 'Trabajador';
+      const contacto = (isNew ? p.identidad?.atendidoPor : p.contacto) || nombre;
+      const rawFono = (isNew ? p.contacto?.fono : p.fono) || '';
+      const fono = String(rawFono || '');
+      const horario = (isNew ? p.contacto?.horario : p.horario) || '08:00 - 20:00 hrs';
+      const dias = (isNew ? p.contacto?.dias : p.dias) || 'Lunes a Domingo';
+      const sector = (isNew ? p.ubicacion?.sector : (p.sector || 'Hualpén')) || 'Hualpén';
+      const calle = (isNew ? p.ubicacion?.calle : (p.calle || 'Dirección por definir')) || 'Dirección por definir';
+      const privacidad = (isNew ? p.ubicacion?.privacidad : 'exacta') || 'exacta';
+      const duracionActiva = (isNew ? p.suscripcionInfo?.duracionActiva : (p.dePago ? 'Pro' : 'Gratis')) || 'Gratis';
+      const tarifaPagada = (isNew ? p.suscripcionInfo?.tarifaPagada : '$0 CLP') || '$0 CLP';
+      const foto = (isNew ? p.identidad?.foto : p.foto) || '';
+      const especialidad = (isNew ? p.identidad?.especialidad : (p.rubro || '')) || 'Servicio Independiente';
+      const verificado = isNew ? !!p.verificado : false;
+      const desc = isNew ? p.identidad?.descripcion : (p.desc || p.rubro || 'Ofrezco mis servicios profesionales en el sector de Hualpén.');
+      const instagram = p.contacto?.instagram || p.instagram || '';
+
+      // Header
+      document.getElementById("field-name").textContent = nombre.split('—')[0].trim();
+      document.getElementById("field-rubro").textContent = especialidad;
+      if (foto) document.getElementById("profile-avatar").src = foto;
+      document.getElementById("profile-id-badge").textContent = `#${p.id || '999'}`;
+      if (verificado) document.getElementById("profile-verified-badge").classList.remove("hidden");
+
+      // Sticker paths
+      let rubroSticker = p.stickerRubro || p.identidad?.stickerRubro;
+      let actionSticker = p.stickerAccion || p.identidad?.stickerAccion;
+      const emojiVal = p.identidad?.emoji || p.emoji || '📍';
+      
+      if (rubroSticker) {
+        if (rubroSticker.startsWith('/')) rubroSticker = rubroSticker.substring(1);
+        if (rubroSticker.startsWith('./')) rubroSticker = rubroSticker.substring(2);
+        if (rubroSticker.startsWith('stickers/')) rubroSticker = '../' + rubroSticker;
+      }
+      if (actionSticker) {
+        if (actionSticker.startsWith('/')) actionSticker = actionSticker.substring(1);
+        if (actionSticker.startsWith('./')) actionSticker = actionSticker.substring(2);
+        if (actionSticker.startsWith('stickers/')) actionSticker = '../' + actionSticker;
+      }
+
+      // Categories
+      document.getElementById("field-cat-rubro").textContent = obtenerNombreRubro(rubroSticker, p);
+      const rubroImgEl = document.getElementById("sticker-rubro-img");
+      if (rubroSticker && rubroImgEl) {
+        rubroImgEl.src = rubroSticker;
+        rubroImgEl.onerror = function() {
+          this.onerror = null;
+          if (this.parentElement) this.parentElement.innerHTML = `<span class="text-lg">${emojiVal}</span>`;
+        };
+      }
+
+      document.getElementById("field-cat-accion").textContent = obtenerNombreAccion(actionSticker);
+      const actionImgEl = document.getElementById("sticker-accion-img");
+      if (actionSticker && actionImgEl) {
+        actionImgEl.src = actionSticker;
+        actionImgEl.onerror = function() { this.style.display = 'none'; };
+      }
+
+      // Stickers display
+      const stickersContainer = document.getElementById("stickers-display-container");
+      if (stickersContainer && (rubroSticker || actionSticker)) {
+        stickersContainer.innerHTML = "";
+        const rubroHtml = rubroSticker 
+          ? `<div class="flex flex-col items-center gap-1 bg-white border border-slate-100 rounded-2xl p-2.5 shadow-sm text-center">
+               <img src="${rubroSticker}" class="w-10 h-10 object-contain">
+               <span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Rubro</span>
+             </div>` : '';
+        const actionHtml = actionSticker 
+          ? `<div class="flex flex-col items-center gap-1 bg-white border border-slate-100 rounded-2xl p-2.5 shadow-sm text-center">
+               <img src="${actionSticker}" class="w-10 h-10 object-contain">
+               <span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Acción</span>
+             </div>` : '';
+        const swapStickers = p.swapStickerOrder || false;
+        stickersContainer.innerHTML = swapStickers ? actionHtml + rubroHtml : rubroHtml + actionHtml;
+      } else if (stickersContainer) {
+        stickersContainer.innerHTML = `<span class="text-xs font-semibold text-slate-400">Sin stickers animados</span>`;
+      }
+
+      // Description
+      document.getElementById("field-desc").textContent = desc;
+      setTimeout(() => {
+        const descEl = document.getElementById("field-desc");
+        const btnMore = document.getElementById("btn-read-more");
+        if (descEl && btnMore && descEl.scrollHeight > descEl.clientHeight + 2) {
+          btnMore.classList.remove("hidden");
+        }
+      }, 100);
+
+      // Gallery grid
+      galeriaGlobal = p.identidad?.galeria || p.galeria || [];
+
+      // Render Vitrina 4-photo showcase grid in Tab 2
+      const vitrina4Grid = document.getElementById("vitrina-4-grid");
+      if (vitrina4Grid && galeriaGlobal.length > 0) {
+        vitrina4Grid.innerHTML = "";
+        const fallbackImg = 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=400&q=80';
+        const previewPhotos = galeriaGlobal.slice(0, 4);
+        previewPhotos.forEach((img, idx) => {
+          const card = document.createElement("div");
+          card.className = "relative rounded-2xl overflow-hidden h-28 border border-blue-100/80 shadow-sm cursor-pointer group bg-slate-100 transition hover:scale-[1.02]";
+          card.onclick = () => abrirAmpliacion(idx);
+
+          if (idx === 3 && galeriaGlobal.length > 4) {
+            const remaining = galeriaGlobal.length - 4;
+            card.innerHTML = `
+              <img src="${img}" alt="Trabajo ${idx + 1}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.onerror=null;this.src='${fallbackImg}';">
+              <div class="absolute inset-0 bg-slate-900/65 backdrop-blur-[2px] flex flex-col items-center justify-center text-white p-2">
+                <span class="text-xl font-black">+${remaining}</span>
+                <span class="text-[9px] font-bold uppercase tracking-wider text-blue-200">Ver todas</span>
+              </div>
+            `;
+          } else {
+            card.innerHTML = `
+              <img src="${img}" alt="Trabajo ${idx + 1}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.onerror=null;this.src='${fallbackImg}';">
+              <div class="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition duration-200 flex items-center justify-center">
+                <span class="text-white text-[10px] font-bold bg-slate-900/70 px-2 py-1 rounded-lg backdrop-blur-sm">🔍 Agrandar</span>
+              </div>
+            `;
+          }
+          vitrina4Grid.appendChild(card);
+        });
+      }
+
+      // Location & Privacy
+      const privacyPillBadge = document.getElementById("privacy-pill-badge");
+      const fieldSectorDisplay = document.getElementById("field-sector-display");
+      const fieldAddressDisplay = document.getElementById("field-address-display");
+      const btnMapaText = document.getElementById("btn-mapa-text");
+
+      if (privacidad === 'exacta') {
+        if (privacyPillBadge) {
+          privacyPillBadge.innerHTML = "📍 Ubicación Exacta";
+          privacyPillBadge.className = "text-[9px] font-black px-2.5 py-0.5 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-800";
+        }
+        if (fieldAddressDisplay) fieldAddressDisplay.textContent = calle;
+        if (btnMapaText) btnMapaText.textContent = "Ver posición en el Mapa Interactivo 🗺️";
+      } else {
+        if (privacyPillBadge) {
+          privacyPillBadge.innerHTML = "🛡️ Cobertura Protegida";
+          privacyPillBadge.className = "text-[9px] font-black px-2.5 py-0.5 rounded-full bg-blue-100 border border-blue-200 text-blue-800";
+        }
+        if (fieldAddressDisplay) fieldAddressDisplay.textContent = "🔒 Ubicación Privada (La dirección en el mapa es solo de referencia de su zona de atención)";
+        if (btnMapaText) btnMapaText.textContent = "Ver zona de referencia en el Mapa 🗺️";
+      }
+      if (fieldSectorDisplay) fieldSectorDisplay.textContent = sector;
+
+      // Contact
+      document.getElementById("field-attendant").textContent = contacto;
+      document.getElementById("field-phone").textContent = fono || "No registrado";
+      if (instagram) {
+        document.getElementById("field-instagram").textContent = instagram.startsWith('@') ? instagram : `@${instagram}`;
+        document.getElementById("field-instagram").className = "text-xs font-bold text-pink-600 block truncate";
+      }
+
+      const whatsappMsg = p.whatsappMsg || (isNew ? p.contacto?.whatsappMsg : p.whatsappMsg) || `Hola ${contacto}, vi tu perfil en Keilu y me gustaría consultar por tus servicios.`;
+      document.getElementById("field-whatsapp-msg").textContent = whatsappMsg;
+
+      // Hours & Days
+      document.getElementById("field-hours").textContent = horario.toLowerCase().includes("24/7") || horario.toLowerCase().includes("24 horas") 
+        ? "⚡ ATENCIÓN CONTINUA 24/7" 
+        : `🕐 ${horario}`;
+      
+      if (horario.toLowerCase().includes("24/7")) {
+        document.getElementById("field-hours").className = "text-center text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl py-2.5 px-3";
+      }
+
+      const tags = document.querySelectorAll("#days-container .day-tag");
+      tags.forEach(tag => {
+        const name = tag.getAttribute("data-day");
+        if (isDayActive(dias, name)) {
+          tag.className = "day-tag active";
+        } else {
+          tag.className = "day-tag inactive";
+        }
+      });
+
+      // Subscription
+      document.getElementById("field-plan-active").textContent = duracionActiva;
+      document.getElementById("field-plan-price").textContent = tarifaPagada;
+
+      // Live status
+      const estadoVivo = isNew ? p.tiemposYAcciones?.estadoVivo : null;
+      if (estadoVivo && estadoVivo.activo) {
+        document.getElementById("dispo-dot").className = "absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white animate-pulse";
+        document.getElementById("dispo-label").textContent = "Disponible ahora";
+        document.getElementById("dispo-label").className = "text-[9px] font-black text-emerald-600 uppercase tracking-wide";
+        const msgBox = document.getElementById("dispo-msg-box");
+        msgBox.innerHTML = `<span class="text-[8.5px] font-black text-emerald-600 uppercase tracking-wider block mb-0.5">Estado en vivo</span> ⚡ ${estadoVivo.texto}`;
+        msgBox.classList.remove("hidden");
+      }
+
+      // Bottom bar links
+      document.getElementById("btn-call-header").href = `tel:${fono}`;
+      const cleanFonoDigits = fono.replace(/\D/g,'');
+      document.getElementById("btn-whatsapp-header").href = `https://wa.me/${cleanFonoDigits}?text=${encodeURIComponent(whatsappMsg)}`;
+    }
+  </script>
+</body>
+</html>

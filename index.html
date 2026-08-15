@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keilu - Portal de Desarrollo</title>
+  <meta name="description" content="Portal central de prototipos y herramientas del proyecto Keilu.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Outfit', 'sans-serif'] } } }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { background: #F8FAFC; }
+    .card-hover-blue:hover { border-color: #3b82f6; box-shadow: 0 4px 20px rgba(37,99,235,0.08); }
+    .card-hover-green:hover { border-color: #10b981; box-shadow: 0 4px 20px rgba(16,185,129,0.08); }
+    .card-hover-orange:hover { border-color: #f97316; box-shadow: 0 4px 20px rgba(249,115,22,0.08); }
+    .card-hover-cyan:hover { border-color: #06b6d4; box-shadow: 0 4px 20px rgba(6,182,212,0.08); }
+    .card-hover-amber:hover { border-color: #f59e0b; box-shadow: 0 4px 20px rgba(245,158,11,0.06); }
+    .card-hover-violet:hover { border-color: #8b5cf6; box-shadow: 0 4px 20px rgba(139,92,246,0.08); }
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen flex items-center justify-center py-10 px-4 font-sans">
+
+  <div class="w-full max-w-4xl flex flex-col gap-8">
+
+    <!-- Header -->
+    <header class="text-center space-y-3">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-blue-50 border border-blue-200 text-blue-600 mb-2 shadow-sm">
+        <i data-lucide="compass" class="w-8 h-8 animate-pulse"></i>
+      </div>
+      <h1 class="text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">Portal Keilu</h1>
+      <p class="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+        Centro de desarrollo unificado. Una sola app, 100% responsiva. 
+        Funciona en PC, tablet y celular real.
+      </p>
+    </header>
+
+    <!-- Presets de Carga rápida -->
+    <div class="bg-white border border-slate-200/80 rounded-3xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="text-left">
+        <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Presets de Carga Rápida (ID 999)</h3>
+        <p class="text-[11px] text-slate-500 mt-0.5">Carga perfiles de prueba en localStorage para probar editores y vistas de inmediato.</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button onclick="cargarPreset('trabajador')" class="px-3.5 py-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-xs font-bold transition hover:bg-blue-100 flex items-center gap-1.5 shadow-sm">
+          🔵 Cargar Luis Silva
+        </button>
+        <button onclick="cargarPreset('empresa')" class="px-3.5 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold transition hover:bg-emerald-100 flex items-center gap-1.5 shadow-sm">
+          🟢 Cargar Miraflor
+        </button>
+      </div>
+    </div>
+
+    <!-- Accesos principales -->
+    <main class="flex flex-col gap-6">
+
+      <!-- MAPA — Card principal destacada -->
+      <a href="desktop/index.html"
+        class="card-hover-blue group bg-white border border-slate-200 rounded-3xl p-7 flex flex-col sm:flex-row items-start sm:items-center gap-5 transition-all duration-300 relative overflow-hidden shadow-sm">
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-transparent pointer-events-none rounded-3xl"></div>
+        <div class="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 group-hover:scale-110 transition shrink-0 text-2xl shadow-inner">
+          🗺️
+        </div>
+        <div class="flex-1 text-left">
+          <span class="text-[9px] font-black text-blue-600 uppercase tracking-widest block mb-1">Principal</span>
+          <h2 class="text-xl font-black text-slate-900 group-hover:text-blue-600 transition">Ver Mapa en Vivo</h2>
+          <p class="text-sm text-slate-500 mt-1 leading-relaxed">
+            Mapa interactivo de MapTiler con pines, GPS, búsqueda y filtros. 
+            Responsive: funciona en PC y celular real.
+          </p>
+        </div>
+        <div class="flex items-center gap-1 text-blue-600 font-bold text-xs shrink-0">
+          Abrir <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </div>
+      </a>
+
+      <!-- SECCIÓN 1: FORMULARIOS (LLENAR DATOS) -->
+      <div class="space-y-3">
+        <div class="text-left pl-1">
+          <h3 class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5 text-blue-650"></i> Formularios (Llenar Datos)
+          </h3>
+          <p class="text-[10px] text-slate-500 mt-0.5">Formularios de inscripción para ingresar o modificar los datos del perfil.</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Formulario Trabajador -->
+          <a href="desktop/profile_editor_worker.html?mode=new"
+            class="card-hover-blue group bg-blue-50/50 border border-blue-100 rounded-3xl p-5 flex flex-col gap-3 transition-all duration-300 shadow-sm text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-blue-100 border border-blue-200/60 flex items-center justify-center text-blue-600 group-hover:scale-110 transition shrink-0">
+                <i data-lucide="user-plus" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-extrabold text-blue-900 group-hover:text-blue-600 transition">Formulario Trabajador</h4>
+                <p class="text-[9px] text-blue-500 font-bold">Catálogo Azul 🔵</p>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-600 leading-relaxed min-h-[44px]">
+              Formulario de inscripción para profesionales y técnicos independientes.
+            </p>
+            <div class="text-[11px] text-blue-600 font-bold flex items-center gap-1 mt-auto">
+              Abrir Formulario <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </div>
+          </a>
+
+          <!-- Formulario Empresa -->
+          <a href="desktop/profile_editor_company.html?mode=new"
+            class="card-hover-green group bg-emerald-50/50 border border-emerald-100 rounded-3xl p-5 flex flex-col gap-3 transition-all duration-300 shadow-sm text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-100 border border-emerald-200/60 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition shrink-0">
+                <i data-lucide="store" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-extrabold text-emerald-900 group-hover:text-emerald-600 transition">Formulario Empresa</h4>
+                <p class="text-[9px] text-emerald-600 font-bold">Catálogo Verde 🟢</p>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-600 leading-relaxed min-h-[44px]">
+              Ficha de registro para locales comerciales, pymes y tiendas físicas.
+            </p>
+            <div class="text-[11px] text-emerald-650 font-bold flex items-center gap-1 mt-auto">
+              Abrir Formulario <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </div>
+          </a>
+
+          <!-- Formulario Evento -->
+          <a href="desktop/profile_editor_community.html?mode=new"
+            class="card-hover-orange group bg-orange-50/50 border border-orange-100 rounded-3xl p-5 flex flex-col gap-3 transition-all duration-300 shadow-sm text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-orange-100 border border-orange-200/60 flex items-center justify-center text-orange-650 group-hover:scale-110 transition shrink-0">
+                <i data-lucide="megaphone" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-extrabold text-orange-950 group-hover:text-orange-600 transition">Formulario Evento</h4>
+                <p class="text-[9px] text-orange-600 font-bold">Catálogo Naranjo 🟠</p>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-600 leading-relaxed min-h-[44px]">
+              Formulario de 5 pasos para bingos solidarios, completadas y talleres vecinales.
+            </p>
+            <div class="text-[11px] text-orange-650 font-bold flex items-center gap-1 mt-auto">
+              Abrir Formulario <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 2: PLANES DE SUSCRIPCIÓN -->
+      <div class="space-y-3">
+        <div class="text-left pl-1">
+          <h3 class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="gem" class="w-3.5 h-3.5 text-cyan-600"></i> Planes de Suscripción (Visibilidad)
+          </h3>
+          <p class="text-[10px] text-slate-500 mt-0.5">Gestión de tarifas, destaque en el mapa y radar del proveedor.</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Suscripción Trabajador -->
+          <a href="desktop/subscription_editor.html?type=azul"
+            class="card-hover-blue group bg-blue-50/50 border border-blue-100 rounded-3xl p-5 flex flex-col gap-3 transition-all duration-300 shadow-sm text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-blue-100 border border-blue-200/60 flex items-center justify-center text-blue-600 group-hover:scale-110 transition shrink-0">
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-extrabold text-blue-900 group-hover:text-blue-600 transition">Suscripción Azul</h4>
+                <p class="text-[9px] text-blue-500 font-bold">Planes Trabajador</p>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-600 leading-relaxed min-h-[44px]">
+              Activa pulso de radar, destaque y stickers animados de oficios.
+            </p>
+            <div class="text-[11px] text-blue-600 font-bold flex items-center gap-1 mt-auto">
+              Configurar Plan <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </div>
+          </a>
+
+          <!-- Suscripción Empresa -->
+          <a href="desktop/subscription_editor.html?type=verde"
+            class="card-hover-green group bg-emerald-50/50 border border-emerald-100 rounded-3xl p-5 flex flex-col gap-3 transition-all duration-300 shadow-sm text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-100 border border-emerald-200/60 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition shrink-0">
+                <i data-lucide="award" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-extrabold text-emerald-900 group-hover:text-emerald-600 transition">Suscripción Verde</h4>
+                <p class="text-[9px] text-emerald-600 font-bold">Planes Comercio</p>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-600 leading-relaxed min-h-[44px]">
+              Activa anuncio express, radar constante y emojis comerciales.
+            </p>
+            <div class="text-[11px] text-emerald-650 font-bold flex items-center gap-1 mt-auto">
+              Configurar Plan <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </div>
+          </a>
+
+          <!-- Suscripción Evento -->
+          <a href="desktop/subscription_editor.html?type=naranja"
+            class="card-hover-orange group bg-orange-50/50 border border-orange-100 rounded-3xl p-5 flex flex-col gap-3 transition-all duration-300 shadow-sm text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-orange-100 border border-orange-200/60 flex items-center justify-center text-orange-650 group-hover:scale-110 transition shrink-0">
+                <i data-lucide="zap" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-extrabold text-orange-950 group-hover:text-orange-600 transition">Suscripción Naranja</h4>
+                <p class="text-[9px] text-orange-600 font-bold">Planes de Eventos</p>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-600 leading-relaxed min-h-[44px]">
+              Impulsa eventos benéficos con radar temporal en tu zona.
+            </p>
+            <div class="text-[11px] text-orange-650 font-bold flex items-center gap-1 mt-auto">
+              Configurar Plan <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 3: PERFILES PÚBLICOS (DATOS PUBLICADOS - IMAGEN 1) -->
+      <div class="space-y-3">
+        <div class="text-left pl-1">
+          <h3 class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="eye" class="w-3.5 h-3.5 text-blue-650"></i> Perfiles Públicos (Datos Publicados)
+          </h3>
+          <p class="text-[10px] text-slate-500 mt-0.5">Vista final del perfil que el vecino ve al abrir la información del mapa (Imagen 1).</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Perfil Trabajador -->
+          <a href="desktop/profile_view_worker.html?id=999"
+            class="card-hover-blue group bg-blue-50/50 border border-blue-100 rounded-3xl p-5 flex flex-col gap-3 transition-all duration-300 shadow-sm text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-blue-100 border border-blue-200/60 flex items-center justify-center text-blue-600 group-hover:scale-110 transition shrink-0">
+                <i data-lucide="layout" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-extrabold text-blue-900 group-hover:text-blue-600 transition">Perfil Trabajador</h4>
+                <p class="text-[9px] text-blue-500 font-bold">Vista de Publicado</p>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-600 leading-relaxed min-h-[44px]">
+              Ver ficha completa del profesional, galerías, contacto directo y estrellas.
+            </p>
+            <div class="text-[11px] text-blue-600 font-bold flex items-center gap-1 mt-auto">
+              Ver Perfil <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </div>
+          </a>
+
+          <!-- Perfil Empresa -->
+          <a href="desktop/profile_view_company.html?id=999"
+            class="card-hover-green group bg-emerald-50/50 border border-emerald-100 rounded-3xl p-5 flex flex-col gap-3 transition-all duration-300 shadow-sm text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-100 border border-emerald-200/60 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition shrink-0">
+                <i data-lucide="layout-template" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-extrabold text-emerald-900 group-hover:text-emerald-600 transition">Perfil Empresa</h4>
+                <p class="text-[9px] text-emerald-600 font-bold">Vista de Publicado</p>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-600 leading-relaxed min-h-[44px]">
+              Ver ficha del local, carta de menú, delivery, dirección física y opiniones.
+            </p>
+            <div class="text-[11px] text-emerald-650 font-bold flex items-center gap-1 mt-auto">
+              Ver Perfil <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </div>
+          </a>
+
+          <!-- Perfil Evento (Inactivo / Proximamente) -->
+          <div class="opacity-50 bg-slate-100 border border-slate-200 rounded-3xl p-5 flex flex-col gap-3 text-left relative cursor-not-allowed select-none">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-400 shrink-0">
+                <i data-lucide="lock" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-extrabold text-slate-400">Perfil Evento</h4>
+                <span class="text-[8px] bg-slate-200 text-slate-500 font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider">No Disponible</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed min-h-[44px]">
+              Ficha del evento y afiches de la junta de vecinos (próxima sección de desarrollo).
+            </p>
+            <div class="text-[11px] text-slate-400 font-bold flex items-center gap-1 mt-auto">
+              Deshabilitado
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 4: VISTAS PREVIAS (POPUP DEL MAPA - IMAGEN 2) -->
+      <div class="space-y-3">
+        <div class="text-left pl-1">
+          <h3 class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="maximize" class="w-3.5 h-3.5 text-blue-650"></i> Vistas Previas (Popup del Mapa)
+          </h3>
+          <p class="text-[10px] text-slate-500 mt-0.5">Acceso directo para probar la tarjeta emergente (Bottom Sheet) directamente en el mapa (Imagen 2).</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Vista Previa Trabajador -->
+          <a href="desktop/index.html?preview=999"
+            class="card-hover-blue group bg-blue-50/50 border border-blue-100 rounded-3xl p-5 flex flex-col gap-3 transition-all duration-300 shadow-sm text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-blue-100 border border-blue-200/60 flex items-center justify-center text-blue-600 group-hover:scale-110 transition shrink-0">
+                <i data-lucide="external-link" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-extrabold text-blue-900 group-hover:text-blue-600 transition">Vista Previa Trabajador</h4>
+                <p class="text-[9px] text-blue-500 font-bold">Popup en Mapa</p>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-600 leading-relaxed min-h-[44px]">
+              Ver tarjeta emergente del trabajador independiente en acción.
+            </p>
+            <div class="text-[11px] text-blue-600 font-bold flex items-center gap-1 mt-auto">
+              Simular en Mapa <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </div>
+          </a>
+
+          <!-- Vista Previa Empresa -->
+          <a href="desktop/index.html?preview=999"
+            class="card-hover-green group bg-emerald-50/50 border border-emerald-100 rounded-3xl p-5 flex flex-col gap-3 transition-all duration-300 shadow-sm text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-emerald-100 border border-emerald-200/60 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition shrink-0">
+                <i data-lucide="external-link" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-extrabold text-emerald-900 group-hover:text-emerald-600 transition">Vista Previa Empresa</h4>
+                <p class="text-[9px] text-emerald-600 font-bold">Popup en Mapa</p>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-600 leading-relaxed min-h-[44px]">
+              Ver tarjeta emergente del comercio o local con su especialidad y horario.
+            </p>
+            <div class="text-[11px] text-emerald-650 font-bold flex items-center gap-1 mt-auto">
+              Simular en Mapa <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </div>
+          </a>
+
+          <!-- Vista Previa Evento (Inactivo / Proximamente) -->
+          <div class="opacity-50 bg-slate-100 border border-slate-200 rounded-3xl p-5 flex flex-col gap-3 text-left relative cursor-not-allowed select-none">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-400 shrink-0">
+                <i data-lucide="lock" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-extrabold text-slate-400">Vista Previa Evento</h4>
+                <span class="text-[8px] bg-slate-200 text-slate-500 font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider">No Disponible</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed min-h-[44px]">
+              Ver tarjeta emergente de eventos solidarios y comunitarios del barrio.
+            </p>
+            <div class="text-[11px] text-slate-400 font-bold flex items-center gap-1 mt-auto">
+              Deshabilitado
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 5: DIRECTORES Y LISTADOS (MANTENIMIENTO) -->
+      <div class="grid grid-cols-1 gap-4">
+        <!-- Libro de Usuarios -->
+        <a href="desktop/users_book.html"
+          class="card-hover-violet group bg-violet-50 border border-violet-100 rounded-3xl p-5 flex flex-row items-center gap-4 transition-all duration-300 shadow-sm">
+          <div class="w-12 h-12 rounded-2xl bg-violet-100 border border-violet-200/60 flex items-center justify-center text-violet-650 group-hover:scale-110 transition shrink-0">
+            <i data-lucide="book-user" class="w-6 h-6"></i>
+          </div>
+          <div class="flex-1 text-left">
+            <span class="text-[8px] font-black text-violet-600 uppercase tracking-widest block mb-0.5">Mantenimiento</span>
+            <h4 class="text-sm font-extrabold text-violet-950 group-hover:text-violet-600 transition">📓 Libro de Usuarios</h4>
+            <p class="text-xs text-slate-500 mt-1">
+              Directorio completo de la Zona 0 (Hualpén / Talcahuano): 20 Trabajadores y 20 Comercios con accesos directos al mapa.
+            </p>
+          </div>
+          <div class="text-xs text-violet-600 font-bold flex items-center gap-1 shrink-0">
+            Ver Directorio <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+          </div>
+        </a>
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center text-[10px] text-slate-400 pt-4 border-t border-slate-200">
+      Keilu Portal &copy; 2026 — Sistema Unificado Responsivo
+    </footer>
+
+  </div>
+
+  <script>
+    const presetTrabajador = {
+      id: 999, tipo: "azul", dePago: true,
+      foto: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200",
+      emoji: "🔧", animClass: "anim-wrench",
+      nombre: "Luis Silva", rubro: "Gasfitería y Plomería independiente",
+      contacto: "Luis Silva", fono: "+56912345601",
+      horario: "fijo", abre: "08:00", cierra: "18:00", dias: "Lunes a Viernes",
+      disponible: true, lat: -36.7930, lng: -73.1100,
+      privacidad: "exacta", realLat: -36.7930, realLng: -73.1100, notaAd: ""
+    };
+    
+    const presetEmpresa = {
+      id: 999, tipo: "verde", dePago: true,
+      foto: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=200",
+      emoji: "🥖", animClass: "anim-bread",
+      nombre: "Panadería Miraflor", rubro: "Panadería, Pastelería y Local comercial",
+      contacto: "Panadería Miraflor", fono: "+56987654321",
+      horario: "24/7", abre: "", cierra: "", dias: "Lunes a Domingo",
+      disponible: true, lat: -36.7960, lng: -73.1140,
+      privacidad: "exacta", realLat: -36.7960, realLng: -73.1140,
+      notaAd: "¡Marraquetas calientes saliendo del horno ahora!"
+    };
+
+    function cargarPreset(tipo) {
+      const preset = tipo === 'trabajador' ? presetTrabajador : presetEmpresa;
+      localStorage.setItem('keilu_user_provider', JSON.stringify(preset));
+      const label = tipo === 'trabajador' ? '🔵 Preset de Luis Silva (Trabajador)' : '🟢 Preset de Panadería Miraflor (Empresa)';
+      alert(`${label} cargado correctamente.\n\nAhora puedes abrir el Mapa o cualquier Editor y verás estos datos activos.`);
+    }
+
+    window.onload = () => {
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>

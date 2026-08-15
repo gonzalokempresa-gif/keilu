@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keilu - Editor de Perfil (Trabajador - Escritorio)</title>
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            keiluBlue: '#1A3D63',
+            keiluGreen: '#375534'
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons & Mock Data -->
+  <script src="mock_data.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- MapLibre GL Map library -->
+  <link href="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.js"></script>
+  
+  <style>
+    :root {
+      --keilu-worker-header: #052659;
+      --keilu-worker-accent: #7DA0CA;
+    }
+
+    body {
+      background-color: #FFFFFF !important;
+      color: #0F172A !important;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 4px;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hero-header {
+      position: relative;
+      height: 160px;
+      background-color: #052659;
+      border-bottom-left-radius: 50% 15%;
+      border-bottom-right-radius: 50% 15%;
+      transition: background-color 0.3s ease;
+      flex-shrink: 0;
+      z-index: 30;
+    }
+
+    /* Flat premium input styles */
+    .flat-input {
+      width: 100%;
+      background-color: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      color: #0F172A;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .flat-input:focus {
+      outline: none;
+      background-color: #FFFFFF;
+      border-color: #7DA0CA;
+      box-shadow: 0 0 0 3px rgba(125, 160, 202, 0.2);
+    }
+
+    /* Day tags styling */
+    .day-tag {
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+    .day-tag.active {
+      background-color: #052659 !important;
+      color: #FFFFFF !important;
+      border: 1px solid #052659 !important;
+    }
+    .day-tag.inactive {
+      background-color: #F8FAFC !important;
+      color: #64748B !important;
+      border: 1px solid #E2E8F0 !important;
+    }
+  </style>
+</head>
+<body class="bg-white text-slate-800 min-h-screen p-6 font-sans">
+
+  <!-- Main Container -->
+  <div class="max-w-4xl mx-auto flex flex-col bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-none pb-12">
+    
+    <!-- Hero Header -->
+    <div id="hero-header-container" class="hero-header">
+      <!-- Top buttons row -->
+      <div class="flex justify-between items-center w-full px-8 pt-4">
+        <a href="index.html" class="text-white/90 hover:text-white flex items-center gap-1.5 text-xs font-bold transition">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Mapa
+        </a>
+        <button onclick="guardarYPublicar()" id="btn-submit-action" class="bg-white text-slate-800 hover:bg-slate-50 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+          <i data-lucide="check" class="w-4 h-4"></i> Guardar Cambios
+        </button>
+      </div>
+      <!-- Center Title -->
+      <div class="text-center text-white mt-1">
+        <span id="hero-subtitle" class="text-[10px] font-black uppercase tracking-wider opacity-75">Catálogo Azul 🔵</span>
+        <h1 id="hero-title" class="text-xl font-black mt-0.5">Editor de Perfil (Trabajador)</h1>
+      </div>
+      <!-- Avatar click to upload overlayed on bottom curve -->
+      <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 z-40">
+        <div class="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md cursor-pointer bg-slate-100 flex items-center justify-center" onclick="document.getElementById('avatar-file-input').click()">
+          <img id="edit-img-preview" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200" class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition flex items-center justify-center text-white text-[9.5px] font-bold">
+            <i data-lucide="camera" class="w-4.5 h-4.5 mr-1"></i> Subir Foto
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden Inputs -->
+    <input type="file" id="avatar-file-input" class="hidden" accept="image/*" onchange="loadAvatarImage(event)">
+    <input type="hidden" id="edit-img-url" value="">
+
+    <!-- Profile Form Content Area -->
+    <div class="px-8 pt-16 flex flex-col gap-6">
+      
+      <!-- Selector de Tipo de Cuenta -->
+      <div class="hidden grid-cols-2 gap-3 p-1.5 bg-slate-100/70 border border-slate-200/60 rounded-2xl">
+        <div onclick="selectAccountType('azul')" id="type-card-azul"></div>
+        <div onclick="selectAccountType('verde')" id="type-card-verde"></div>
+      </div>
+
+      <!-- Paso 1 Grid Layout -->
+      <div id="step-1-block" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Column 1: Info General (Pasos 1 al 4) -->
+        <div class="flex flex-col gap-6">
+          <h3 class="text-xs font-black text-[#052659] uppercase tracking-widest border-b border-blue-100 pb-2 flex items-center justify-between">
+            <span>Datos Principales del Perfil</span>
+            <span class="text-[9px] font-bold text-[#052659] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200/60">4 Pasos Simples</span>
+          </h3>
+
+          <div class="grid grid-cols-1 gap-4">
+            
+            <!-- PASO 1: Identidad (Nombre) -->
+            <div class="flex flex-col gap-1.5 p-3.5 bg-blue-100/90 border border-blue-200/90 rounded-2xl">
+              <div class="flex justify-between items-center">
+                <label class="text-[10px] text-[#052659] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="w-4 h-4 rounded-full bg-[#052659] text-white text-[9px] flex items-center justify-center font-black">1</span>
+                  NOMBRE DE TU SERVICIO O PERSONA
+                </label>
+                <span id="name-counter" class="text-[9px] text-slate-500 font-bold">0 / 25</span>
+              </div>
+              <p class="text-[9.5px] text-slate-600 font-medium">¿Cómo quieres que te encuentren tus clientes?</p>
+              <input type="text" id="edit-name" value="" placeholder="Ej: Plomería Don Luis o Cristóbal Soto" maxlength="25" oninput="document.getElementById('name-counter').textContent = this.value.length + ' / 25'; updateLivePreview();" onkeydown="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('edit-rubro').focus(); }" class="flat-input text-xs font-semibold mt-0.5">
+            </div>
+
+            <!-- PASO 2: Trabajo u Oficio Específico y lo que destaca a tu servicio -->
+            <div id="paso-2-container" class="flex flex-col gap-3 p-3.5 bg-blue-100/90 border border-blue-200/90 rounded-2xl">
+              <!-- Primera Pregunta: Oficio -->
+              <div class="flex flex-col gap-1.5">
+                <div class="flex justify-between items-center">
+                  <label class="text-[10px] text-[#052659] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                    <span class="w-4 h-4 rounded-full bg-[#052659] text-white text-[9px] flex items-center justify-center font-black">2</span>
+                    ¿CUÁL ES TU TRABAJO U OFICIO ESPECÍFICO?
+                  </label>
+                  <span id="rubro-counter" class="text-[9px] text-slate-500 font-bold">0 / 30</span>
+                </div>
+                <p class="text-[9.5px] text-slate-600 font-medium">Escribe tu oficio o profesión detalladamente:</p>
+                
+                <div class="flex items-center gap-2 mt-0.5">
+                  <!-- Input wrapper (left and middle space) -->
+                  <div class="relative flex-1 rounded-xl bg-white border border-[#E2E8F0] focus-within:border-[#7DA0CA] focus-within:ring-2 focus-within:ring-[#7DA0CA]/20 transition flex items-center overflow-hidden h-10 shadow-sm">
+                    <!-- Input Editable Transparente -->
+                    <input type="text" id="edit-rubro" placeholder="Ej: Gasfiter, Mecánico, Enfermero(a), Carpintero..." maxlength="30" oninput="handleRubroSmartInput(this.value);" onkeyup="handleRubroSmartInput(this.value);" onchange="handleRubroSmartInput(this.value);" onkeydown="handleRubroSmartKeyDown(event)" autocomplete="off" class="w-full border-0 outline-none text-xs font-semibold px-3 py-2.5 relative z-10 text-slate-900 tracking-normal font-sans" style="background: transparent !important; background-color: transparent !important;">
+
+                    <!-- Overlay Fantasma Inline al Frente -->
+                    <div id="predictive-ghost-overlay" class="absolute inset-0 flex items-center px-3 pointer-events-none select-none z-20 text-xs font-semibold whitespace-pre overflow-hidden tracking-normal font-sans" style="transform: translateZ(0); -webkit-transform: translateZ(0);">
+                      <span id="ghost-typed-text" style="color: transparent; white-space: pre;"></span><span id="ghost-predicted-letters" style="color: #94a3b8; font-weight: 700; white-space: pre;"></span>
+                    </div>
+                  </div>
+
+                  <!-- Live Sticker Square Box (El cuadradito al lado) -->
+                  <div id="rubro-live-sticker-square" class="w-10 h-10 rounded-xl bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center shrink-0 overflow-hidden transition-all duration-300">
+                    <img id="rubro-live-sticker-img" src="stickers/trabajadores/09-estetica/00-default.gif" class="w-8 h-8 object-contain">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Separador sutil -->
+              <div class="border-t border-blue-200/50 my-0.5"></div>
+
+              <!-- Segunda Pregunta: Qué destaca a tu servicio -->
+              <div class="flex flex-col gap-1.5">
+                <div class="flex justify-between items-center">
+                  <label class="text-[10px] text-[#052659] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                    ¿QUÉ DESTACA A TU SERVICIO?
+                  </label>
+                </div>
+                <p class="text-[9.5px] text-slate-600 font-medium">Selecciona la categoría de acción que más se acomode a tu servicio:</p>
+                
+                <div class="flex items-center gap-2 mt-0.5">
+                  <!-- Custom Dropdown Selector Box -->
+                  <div class="relative flex-1">
+                    <div id="destaca-dropdown-trigger" class="w-full h-10 px-3 rounded-xl bg-white border border-[#E2E8F0] hover:border-[#7DA0CA] cursor-pointer flex items-center justify-between shadow-sm transition select-none">
+                      <div id="destaca-trigger-label" class="flex items-center gap-2 text-xs font-semibold text-slate-400 truncate w-full pr-2">
+                        Selecciona tu categoría aquí
+                      </div>
+                      <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+
+                    <!-- Dropdown Menu Options Container (Hidden by default) -->
+                    <div id="custom-specialty-dropdown-menu" class="absolute left-0 right-0 top-11 z-50 bg-white border border-slate-200 rounded-xl shadow-xl p-2 max-h-60 overflow-y-auto hidden flex-col gap-1.5">
+                      <!-- Rendered dynamically via renderCustomSpecialtyDropdown() -->
+                    </div>
+                  </div>
+
+                  <!-- Action Live Sticker Square Box (El cuadradito al lado de la acción) -->
+                  <div id="accion-live-sticker-square" class="w-10 h-10 rounded-xl bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center shrink-0 overflow-hidden transition-all duration-300">
+                    <img id="accion-live-sticker-img" src="stickers/acciones trabajadores/02-domicilio/00-default.gif" class="w-8 h-8 object-contain">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+
+            <!-- PASO 3: Sticker Animado de tu Trabajo y Acción -->
+            <div id="stickers-selector-card-container" class="flex flex-col gap-2 p-3.5 bg-blue-100/90 border border-blue-200/90 rounded-2xl">
+              <div class="flex justify-between items-center">
+                <label class="text-[10px] text-[#052659] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="w-4 h-4 rounded-full bg-[#052659] text-white text-[9px] flex items-center justify-center font-black">3</span>
+                  Sticker Animado de tu Trabajo
+                </label>
+              </div>
+              <p class="text-[9.5px] text-slate-600 font-medium">Elige el diseño de tu sticker y organiza su orden:</p>
+              
+              <!-- Double Emojis Display (Side-by-side) -->
+              <div class="flex justify-center gap-4 my-2" id="card4-emojis-container">
+                <!-- Will render programmatically based on swapStickerOrder -->
+              </div>
+
+              <!-- Swap Location/Order Button -->
+              <div class="flex justify-center">
+                <button type="button" onclick="swapStickerPositions()" class="py-1.5 px-4 bg-white hover:bg-slate-50 text-[#052659] border border-blue-200 rounded-xl text-[10px] font-extrabold transition shadow-sm flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 text-[#052659]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 16V4m0 12l-4-4m4 4l4-4m7-4v12m0-12l-4 4m4-4l4 4"></path>
+                  </svg>
+                  Cambiar ubicación (Intercambiar orden)
+                </button>
+              </div>
+
+              <!-- Variants Selection Carrusel/Grid -->
+              <div id="card4-variants-container" class="mt-2 pt-2 border-t border-blue-200/50">
+                <p class="text-[9px] text-[#052659] font-black uppercase tracking-wider mb-1.5">
+                  Variantes de: <span id="active-variant-category-name" class="text-blue-600 font-black">Trabajo</span>
+                </p>
+                <div id="card4-variants-grid" class="flex gap-2 overflow-x-auto py-1 no-scrollbar">
+                  <!-- Injected sticker variant options dynamically -->
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- PASO 4: Descripción -->
+          <div id="paso-5-container" class="flex flex-col gap-1.5 p-3.5 bg-blue-100/90 border border-blue-200/90 rounded-2xl">
+            <div class="flex justify-between items-center">
+              <label class="text-[10px] text-[#052659] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-4 h-4 rounded-full bg-[#052659] text-white text-[9px] flex items-center justify-center font-black">4</span>
+                DESCRIPCIÓN DE TU SERVICIO
+              </label>
+              <span id="desc-counter" class="text-[9px] text-slate-500 font-bold">0 / 200</span>
+            </div>
+            <p class="text-[9.5px] text-slate-600 font-medium">Escribe una breve descripción de tus servicios (máximo 200 caracteres):</p>
+            <textarea id="edit-desc" rows="3" placeholder="Escribe una breve descripción de tus servicios..." oninput="updateLivePreview()" maxlength="200" class="flat-input resize-none mt-0.5"></textarea>
+          </div>
+
+          <!-- PASO 5: Vitrina de Trabajos -->
+          <div id="paso-6-container" class="flex flex-col gap-3 p-3.5 bg-blue-100/90 border border-blue-200/90 rounded-2xl">
+            <div class="flex justify-between items-center">
+              <label class="text-[10px] text-[#052659] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-4 h-4 rounded-full bg-[#052659] text-white text-[9px] flex items-center justify-center font-black">5</span>
+                VITRINA DE TRABAJOS
+              </label>
+              <span id="gallery-counter" class="text-[9px] text-slate-500 font-bold">0 / 10</span>
+            </div>
+            <p class="text-[9.5px] text-slate-600 font-medium">Sube fotos de tus mejores trabajos (máximo 10 fotos):</p>
+            
+            <div class="flex gap-2.5 overflow-x-auto py-1 no-scrollbar" id="edit-gallery-previews">
+              <!-- Thumbnail preview items -->
+            </div>
+
+            <!-- Hidden real file input -->
+            <input type="file" id="gallery-file-input" accept="image/*" multiple class="hidden" onchange="handleGalleryFileUpload(event)">
+
+            <div class="flex gap-2 mt-0.5">
+              <button onclick="document.getElementById('gallery-file-input').click()" class="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-bold transition flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v1M16 16l-4-4m0 0l-4 4m4-4v12"></path>
+                </svg>
+                Subir Fotos desde tu Equipo
+              </button>
+              <button onclick="clearGallery()" class="py-2 px-3 bg-red-50 hover:bg-red-100 text-red-650 rounded-xl text-[10px] font-bold border border-red-100 transition flex items-center justify-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                Limpiar Todo
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-6">
+          <!-- PASO 6: Ubicación y Privacidad -->
+          <div id="paso-6-ubicacion-container" class="flex flex-col gap-3 p-3.5 bg-blue-100/90 border border-blue-200/90 rounded-2xl">
+            <div class="flex justify-between items-center">
+              <label class="text-[10px] text-[#052659] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-4 h-4 rounded-full bg-[#052659] text-white text-[9px] flex items-center justify-center font-black">6</span>
+                ¿DÓNDE SE UBICA TU SERVICIO?
+              </label>
+            </div>
+            <p class="text-[9.5px] text-slate-600 font-medium">Busca en el mapa o arrastra el mapa para posicionar el pin rojo en el centro:</p>
+
+            <!-- GPS Button inside Card -->
+            <button type="button" onclick="obtenerCoordenadasGPS()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Usar Mi Ubicación GPS Actual
+            </button>
+
+
+            <!-- Interactive Mini Map Container -->
+            <div class="relative w-full h-48 rounded-xl border border-slate-200 overflow-hidden shadow-inner mt-0.5 z-0">
+              <!-- Map div -->
+              <div id="editor-mini-map" class="w-full h-full"></div>
+              <!-- Fixed center pin over the map container -->
+              <div id="center-pin-overlay" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 transition-all duration-300" style="transform: translateY(-16px); z-index: 9999;">
+                <!-- Center Pin Design -->
+                <div class="relative flex flex-col items-center">
+                  <svg class="w-8 h-8 text-red-500 drop-shadow-md filter" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                  </svg>
+                  <div class="w-1.5 h-1.5 bg-black/30 rounded-full blur-[1px] absolute -bottom-0.5"></div>
+                </div>
+              </div>
+            </div>
+
+
+
+            <!-- Privacidad selector con tarjetas interactivas -->
+            <div class="flex flex-col gap-2 border-t border-blue-200/50 pt-2.5 mt-0.5">
+              <span class="text-[8.5px] text-[#052659] font-black uppercase tracking-wider">Privacidad de la Ubicación</span>
+              
+              <!-- Hidden input to preserve original form logic -->
+              <input type="hidden" id="select-privacy" value="exacta">
+
+              <div class="grid grid-cols-2 gap-2">
+                <!-- Option A: Exacta -->
+                <button type="button" id="btn-privacy-exacta" onclick="setPrivacyOption('exacta')" class="flex flex-col items-center justify-center p-2 rounded-xl border-2 border-blue-600 bg-blue-50 text-center transition-all duration-200 select-none cursor-pointer">
+                  <div class="text-[9.5px] font-extrabold text-[#052659] flex items-center gap-1">
+                    📍 Ubicación Exacta
+                  </div>
+                  <div class="text-[7.5px] font-bold text-slate-500 mt-0.5 leading-tight">
+                    Útil para locales comerciales o talleres físicos.
+                  </div>
+                </button>
+
+                <!-- Option B: Aproximada -->
+                <button type="button" id="btn-privacy-aproximada" onclick="setPrivacyOption('aproximada')" class="flex flex-col items-center justify-center p-2 rounded-xl border border-slate-200 bg-white text-center transition-all duration-200 select-none cursor-pointer">
+                  <div class="text-[9.5px] font-extrabold text-slate-400 flex items-center gap-1">
+                    🛡️ Pin Aproximado
+                  </div>
+                  <div class="text-[7.5px] font-medium text-slate-400 mt-0.5 leading-tight">
+                    No revelas tu dirección real. Muestra 3 puntos aleatorios.
+                  </div>
+                </button>
+              </div>
+
+              <!-- Shorter explanation text box below options -->
+              <div id="privacy-explanation-box" class="bg-blue-50/50 border border-blue-200/40 rounded-xl p-2 text-[8.5px] font-medium text-slate-650 leading-relaxed">
+                💡 <b>Ubicación 100% Protegida</b>: Tu dirección real no se revelará. El mapa mostrará tu pin rotando aleatoriamente entre 3 puntos distintos en un radio de 500 metros cada vez que un cliente abra la app.
+              </div>
+            </div>
+
+            <!-- Contenedor de Dirección Física (Calle y Número) - Se oculta si es aproximada -->
+            <div id="address-fields-container" class="flex flex-col gap-2 border-t border-blue-200/50 pt-2.5 mt-0.5 hidden">
+              <div class="grid grid-cols-3 gap-2">
+                <div class="col-span-2 flex flex-col gap-0.5">
+                  <span class="text-[8px] text-[#052659] uppercase font-black tracking-wider">Calle (Referencial)</span>
+                  <input type="text" id="edit-street" placeholder="Ej: Aníbal Pinto" class="flat-input">
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[8px] text-[#052659] uppercase font-black tracking-wider">Número</span>
+                  <input type="text" id="edit-number" placeholder="Ej: 1024" class="flat-input">
+                </div>
+              </div>
+            </div>
+            <!-- Confirm/Lock Location Button (Moved to very bottom, styled rounded-full pill) -->
+            <button type="button" id="btn-lock-map" onclick="toggleMapLock()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-[9.5px] font-extrabold transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm mt-2 select-none cursor-pointer">
+              <span>🔓 Confirmar Ubicación del Mapa</span>
+            </button>
+          </div>
+
+          <!-- PASO 7: Contacto y Disponibilidad -->
+          <div id="paso-7-contacto-container" class="flex flex-col gap-3.5 p-3.5 bg-blue-100/90 border border-blue-200/90 rounded-2xl">
+            <div class="flex justify-between items-center">
+              <label class="text-[10px] text-[#052659] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-4 h-4 rounded-full bg-[#052659] text-white text-[9px] flex items-center justify-center font-black">7</span>
+                ¿CÓMO Y CUÁNDO TE CONTACTAN?
+              </label>
+            </div>
+
+            <!-- Contact Details in grid -->
+            <div class="grid grid-cols-2 gap-3 border-b border-blue-200/50 pb-3">
+              <div class="flex flex-col gap-0.5">
+                <span class="text-[8px] text-[#052659] uppercase font-black tracking-wider">Atendido Por</span>
+                <input type="text" id="edit-attendant" value="" placeholder="Ej: Atendido por Cristóbal" oninput="updateLivePreview()" class="flat-input">
+              </div>
+              <div class="flex flex-col gap-0.5">
+                <span class="text-[8px] text-[#052659] uppercase font-black tracking-wider">Número de Contacto</span>
+                <input type="text" id="edit-phone" value="" placeholder="Ej: +56912345678" oninput="updateLivePreview()" class="flat-input">
+              </div>
+            </div>
+
+            <!-- Disponibilidad en Tiempo Real -->
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] text-[#052659] font-black uppercase tracking-wider">Disponibilidad en Tiempo Real</span>
+              <label class="relative inline-flex items-center cursor-pointer select-none">
+                <input type="checkbox" id="switch-disponibilidad" checked class="sr-only peer">
+                <div class="w-[32px] h-[18px] bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1.5px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 peer-checked:after:bg-white"></div>
+                <span class="ml-1.5 text-[9px] font-bold text-slate-500">Disponible</span>
+              </label>
+            </div>
+
+            <!-- Days -->
+            <div class="flex flex-col gap-1.5 pt-1">
+              <span class="text-[8.5px] text-[#052659] font-black uppercase tracking-wider">Días Activos de Atención</span>
+              <div class="flex gap-1.5 flex-wrap">
+                <button type="button" onclick="toggleDayTag(this, 'Lunes')" class="day-tag active">Lu</button>
+                <button type="button" onclick="toggleDayTag(this, 'Martes')" class="day-tag active">Ma</button>
+                <button type="button" onclick="toggleDayTag(this, 'Miércoles')" class="day-tag active">Mi</button>
+                <button type="button" onclick="toggleDayTag(this, 'Jueves')" class="day-tag active">Ju</button>
+                <button type="button" onclick="toggleDayTag(this, 'Viernes')" class="day-tag active">Vi</button>
+                <button type="button" onclick="toggleDayTag(this, 'Sábado')" class="day-tag inactive">Sá</button>
+                <button type="button" onclick="toggleDayTag(this, 'Domingo')" class="day-tag inactive">Do</button>
+              </div>
+            </div>
+
+            <!-- Hours select -->
+            <div class="flex flex-col gap-2 pt-1">
+              <div class="flex justify-between items-center">
+                <span class="text-[8.5px] text-[#052659] font-black uppercase tracking-wider">Rango Horario</span>
+                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" id="check-24-7" onchange="toggle247(this)" class="rounded border-slate-300 bg-slate-50 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5">
+                  <span class="text-[10px] font-semibold text-slate-500">Atención 24/7</span>
+                </label>
+              </div>
+              <div id="standard-hours-container" class="grid grid-cols-2 gap-2">
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[8px] text-[#052659] uppercase font-black tracking-wider">Abre</span>
+                  <input type="time" id="time-open" value="08:00" class="flat-input">
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[8px] text-[#052659] uppercase font-black tracking-wider">Cierra</span>
+                  <input type="time" id="time-close" value="18:00" class="flat-input">
+                </div>
+              </div>
+              <div id="label-247-hours" class="text-[10px] text-emerald-600 font-extrabold text-center py-2 bg-emerald-50 border border-emerald-100 rounded-xl hidden">
+                ✨ ABIERTO 24/7 (CONTINUO / URGENCIAS)
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      alert("⚠️ Error en Keilu: " + message + " en la línea " + lineno);
+      return false;
+    };
+    let accountType = 'azul';
+    let galleryImages = [
+      "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=150",
+      "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80&w=150",
+      "https://images.unsplash.com/photo-1506306813292-2df277835157?auto=format&fit=crop&q=80&w=150"
+    ];
+
+    let userLat = -36.7946; 
+    let userLng = -73.1118;
+    let miniMap = null;
+    let isMapLocked = false;
+    let fuzzyMarkers = [];
+    const MAPTILER_KEY = 'MQuOUJQLNwoXkS6nnqxw';
+
+    let fuzzyOffsets = [];
+
+    function generateRandomOffsets() {
+      return [
+        // Pin 1 (North-Westish):
+        {
+          dLat: Math.random() * 0.0008 + 0.0002, // 20m to 100m up
+          dLng: -(Math.random() * 0.0025 + 0.0010) // 90m to 310m left
+        },
+        // Pin 2 (North-Eastish):
+        {
+          dLat: Math.random() * 0.0008 + 0.0002, // 20m to 100m up
+          dLng: Math.random() * 0.0025 + 0.0010 // 90m to 310m right
+        },
+        // Pin 3 (Southern):
+        {
+          dLat: -(Math.random() * 0.0012 + 0.0004), // 40m to 150m down
+          dLng: (Math.random() - 0.5) * 0.0030 // slightly left/right
+        }
+      ];
+    }
+    let activeDays = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+
+    // Dynamic animated sticker states for Question 1 (Rubro) and Question 2 (Acción)
+    let selectedRubroSticker = "stickers/trabajadores/09-estetica/00-default.gif";
+    
+    let currentActionFolder = "02-domicilio";
+    let selectedActionSticker = "stickers/acciones trabajadores/02-domicilio/00-default.gif";
+    let selectedActionTitle = "A Domicilio";
+
+    // Taxonomía oficial de las 13 Categorías de Trabajadores con Stickers Animados
+    const workerStickerTaxonomy = {
+      "01-agua": { name: "Gasfitería y Plomería", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif"], keywords: ["gasfitería", "gasfiter", "plomero", "plomería", "agua", "filtración", "filtraciones", "cañería", "cañerias", "calefón", "calefon", "destape", "alcantarillado", "grifo", "termo", "baño", "ducha", "llave"] },
+      "02-electricidad": { name: "Electricidad e Iluminación", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif"], keywords: ["electricidad", "electricista", "cable", "cables", "luz", "enchufe", "tablero", "corto circuito", "cortocircuito", "iluminación", "sec", "empalme", "panel solar"] },
+      "03-hogar": { name: "Reparaciones del Hogar", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif"], keywords: ["hogar", "reparaciones", "maestro", "chasquilla", "armado", "repisa", "cortina", "cerradura", "chapa", "arreglos", "casa", "departamento"] },
+      "04-madera": { name: "Carpintería y Muebles", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif"], keywords: ["carpintería", "carpinteria", "carpintero", "muebles", "mueblista", "madera", "closet", "puerta", "puertas", "terrazas"] },
+      "05-metales": { name: "Soldadura y Estructuras", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif"], keywords: ["soldador", "soldadura", "reja", "rejas", "portón", "porton", "portones", "fierro", "metal", "metales", "galpón", "estructura"] },
+      "06-vehiculos": { name: "Mecánica y Vehículos", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif", "10.gif"], keywords: ["mecánico", "mecanico", "mecánica", "mecanica", "auto", "autos", "automóvil", "freno", "frenos", "motor", "neumáticos", "batería", "grúa", "grua", "vulcanización"] },
+      "07-tecnologia": { name: "Informática, PC y TV", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif"], keywords: ["técnico", "tecnico", "informática", "computador", "pc", "notebook", "redes", "wifi", "formateo", "tv", "smart tv", "pantalla", "celulares"] },
+      "08-textil": { name: "Costura y Confección", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif"], keywords: ["modista", "costurera", "costura", "basta", "bastas", "ropa", "arreglos de ropa", "cierre", "sastre", "confección", "vestuario"] },
+      "09-estetica": { name: "Peluquería, Uñas y Estética", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif", "07.gif", "08.gif", "09.gif", "10.gif", "11.gif", "12.gif"], keywords: ["peluquero", "peluquera", "barbería", "barbero", "corte", "barba", "manicurista", "uñas", "manicure", "nail", "lashista", "pestañas", "cejas", "maquillaje", "masaje", "estética"] },
+      "10-salud": { name: "Salud y Cuidados", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif", "07.gif", "08.gif", "09.gif", "10.gif", "11.gif", "12.gif", "13.gif", "14.gif", "15.gif", "16.gif", "17.gif", "18.gif"], keywords: ["médico", "medico", "enfermera", "kinesiólogo", "kinesiologo", "dentista", "podólogo", "salud", "cuidados", "postrados", "adulto mayor"] },
+      "11-educacion": { name: "Clases y Educación", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif", "07.gif", "08.gif"], keywords: ["profesor", "profesora", "profe", "clases", "ingles", "inglés", "matemáticas", "música", "guitarra", "tutoría", "reforzamiento"] },
+      "12-eventos": { name: "Fotografía y Eventos", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif", "07.gif", "08.gif", "09.gif", "10.gif", "11.gif", "12.gif", "13.gif", "14.gif", "15.gif", "16.gif", "17.gif", "18.gif", "19.gif", "20.gif"], keywords: ["fotógrafo", "fotografo", "fotografía", "video", "dron", "bodas", "eventos", "chef", "banquetería", "coctelería", "dj", "animador", "mozo"] },
+      "13-mascotas": { name: "Mascotas y Veterinaria", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif", "07.gif", "08.gif"], keywords: ["perro", "perros", "gato", "gatos", "canino", "peluquería canina", "paseador", "veterinario", "mascota", "mascotas"] }
+    };
+
+    // Taxonomía oficial de las 13 Categorías de Acciones con Stickers Animados
+    const actionStickerTaxonomy = {
+      "01-reparar": { name: "Reparación", shortName: "Reparar", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "06.gif", "07.gif", "08.gif", "09.gif", "10.gif", "11.gif"] },
+      "02-domicilio": { name: "Atención a Domicilio", shortName: "A Domicilio", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif"] },
+      "03-urgencias-24hrs": { name: "Urgencias 24/7", shortName: "Urgencias 24/7", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif", "07.gif", "08.gif", "09.gif", "10.gif", "11.gif", "12.gif", "13.gif", "14.gif", "15.gif", "16.gif", "17.gif", "18.gif", "19.gif"] },
+      "04-construir": { name: "Construcción", shortName: "Construir", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif", "07.gif", "08.gif", "09.gif", "10.gif"] },
+      "05-limpiar": { name: "Limpieza y Aseo", shortName: "Limpiar", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif"] },
+      "06-transportar": { name: "Fletes y Traslados", shortName: "Transportar", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif", "07.gif"] },
+      "07-pintar": { name: "Pintura y Acabados", shortName: "Pintar", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif"] },
+      "08-cortar": { name: "Poda y Cortes", shortName: "Cortar", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif"] },
+      "09-diagnosticar": { name: "Diagnóstico", shortName: "Diagnosticar", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif", "07.gif", "08.gif", "09.gif", "10.gif", "11.gif"] },
+      "10-cuidar": { name: "Cuidado Personas/Mascotas", shortName: "Cuidar", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif"] },
+      "11-ensenar": { name: "Clases y Tutorías", shortName: "Enseñar", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif"] },
+      "12-gestionar": { name: "Asesoría y Trámites", shortName: "Gestionar", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "05.gif", "06.gif"] },
+      "13-animar": { name: "Eventos y Shows", shortName: "Animar", default: "00-default.gif", files: ["00-default.gif", "01.gif", "02.gif", "03.gif", "04.gif", "06.gif", "07.gif", "08.gif"] }
+    };
+
+    let currentWorkerCatFolder = null;
+    let isCategorySelected = false;
+    let isActionSelected = false;
+    let selectedEmoji = "";
+    let activeCard4Tab = 'trabajador';
+    let swapStickerOrder = false;
+
+    function selectAccountType(type) {
+      accountType = 'azul';
+      const heroHeader = document.getElementById('hero-header-container');
+      const heroSubtitle = document.getElementById('hero-subtitle');
+      heroHeader.style.backgroundColor = '#052659';
+      heroSubtitle.textContent = "Catálogo Azul 🔵";
+      renderCard4StickerSelector();
+      updateLivePreview();
+    }
+
+    // Diccionario Inteligente de Autocorrección y Sugerencias por Palabra / Errores Típicos
+    const tradeAutocorrectMap = [
+      { patterns: ["enfer", "enferme", "enfermer", "enfermero", "enfermera", "enfermeria", "enfarmer", "enfarmero", "infermer", "infermero", "tens", "cuidador", "postrad"], cleanName: "Enfermería y Salud", defaultWord: "enfermeria", catKey: "10-salud" },
+      { patterns: ["kinesiol", "kines", "dentist", "podol", "medico", "doctor", "salud"], cleanName: "Salud y Cuidados", defaultWord: "medico", catKey: "10-salud" },
+      { patterns: ["gasf", "gasfit", "gasfiter", "plomer", "plomero", "plomería", "plomeria", "goter", "calefon", "cañeri", "destap"], cleanName: "Gasfitería y Plomería", defaultWord: "gasfiter", catKey: "01-agua" },
+      { patterns: ["electr", "electric", "electricista", "cortocircuit", "tabler", "enchufe", "ilumin"], cleanName: "Electricidad e Iluminación", defaultWord: "electricista", catKey: "02-electricidad" },
+      { patterns: ["meca", "mecan", "mecanic", "mecanico", "mecanica", "mecamico", "mecunico", "mecanice", "freno", "neumatic", "bateri", "grua", "panne"], cleanName: "Mecánica y Vehículos", defaultWord: "mecanico", catKey: "06-vehiculos" },
+      { patterns: ["carp", "carpint", "carpinter", "carpintero", "muebl", "mueblista", "madera", "closet"], cleanName: "Carpintería y Muebles", defaultWord: "carpintero", catKey: "04-madera" },
+      { patterns: ["peluq", "peluqu", "peluquer", "peluquero", "peluquera", "barber", "barbero", "corte"], cleanName: "Peluquería y Estética", defaultWord: "peluquero", catKey: "09-estetica" },
+      { patterns: ["manicur", "manicura", "uñ", "unas", "pedicur", "lashist", "pestañ"], cleanName: "Manicure y Estética", defaultWord: "manicure", catKey: "09-estetica" },
+      { patterns: ["jardin", "jardinero", "poda", "pasto", "paisajist"], cleanName: "Reparaciones del Hogar", defaultWord: "jardinero", catKey: "03-hogar" },
+      { patterns: ["flet", "flete", "mudanz", "traslad", "camion", "escombr"], cleanName: "Fletes y Traslados", defaultWord: "flete", catKey: "06-transportar" },
+      { patterns: ["solda", "soldad", "soldador", "soldadur", "porton", "reja", "fierro"], cleanName: "Soldadura y Estructuras", defaultWord: "soldadura", catKey: "05-metales" },
+      { patterns: ["informatic", "computad", "pc", "notebook", "formate", "wifi"], cleanName: "Informática, PC y TV", defaultWord: "informática", catKey: "07-tecnologia" },
+      { patterns: ["prof", "profe", "profesor", "profesora", "clas", "clase", "tutor", "ingles"], cleanName: "Clases y Tutorías", defaultWord: "profesor", catKey: "11-educacion" },
+      { patterns: ["veterinar", "veterinario", "mascot", "perro", "gato", "pasead"], cleanName: "Mascotas y Veterinaria", defaultWord: "veterinario", catKey: "13-mascotas" }
+    ];
+
+    let rubroSmartPrediction = "";
+    let rubroSmartCatKey = "";
+
+    function stripAccents(str) {
+      return (str || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    }
+
+    function detectCategoryFromText(text) {
+      if (!text) return null;
+      const q = stripAccents(text).trim().toLowerCase();
+      if (q.length < 1) return null;
+
+      // 1. Enfermería / Salud
+      if ("enfermeria".startsWith(q) || "enfermera".startsWith(q) || "enfermero".startsWith(q) || "salud".startsWith(q) || "medico".startsWith(q) || "doctor".startsWith(q) || q.includes("enfer") || q.includes("salud") || q.includes("medic") || q.includes("kines") || q.includes("tens")) {
+        return "10-salud";
+      }
+      // 2. Mecánica / Vehículos
+      if ("mecanico".startsWith(q) || "mecanica".startsWith(q) || "auto".startsWith(q) || q.includes("meca") || q.includes("auto") || q.includes("fren") || q.includes("motor") || q.includes("grua")) {
+        return "06-vehiculos";
+      }
+      // 3. Gasfitería / Plomería
+      if ("gasfiter".startsWith(q) || "gasfiteria".startsWith(q) || "plomero".startsWith(q) || "plomeria".startsWith(q) || q.includes("gasf") || q.includes("plom") || q.includes("goter") || q.includes("calef")) {
+        return "01-agua";
+      }
+      // 4. Soldadura / Estructuras
+      if ("soldador".startsWith(q) || "soldadura".startsWith(q) || "soldado".startsWith(q) || q.includes("sold") || q.includes("reja") || q.includes("porton") || q.includes("fierr")) {
+        return "05-metales";
+      }
+      // 5. Electricidad
+      if ("electricista".startsWith(q) || "electricidad".startsWith(q) || q.includes("electr") || q.includes("luz") || q.includes("enchuf") || q.includes("tabler")) {
+        return "02-electricidad";
+      }
+      // 6. Carpintería / Muebles
+      if ("carpintero".startsWith(q) || "carpinteria".startsWith(q) || "mueblista".startsWith(q) || q.includes("carp") || q.includes("muebl") || q.includes("mader")) {
+        return "04-madera";
+      }
+      // 7. Peluquería / Barbería / Estética
+      if ("peluquero".startsWith(q) || "peluqueria".startsWith(q) || "barbero".startsWith(q) || "barberia".startsWith(q) || "manicure".startsWith(q) || q.includes("peluq") || q.includes("barb") || q.includes("manicur") || q.includes("estet")) {
+        return "09-estetica";
+      }
+      // 8. Fletes / Mudanzas
+      if ("flete".startsWith(q) || "fletes".startsWith(q) || "mudanza".startsWith(q) || q.includes("flet") || q.includes("mudan") || q.includes("traslad")) {
+        return "06-transportar";
+      }
+      // 9. Clases / Profesores
+      if ("profesor".startsWith(q) || "profesora".startsWith(q) || "clases".startsWith(q) || q.includes("prof") || q.includes("clas") || q.includes("tutor")) {
+        return "11-educacion";
+      }
+      // 10. Mascotas / Veterinaria
+      if ("veterinario".startsWith(q) || "veterinaria".startsWith(q) || "mascotas".startsWith(q) || q.includes("veterin") || q.includes("mascot") || q.includes("perr") || q.includes("gat")) {
+        return "13-mascotas";
+      }
+      // 11. Informática / PC
+      if ("informatica".startsWith(q) || "computacion".startsWith(q) || q.includes("pc") || q.includes("comput") || q.includes("wifi") || q.includes("inform")) {
+        return "07-tecnologia";
+      }
+      // 12. Costura / Confección
+      if ("costurera".startsWith(q) || "costura".startsWith(q) || "modista".startsWith(q) || q.includes("costur") || q.includes("modist") || q.includes("sastr")) {
+        return "08-textil";
+      }
+      // 13. Reparaciones / Jardinería
+      if ("jardinero".startsWith(q) || "jardineria".startsWith(q) || q.includes("jardin") || q.includes("hogar") || q.includes("chasq") || q.includes("maest")) {
+        return "03-hogar";
+      }
+
+      return null;
+    }
+
+    function handleRubroSmartInput(textVal) {
+      const input = document.getElementById("edit-rubro");
+      const ghostTyped = document.getElementById("ghost-typed-text");
+      const ghostPredicted = document.getElementById("ghost-predicted-letters");
+      const liveStickerImg = document.getElementById("rubro-live-sticker-img");
+      const counter = document.getElementById("rubro-counter");
+      
+      const rawText = typeof textVal === 'string' ? textVal : (input ? input.value : "");
+      if (counter) counter.textContent = `${rawText.length} / 30`;
+
+      const detectedCatKey = detectCategoryFromText(rawText);
+
+      if (detectedCatKey && typeof workerStickerTaxonomy !== 'undefined' && workerStickerTaxonomy[detectedCatKey]) {
+        const catData = workerStickerTaxonomy[detectedCatKey];
+        rubroSmartPrediction = catData.name;
+        rubroSmartCatKey = detectedCatKey;
+
+        // Dynamic Moving Animated Sticker Update in Right Badge
+        if (liveStickerImg) {
+          const defaultGif = catData.default || "00-default.gif";
+          const newSrc = `stickers/trabajadores/${detectedCatKey}/${defaultGif}`;
+          if (!liveStickerImg.src.includes(newSrc)) {
+            liveStickerImg.src = newSrc;
+            const badge = document.getElementById("rubro-live-sticker-square");
+            if (badge) {
+              badge.style.transform = "scale(1.2)";
+              badge.style.transition = "transform 0.15s ease-out";
+              setTimeout(() => { badge.style.transform = "scale(1)"; }, 180);
+            }
+          }
+        }
+
+        if (ghostTyped && ghostPredicted) {
+          ghostTyped.textContent = rawText;
+          const query = stripAccents(rawText).trim();
+          const cleanStripped = stripAccents(catData.name);
+
+          if (cleanStripped.startsWith(query)) {
+            ghostPredicted.textContent = catData.name.slice(rawText.length);
+          } else {
+            ghostPredicted.textContent = ` ➔ ${catData.name}`;
+          }
+        }
+
+        currentWorkerCatFolder = detectedCatKey;
+        isCategorySelected = true;
+        selectedRubroSticker = `stickers/trabajadores/${detectedCatKey}/${catData.default}`;
+        if (typeof renderRubroStickerVariants === 'function') {
+          renderRubroStickerVariants(detectedCatKey);
+        }
+      } else {
+        rubroSmartPrediction = "";
+        rubroSmartCatKey = "";
+        if (ghostTyped) ghostTyped.textContent = "";
+        if (ghostPredicted) ghostPredicted.textContent = "";
+
+        if (liveStickerImg) {
+          liveStickerImg.src = "stickers/trabajadores/09-estetica/00-default.gif";
+        }
+      }
+
+      updateLivePreview();
+    }
+
+    function handleRubroSmartKeyDown(e) {
+      if (e.key === "Tab" || e.key === "Enter" || e.key === "ArrowRight") {
+        e.preventDefault();
+        if (rubroSmartPrediction) {
+          acceptRubroSmartSuggestion();
+        }
+        const targetSection = document.getElementById("rubro-sticker-variants-bar") || document.getElementById("edit-desc");
+        if (targetSection) {
+          targetSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+
+    function acceptRubroSmartSuggestion() {
+      const ghostPredicted = document.getElementById("ghost-predicted-letters");
+      const input = document.getElementById("edit-rubro");
+
+      if (input && rubroSmartPrediction) {
+        if (ghostPredicted && ghostPredicted.textContent && !ghostPredicted.textContent.includes("➔")) {
+          input.value = input.value + ghostPredicted.textContent;
+        } else {
+          input.value = rubroSmartPrediction;
+        }
+      }
+
+      const ghostTyped = document.getElementById("ghost-typed-text");
+      if (ghostTyped) ghostTyped.textContent = "";
+      if (ghostPredicted) ghostPredicted.textContent = "";
+
+      if (rubroSmartCatKey && typeof workerStickerTaxonomy !== 'undefined' && workerStickerTaxonomy[rubroSmartCatKey]) {
+        currentWorkerCatFolder = rubroSmartCatKey;
+        isCategorySelected = true;
+        selectedRubroSticker = `stickers/trabajadores/${rubroSmartCatKey}/${workerStickerTaxonomy[rubroSmartCatKey].default}`;
+        const liveStickerImg = document.getElementById("rubro-live-sticker-img");
+        if (liveStickerImg) {
+          liveStickerImg.src = selectedRubroSticker;
+        }
+        renderRubroStickerVariants(rubroSmartCatKey);
+      }
+
+      updateLivePreview();
+    }
+
+    function selectRubro(text, catKey) {
+      const input = document.getElementById("input-rubro-autocomplete");
+      if (input) input.value = text;
+      const counter = document.getElementById("rubro-counter");
+      if (counter && input) counter.textContent = `${input.value.length} / 30`;
+      
+      currentWorkerCatFolder = catKey;
+      isCategorySelected = true;
+      const catData = workerStickerTaxonomy[catKey];
+      if (catData) {
+        selectedRubroSticker = `stickers/trabajadores/${catKey}/${catData.default}`;
+        renderRubroStickerVariants(catKey);
+      }
+      updateLivePreview();
+    }
+
+    function toggleCustomSpecialtyDropdown(forceState) {
+      const menu = document.getElementById("custom-specialty-dropdown-menu");
+      if (!menu) return;
+      
+      let shouldShow = false;
+      if (typeof forceState === 'boolean') {
+        shouldShow = forceState;
+      } else {
+        shouldShow = menu.classList.contains('hidden') || menu.style.display === 'none' || !menu.style.display;
+      }
+
+      if (shouldShow) {
+        menu.classList.remove('hidden');
+        menu.style.display = 'flex';
+        menu.style.flexDirection = 'column';
+        menu.style.gap = '6px';
+        renderCustomSpecialtyDropdown();
+      } else {
+        menu.classList.add('hidden');
+        menu.style.display = 'none';
+      }
+    }
+
+    document.addEventListener("click", function(e) {
+      const menu = document.getElementById("custom-specialty-dropdown-menu");
+      const trigger = document.getElementById("destaca-dropdown-trigger");
+      if (menu && trigger && !menu.contains(e.target) && !trigger.contains(e.target)) {
+        toggleCustomSpecialtyDropdown(false);
+      }
+    });
+
+    function selectActionFromDropdown(actionKey) {
+      currentActionFolder = actionKey;
+      isActionSelected = true;
+      const data = actionStickerTaxonomy[actionKey];
+      if (data) {
+        selectedActionTitle = data.shortName;
+        selectedActionSticker = `stickers/acciones trabajadores/${actionKey}/${data.default}`;
+      }
+      updateDestacaTriggerLabel();
+      renderCustomSpecialtyDropdown();
+      updateActionLiveStickerSquare();
+      if (typeof renderCard4StickerSelector === 'function') renderCard4StickerSelector();
+      updateLivePreview();
+    }
+
+    function updateActionLiveStickerSquare() {
+      const imgEl = document.getElementById("accion-live-sticker-img");
+      if (!imgEl) return;
+      if (currentActionFolder && isActionSelected && actionStickerTaxonomy[currentActionFolder]) {
+        const data = actionStickerTaxonomy[currentActionFolder];
+        imgEl.src = `stickers/acciones trabajadores/${currentActionFolder}/${data.default}`;
+      } else {
+        imgEl.src = "stickers/acciones trabajadores/02-domicilio/00-default.gif";
+      }
+    }
+
+    function updateDestacaTriggerLabel() {
+      const triggerLabel = document.getElementById("destaca-trigger-label");
+      if (!triggerLabel) return;
+
+      if (currentActionFolder && isActionSelected && actionStickerTaxonomy[currentActionFolder]) {
+        const data = actionStickerTaxonomy[currentActionFolder];
+        triggerLabel.className = "text-xs font-bold text-slate-900 truncate";
+        triggerLabel.textContent = data.name;
+      } else {
+        triggerLabel.className = "text-xs font-semibold text-slate-400 truncate";
+        triggerLabel.textContent = "Selecciona tu categoría aquí";
+      }
+    }
+
+    function renderCustomSpecialtyDropdown() {
+      const menu = document.getElementById("custom-specialty-dropdown-menu");
+      if (!menu) return;
+      menu.innerHTML = "";
+
+      for (const [key, data] of Object.entries(actionStickerTaxonomy)) {
+        const isSelected = currentActionFolder === key && isActionSelected;
+        const defaultGif = `stickers/acciones trabajadores/${key}/${data.default}`;
+        const secondGif = data.files && data.files[1] ? `stickers/acciones trabajadores/${key}/${data.files[1]}` : defaultGif;
+
+        const optionCard = document.createElement("div");
+        optionCard.className = `flex items-center justify-between p-2 rounded-xl border ${isSelected ? 'bg-blue-600 text-white border-blue-700 shadow-md' : 'bg-white text-slate-800 border-slate-200/80 hover:bg-blue-50/50 hover:border-blue-300'} cursor-pointer transition select-none`;
+        
+        optionCard.innerHTML = `
+          <span class="text-[11px] font-extrabold truncate mr-2">${data.name}</span>
+          <div class="flex items-center gap-1 ${isSelected ? 'bg-white/10 border-white/20' : 'bg-slate-100/90 border-slate-200/60'} p-0.5 rounded-lg border shrink-0">
+            <img src="${defaultGif}" class="w-8 h-8 object-contain rounded-md">
+            <img src="${secondGif}" class="w-8 h-8 object-contain rounded-md">
+          </div>
+        `;
+
+        optionCard.onclick = (e) => {
+          e.stopPropagation();
+          selectActionFromDropdown(key);
+          toggleCustomSpecialtyDropdown(false);
+        };
+
+        menu.appendChild(optionCard);
+      }
+
+      // Trigger display is handled separately by updateDestacaTriggerLabel()
+    }
+
+    function renderRubroStickerVariants(catKey) {
+      const titleDisplay = document.getElementById("rubro-cat-name-display");
+      const catData = catKey ? workerStickerTaxonomy[catKey] : null;
+      if (titleDisplay && catData) {
+        titleDisplay.textContent = catData.name;
+      }
+      renderCard4StickerSelector();
+    }
+
+    function renderCard4StickerSelector() {
+      const container = document.getElementById("card4-emojis-container");
+      if (!container) return;
+      container.innerHTML = "";
+
+      const workerLabelHtml = !swapStickerOrder 
+        ? '<span class="text-[8.5px] font-black text-blue-700 mt-1.5 flex items-center gap-0.5 select-none bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-md shadow-xs">⭐ Principal</span>' 
+        : '<span class="text-[8.5px] font-bold text-slate-450 mt-1.5 select-none bg-slate-50 border border-slate-200/60 px-1.5 py-0.5 rounded-md">Secundario</span>';
+
+      const actionLabelHtml = swapStickerOrder 
+        ? '<span class="text-[8.5px] font-black text-blue-700 mt-1.5 flex items-center gap-0.5 select-none bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded-md shadow-xs">⭐ Principal</span>' 
+        : '<span class="text-[8.5px] font-bold text-slate-450 mt-1.5 select-none bg-slate-50 border border-slate-200/60 px-1.5 py-0.5 rounded-md">Secundario</span>';
+
+      const workerStickerHtml = `
+        <div onclick="selectCard4Tab('trabajador')" class="flex flex-col items-center gap-1 cursor-pointer group">
+          <span class="text-[8px] text-slate-400 font-extrabold uppercase tracking-widest">Trabajador</span>
+          <div class="w-16 h-16 rounded-2xl bg-white border-2 ${activeCard4Tab === 'trabajador' ? 'border-blue-600 ring-4 ring-blue-500/20' : 'border-slate-200 group-hover:border-slate-300'} shadow-sm flex items-center justify-center transition p-1.5 relative">
+            <img src="${selectedRubroSticker}" class="w-12 h-12 object-contain">
+            ${activeCard4Tab === 'trabajador' ? '<div class="absolute -top-1.5 -right-1.5 bg-blue-600 text-white rounded-full p-0.5 z-30"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg></div>' : ''}
+          </div>
+          ${workerLabelHtml}
+        </div>
+      `;
+
+      const actionStickerHtml = `
+        <div onclick="selectCard4Tab('accion')" class="flex flex-col items-center gap-1 cursor-pointer group">
+          <span class="text-[8px] text-slate-400 font-extrabold uppercase tracking-widest">Destacado</span>
+          <div class="w-16 h-16 rounded-2xl bg-white border-2 ${activeCard4Tab === 'accion' ? 'border-blue-600 ring-4 ring-blue-500/20' : 'border-slate-200 group-hover:border-slate-300'} shadow-sm flex items-center justify-center transition p-1.5 relative">
+            <img src="${selectedActionSticker}" class="w-12 h-12 object-contain">
+            ${activeCard4Tab === 'accion' ? '<div class="absolute -top-1.5 -right-1.5 bg-blue-600 text-white rounded-full p-0.5 z-30"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg></div>' : ''}
+          </div>
+          ${actionLabelHtml}
+        </div>
+      `;
+
+      if (swapStickerOrder) {
+        container.innerHTML = actionStickerHtml + workerStickerHtml;
+      } else {
+        container.innerHTML = workerStickerHtml + actionStickerHtml;
+      }
+
+      renderCard4Variants();
+    }
+
+    function renderCard4Variants() {
+      const grid = document.getElementById("card4-variants-grid");
+      const activeLabel = document.getElementById("active-variant-category-name");
+      const variantsContainer = document.getElementById("card4-variants-container");
+      if (!grid || !activeLabel || !variantsContainer) return;
+      grid.innerHTML = "";
+
+      if (activeCard4Tab === 'trabajador') {
+        const catData = currentWorkerCatFolder ? workerStickerTaxonomy[currentWorkerCatFolder] : null;
+        if (!catData) {
+          variantsContainer.classList.add("hidden");
+          return;
+        }
+        variantsContainer.classList.remove("hidden");
+        activeLabel.textContent = catData.name;
+
+        if (!catData.files || catData.files.length === 0) {
+          variantsContainer.classList.add("hidden");
+          return;
+        }
+
+        catData.files.forEach(file => {
+          const fullPath = `stickers/trabajadores/${currentWorkerCatFolder}/${file}`;
+          const isSelected = selectedRubroSticker === fullPath;
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = `w-11 h-11 rounded-xl bg-white border ${isSelected ? 'border-blue-600 ring-2 ring-blue-500/20 shadow-md' : 'border-slate-200 hover:border-slate-350'} flex items-center justify-center shrink-0 transition p-1 cursor-pointer`;
+          btn.innerHTML = `<img src="${fullPath}" class="w-9 h-9 object-contain">`;
+          btn.onclick = () => {
+            selectedRubroSticker = fullPath;
+            const liveImg = document.getElementById("rubro-live-sticker-img");
+            if (liveImg) liveImg.src = fullPath;
+            renderCard4StickerSelector();
+            updateLivePreview();
+          };
+          grid.appendChild(btn);
+        });
+      } else {
+        const catData = currentActionFolder ? actionStickerTaxonomy[currentActionFolder] : null;
+        if (!catData) {
+          variantsContainer.classList.add("hidden");
+          return;
+        }
+        variantsContainer.classList.remove("hidden");
+        activeLabel.textContent = catData.name;
+
+        if (!catData.files || catData.files.length === 0) {
+          variantsContainer.classList.add("hidden");
+          return;
+        }
+
+        catData.files.forEach(file => {
+          const fullPath = `stickers/acciones trabajadores/${currentActionFolder}/${file}`;
+          const isSelected = selectedActionSticker === fullPath;
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = `w-11 h-11 rounded-xl bg-white border ${isSelected ? 'border-blue-600 ring-2 ring-blue-500/20 shadow-md' : 'border-slate-200 hover:border-slate-350'} flex items-center justify-center shrink-0 transition p-1 cursor-pointer`;
+          btn.innerHTML = `<img src="${fullPath}" class="w-9 h-9 object-contain">`;
+          btn.onclick = () => {
+            selectedActionSticker = fullPath;
+            updateDestacaTriggerLabel();
+            renderCard4StickerSelector();
+            updateLivePreview();
+          };
+          grid.appendChild(btn);
+        });
+      }
+    }
+
+    function swapStickerPositions() {
+      swapStickerOrder = !swapStickerOrder;
+      renderCard4StickerSelector();
+      updateLivePreview();
+    }
+
+    function selectCard4Tab(tab) {
+      activeCard4Tab = tab;
+      renderCard4StickerSelector();
+    }
+
+    function updateSpecialtiesDropdown(selectedCatKey) {
+      const select = document.getElementById("select-especialidad");
+      const container = document.getElementById("especialidad-container");
+      if (!select || !container) return;
+
+      container.classList.remove("hidden");
+      select.innerHTML = '<option value="" disabled>Selecciona una categoría / especialidad...</option>';
+
+      for (const [key, data] of Object.entries(workerStickerTaxonomy)) {
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = data.name;
+        if (key === (selectedCatKey || currentWorkerCatFolder)) {
+          opt.selected = true;
+        }
+        select.appendChild(opt);
+      }
+    }
+
+    function onSpecialtySelectChange() {
+      const select = document.getElementById("select-especialidad");
+      if (!select) return;
+      const catKey = select.value;
+      if (catKey && workerStickerTaxonomy[catKey]) {
+        const data = workerStickerTaxonomy[catKey];
+        document.getElementById("input-rubro-autocomplete").value = data.name;
+        selectRubro(data.name, catKey);
+      }
+    }
+
+    // Cerrar dropdowns al hacer clic fuera
+    document.addEventListener("click", (e) => {
+      const menu2 = document.getElementById("custom-specialty-dropdown-menu");
+      const trigger2 = document.getElementById("custom-specialty-trigger");
+      if (menu2 && trigger2 && !menu2.contains(e.target) && !trigger2.contains(e.target)) {
+        menu2.style.display = 'none';
+      }
+
+      const topMenu = document.getElementById("top-search-dropdown-menu");
+      const topInput = document.getElementById("input-rubro-autocomplete");
+      if (topMenu && topInput && !topMenu.contains(e.target) && !topInput.parentElement.contains(e.target)) {
+        topMenu.style.display = 'none';
+      }
+    });
+
+    function toggleDayTag(btn, dayName) {
+      const idx = activeDays.indexOf(dayName);
+      if (idx > -1) {
+        activeDays.splice(idx, 1);
+        btn.classList.remove("active");
+        btn.classList.add("inactive");
+      } else {
+        activeDays.push(dayName);
+        btn.classList.add("active");
+        btn.classList.remove("inactive");
+      }
+      updateLivePreview();
+    }
+
+    function toggle247(checkbox) {
+      const hoursContainer = document.getElementById("standard-hours-container");
+      const label247 = document.getElementById("label-247-hours");
+      const openInput = document.getElementById("time-open");
+      const closeInput = document.getElementById("time-close");
+      
+      if (checkbox.checked) {
+        hoursContainer.classList.add("hidden");
+        label247.classList.remove("hidden");
+        openInput.disabled = true;
+        closeInput.disabled = true;
+      } else {
+        hoursContainer.classList.remove("hidden");
+        label247.classList.add("hidden");
+        openInput.disabled = false;
+        closeInput.disabled = false;
+      }
+    }
+
+    function loadAvatarImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById("edit-img-preview").src = e.target.result;
+          document.getElementById("edit-img-url").value = e.target.result;
+          updateLivePreview();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function obtenerCoordenadasGPS() {
+      if (isMapLocked) {
+        toggleMapLock();
+      }
+      const display = document.getElementById("gps-coords-display");
+      if (display) display.textContent = "⌛ Capturando ubicación...";
+      
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            userLat = position.coords.latitude;
+            userLng = position.coords.longitude;
+            if (display) display.textContent = `📍 Coordenadas: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+            if (miniMap) {
+              miniMap.flyTo({ center: [userLng, userLat], zoom: 15 });
+            }
+            updateLivePreview();
+          },
+          (error) => {
+            console.error("GPS error:", error);
+            userLat = -36.7946 + (Math.random() - 0.5) * 0.01;
+            userLng = -73.1118 + (Math.random() - 0.5) * 0.01;
+            if (display) display.textContent = `📍 Coordenadas: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+            if (miniMap) {
+              miniMap.flyTo({ center: [userLng, userLat], zoom: 15 });
+            }
+            updateLivePreview();
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      } else {
+        userLat = -36.7946 + (Math.random() - 0.5) * 0.01;
+        userLng = -73.1118 + (Math.random() - 0.5) * 0.01;
+        if (display) display.textContent = `📍 Coordenadas: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+        if (miniMap) {
+          miniMap.flyTo({ center: [userLng, userLat], zoom: 15 });
+        }
+        updateLivePreview();
+      }
+    }
+
+    function initMiniMap(lat, lng) {
+      if (miniMap) return;
+      
+      // Force userLat and userLng to center variables
+      userLat = lat;
+      userLng = lng;
+      
+      const coordsDisp = document.getElementById("gps-coords-display");
+      if (coordsDisp) coordsDisp.textContent = `📍 Coordenadas: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+
+      miniMap = new maplibregl.Map({
+        container: 'editor-mini-map',
+        style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
+        center: [lng, lat],
+        zoom: 14,
+        maxZoom: 20,
+        attributionControl: false
+      });
+
+      miniMap.on('load', () => {
+        setTimeout(() => miniMap.resize(), 250);
+        updateFuzzyMarkers();
+      });
+
+      miniMap.on('move', () => {
+        const center = miniMap.getCenter();
+        userLat = center.lat;
+        userLng = center.lng;
+        const coordsDispMove = document.getElementById("gps-coords-display");
+        if (coordsDispMove) coordsDispMove.textContent = `📍 Coordenadas: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+        
+        // Move the scattered pins dynamically to float around the new center
+        const privacy = document.getElementById("select-privacy").value;
+        if (privacy === 'aproximada' && fuzzyMarkers.length === 3) {
+          fuzzyMarkers[0].setLngLat([userLng + fuzzyOffsets[0].dLng, userLat + fuzzyOffsets[0].dLat]);
+          fuzzyMarkers[1].setLngLat([userLng + fuzzyOffsets[1].dLng, userLat + fuzzyOffsets[1].dLat]);
+          fuzzyMarkers[2].setLngLat([userLng + fuzzyOffsets[2].dLng, userLat + fuzzyOffsets[2].dLat]);
+        }
+      });
+
+      // Automatic local geocoding based on mock streets
+      const streetInput = document.getElementById("edit-street");
+      if (streetInput) {
+        streetInput.addEventListener("change", () => {
+          const val = streetInput.value.trim().toLowerCase();
+          if (!val || !miniMap) return;
+          if (typeof providersData !== 'undefined') {
+            const match = providersData.find(p => {
+              const streetStr = (p.ubicacion?.calle || p.calle || '').toLowerCase();
+              return streetStr.includes(val);
+            });
+            if (match) {
+              const lat = match.ubicacion ? match.ubicacion.lat : match.lat;
+              const lng = match.ubicacion ? match.ubicacion.lng : match.lng;
+              if (lat && lng) {
+                userLat = lat;
+                userLng = lng;
+                miniMap.flyTo({ center: [lng, lat], zoom: 15 });
+                const coordsDispGeocode = document.getElementById("gps-coords-display");
+                if (coordsDispGeocode) coordsDispGeocode.textContent = `📍 Coordenadas: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+                updateFuzzyMarkers();
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function setPrivacyOption(option) {
+      const inputEl = document.getElementById("select-privacy");
+      if (inputEl) inputEl.value = option;
+
+      const btnAproximada = document.getElementById("btn-privacy-aproximada");
+      const btnExacta = document.getElementById("btn-privacy-exacta");
+      const expBox = document.getElementById("privacy-explanation-box");
+      const centerPin = document.getElementById("center-pin-overlay");
+      const addrFields = document.getElementById("address-fields-container");
+
+      if (option === 'aproximada') {
+        if (btnAproximada) {
+          btnAproximada.className = "flex flex-col items-center justify-center p-2 rounded-xl border-2 border-blue-600 bg-blue-50 text-center transition-all duration-200 select-none cursor-pointer";
+          const title = btnAproximada.querySelector('div:first-child');
+          const sub = btnAproximada.querySelector('div:last-child');
+          if (title) { title.className = "text-[9.5px] font-extrabold text-[#052659] flex items-center gap-1"; }
+          if (sub) { sub.className = "text-[7.5px] font-bold text-slate-500 mt-0.5 leading-tight"; }
+        }
+        if (btnExacta) {
+          btnExacta.className = "flex flex-col items-center justify-center p-2 rounded-xl border border-slate-200 bg-white text-center transition-all duration-200 select-none cursor-pointer";
+          const title = btnExacta.querySelector('div:first-child');
+          const sub = btnExacta.querySelector('div:last-child');
+          if (title) { title.className = "text-[9.5px] font-extrabold text-slate-400 flex items-center gap-1"; }
+          if (sub) { sub.className = "text-[7.5px] font-medium text-slate-400 mt-0.5 leading-tight"; }
+        }
+        if (expBox) {
+          expBox.innerHTML = `💡 <b>Ubicación 100% Protegida</b>: Tu dirección real no se revelará. El mapa mostrará tu pin rotando aleatoriamente entre 3 puntos distintos en un radio de 500 metros cada vez que un cliente abra la app.`;
+        }
+        if (centerPin) {
+          centerPin.style.opacity = "0.4";
+          centerPin.style.filter = "grayscale(100%)";
+        }
+        if (addrFields) {
+          addrFields.classList.add("hidden");
+        }
+      } else {
+        if (btnExacta) {
+          btnExacta.className = "flex flex-col items-center justify-center p-2 rounded-xl border-2 border-blue-600 bg-blue-50 text-center transition-all duration-200 select-none cursor-pointer";
+          const title = btnExacta.querySelector('div:first-child');
+          const sub = btnExacta.querySelector('div:last-child');
+          if (title) { title.className = "text-[9.5px] font-extrabold text-[#052659] flex items-center gap-1"; }
+          if (sub) { sub.className = "text-[7.5px] font-bold text-slate-500 mt-0.5 leading-tight"; }
+        }
+        if (btnAproximada) {
+          btnAproximada.className = "flex flex-col items-center justify-center p-2 rounded-xl border border-slate-200 bg-white text-center transition-all duration-200 select-none cursor-pointer";
+          const title = btnAproximada.querySelector('div:first-child');
+          const sub = btnAproximada.querySelector('div:last-child');
+          if (title) { title.className = "text-[9.5px] font-extrabold text-slate-400 flex items-center gap-1"; }
+          if (sub) { sub.className = "text-[7.5px] font-medium text-slate-400 mt-0.5 leading-tight"; }
+        }
+        if (expBox) {
+          expBox.innerHTML = `📍 <b>Ubicación Pública</b>: Tu dirección exacta será visible en el mapa para todos los clientes (ideal para locales comerciales o talleres físicos abiertos al público).`;
+        }
+        if (centerPin) {
+          centerPin.style.opacity = "1";
+          centerPin.style.filter = "none";
+        }
+        if (addrFields) {
+          addrFields.classList.remove("hidden");
+        }
+      }
+
+      updateFuzzyMarkers();
+    }
+
+    function toggleMapLock() {
+      if (!miniMap) return;
+      isMapLocked = !isMapLocked;
+      const btn = document.getElementById("btn-lock-map");
+
+      if (isMapLocked) {
+        miniMap.dragPan.disable();
+        miniMap.scrollZoom.disable();
+        miniMap.doubleClickZoom.disable();
+        miniMap.boxZoom.disable();
+
+        if (btn) {
+          btn.className = "w-full py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-full text-[9.5px] font-extrabold transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm mt-0.5 select-none cursor-pointer";
+          btn.innerHTML = "<span>🔒 Ubicación Confirmada (Clic para modificar)</span>";
+        }
+      } else {
+        miniMap.dragPan.enable();
+        miniMap.scrollZoom.enable();
+        miniMap.doubleClickZoom.enable();
+        miniMap.boxZoom.enable();
+
+        if (btn) {
+          btn.className = "w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-[9.5px] font-extrabold transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm mt-0.5 select-none cursor-pointer";
+          btn.innerHTML = "<span>🔓 Confirmar Ubicación del Mapa</span>";
+        }
+      }
+    }
+
+    function updateFuzzyMarkers() {
+      // Clear existing markers
+      fuzzyMarkers.forEach(m => m.remove());
+      fuzzyMarkers = [];
+
+      if (!miniMap) return;
+
+      const privacy = document.getElementById("select-privacy").value;
+      const isExact = (privacy === 'exacta');
+
+      // Draw 3 scattered markers around the current userLat/userLng center
+      fuzzyOffsets.forEach((offset, index) => {
+        const el = document.createElement('div');
+        if (isExact) {
+          el.className = 'opacity-30 select-none pointer-events-none filter grayscale drop-shadow transition-all duration-300';
+          el.innerHTML = `
+            <div class="relative flex flex-col items-center">
+              <svg class="w-6 h-6 text-slate-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+              </svg>
+              <div class="w-1.5 h-1.5 bg-slate-900/20 rounded-full blur-[0.5px] absolute -bottom-0.5"></div>
+            </div>
+          `;
+        } else {
+          el.className = 'opacity-70 select-none pointer-events-none filter drop-shadow transition-all duration-300';
+          el.innerHTML = `
+            <div class="relative flex flex-col items-center">
+              <svg class="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+              </svg>
+              <div class="w-1.5 h-1.5 bg-blue-900/30 rounded-full blur-[0.5px] absolute -bottom-0.5"></div>
+            </div>
+          `;
+        }
+        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+          .setLngLat([userLng + offset.dLng, userLat + offset.dLat])
+          .addTo(miniMap);
+        fuzzyMarkers.push(marker);
+      });
+    }
+
+
+
+    function updateLivePreview() {
+      const nameEl = document.getElementById("edit-name");
+      const nameCounter = document.getElementById("name-counter");
+      if (nameEl && nameCounter) nameCounter.textContent = `${nameEl.value.length} / 25`;
+
+      const rubroEl = document.getElementById("edit-rubro") || document.getElementById("input-rubro-autocomplete");
+      const rubroCounter = document.getElementById("rubro-counter");
+      if (rubroEl && rubroCounter) rubroCounter.textContent = `${rubroEl.value.length} / 30`;
+
+      const descEl = document.getElementById("edit-desc");
+      const descCounter = document.getElementById("desc-counter");
+      if (descEl && descCounter) {
+        descCounter.textContent = `${descEl.value.length} / 200`;
+      }
+
+      const imgUrlEl = document.getElementById("edit-img-url");
+      const imgPreviewEl = document.getElementById("edit-img-preview");
+      if (imgUrlEl && imgPreviewEl && imgUrlEl.value) {
+        imgPreviewEl.src = imgUrlEl.value;
+      }
+      renderGallery();
+    }
+
+    function renderGallery() {
+      const previewsContainer = document.getElementById('edit-gallery-previews');
+      if (!previewsContainer) return;
+      previewsContainer.innerHTML = "";
+      
+      galleryImages.forEach((img, index) => {
+        const item = document.createElement('div');
+        item.className = "w-14 h-14 rounded-xl overflow-hidden bg-slate-50 border border-slate-200 relative shrink-0 group";
+        item.innerHTML = `
+          <img src="${img}" class="w-full h-full object-cover">
+          <button onclick="removeGalleryImage(${index})" class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-red-400">
+            <i data-lucide="trash" class="w-4 h-4"></i>
+          </button>
+        `;
+        previewsContainer.appendChild(item);
+      });
+
+      for (let i = galleryImages.length; i < 10; i++) {
+        const blank = document.createElement('div');
+        blank.className = "w-14 h-14 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-slate-400 shrink-0 text-[10px] font-bold";
+        blank.textContent = i + 1;
+        previewsContainer.appendChild(blank);
+      }
+
+      document.getElementById('gallery-counter').textContent = `${galleryImages.length} / 10`;
+      lucide.createIcons();
+    }
+
+    function handleGalleryFileUpload(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+
+      const remainingSlots = 10 - galleryImages.length;
+      if (remainingSlots <= 0) {
+        alert("Ya has alcanzado el límite máximo de 10 fotos.");
+        return;
+      }
+
+      const filesToProcess = Array.from(files).slice(0, remainingSlots);
+      let loadedCount = 0;
+
+      filesToProcess.forEach(file => {
+        if (!file.type.startsWith('image/')) {
+          alert(`El archivo ${file.name} no es una imagen válida.`);
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          galleryImages.push(e.target.result);
+          loadedCount++;
+          if (loadedCount === filesToProcess.length) {
+            event.target.value = "";
+            updateLivePreview();
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removeGalleryImage(index) {
+      galleryImages.splice(index, 1);
+      updateLivePreview();
+    }
+
+    function clearGallery() {
+      if (galleryImages.length === 0) return;
+      const confirmClear = confirm("¿Estás seguro de que deseas eliminar todas las fotos de la vitrina?");
+      if (confirmClear) {
+        galleryImages = [];
+        updateLivePreview();
+      }
+    }
+
+    function loadCachedData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isNewMode = urlParams.get('mode') === 'new';
+      const paramId = urlParams.get('id');
+
+      const heroTitle = document.getElementById('hero-title');
+      const submitBtn = document.getElementById('btn-submit-action');
+
+      if (isNewMode || (!paramId && !localStorage.getItem('keilu_user_provider'))) {
+        // MODO REGISTRO LIMPIO: Iniciar con los campos de texto vacíos (limpios) para el usuario
+        if (heroTitle) heroTitle.textContent = "Registro de Perfil (Trabajador)";
+        if (submitBtn) submitBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Registrar Mi Perfil`;
+        
+        const nameInput = document.getElementById("edit-name");
+        if (nameInput) {
+          nameInput.value = "";
+          const nameCounter = document.getElementById('name-counter');
+          if (nameCounter) nameCounter.textContent = '0 / 25';
+        }
+
+        const rubroInputClean = document.getElementById("edit-rubro") || document.getElementById("input-rubro-autocomplete");
+        if (rubroInputClean) {
+          rubroInputClean.value = "";
+          handleRubroSmartInput("");
+        }
+
+        currentActionFolder = "02-domicilio";
+        isActionSelected = false;
+        updateDestacaTriggerLabel();
+        updateActionLiveStickerSquare();
+        setPrivacyOption('exacta');
+        fuzzyOffsets = generateRandomOffsets();
+        document.getElementById("edit-desc").value = "";
+        document.getElementById("edit-attendant").value = "";
+        document.getElementById("edit-phone").value = "";
+        document.getElementById("edit-street").value = "";
+        document.getElementById("edit-number").value = "";
+        const cityElClean = document.getElementById("edit-city");
+        if (cityElClean) cityElClean.value = "Hualpén";
+        document.getElementById("edit-img-preview").src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80";
+        document.getElementById("edit-img-url").value = "";
+        galleryImages = [];
+        updateLivePreview();
+        return;
+      }
+
+      if (paramId) {
+        // MODO VER PROVEEDOR REAL DE LOS 40 EN EL MAPA
+        if (typeof providersData !== 'undefined') {
+          const match = providersData.find(p => p.id === parseInt(paramId));
+          if (match) {
+            const isNew = !!match.identidad;
+            const nombre = isNew ? match.identidad.nombre : match.nombre;
+            const especialidad = isNew ? match.identidad.especialidad : match.rubro;
+            const rubro = isNew ? (match.identidad.especialidad || match.identidad.rubroId) : match.rubro;
+            const descripcion = isNew ? match.identidad.descripcion : '';
+            const foto = isNew ? match.identidad.foto : (match.foto || '');
+            const galeria = isNew ? (match.identidad.galeria || []) : [];
+            const atendidoPor = isNew ? match.identidad.atendidoPor : match.contacto;
+            const fono = isNew ? match.contacto?.fono : match.fono;
+            const emoji = isNew ? match.identidad.emoji : match.emoji;
+            const calleFull = isNew ? (match.ubicacion?.calle || '') : '';
+            const sector = isNew ? (match.ubicacion?.sector || '') : '';
+
+            const horarioStr = isNew ? match.contacto?.horario : match.horario;
+            const privacidad = isNew ? match.ubicacion?.privacidad : match.privacidad;
+            if (isNew && match.ubicacion) {
+              userLat = match.ubicacion.lat;
+              userLng = match.ubicacion.lng;
+            } else {
+              userLat = match.realLat !== undefined ? match.realLat : (match.lat || -36.7946);
+              userLng = match.realLng !== undefined ? match.realLng : (match.lng || -73.1118);
+            }
+
+            if (heroTitle) heroTitle.textContent = `Perfil de ${nombre}`;
+            if (submitBtn) submitBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Guardar Cambios`;
+
+            document.getElementById("edit-name").value = nombre || "";
+            const rubroInputMatch = document.getElementById("edit-rubro") || document.getElementById("input-rubro-autocomplete");
+            if (rubroInputMatch) rubroInputMatch.value = rubro || "";
+            if (emoji) {
+              selectedEmoji = emoji;
+            }
+
+            const specSelect = document.getElementById("select-especialidad");
+            if (specSelect && especialidad) {
+              specSelect.innerHTML = `<option value="${especialidad}" selected>${especialidad}</option>`;
+              document.getElementById("especialidad-container")?.classList.remove("hidden");
+            }
+
+            document.getElementById("edit-desc").value = descripcion || "";
+            document.getElementById("edit-attendant").value = atendidoPor || "";
+            document.getElementById("edit-phone").value = fono || "";
+
+            if (calleFull) {
+              const matchCalle = calleFull.match(/^(.*?)\s+(\d+)$/);
+              if (matchCalle) {
+                document.getElementById("edit-street").value = matchCalle[1];
+                document.getElementById("edit-number").value = matchCalle[2];
+              } else {
+                document.getElementById("edit-street").value = calleFull;
+              }
+            }
+            if (sector) {
+              const cityElMatch = document.getElementById("edit-city");
+              if (cityElMatch) cityElMatch.value = sector;
+            }
+            if (privacidad) {
+              setPrivacyOption(privacidad);
+            }
+            if (match.fuzzyOffsets && Array.isArray(match.fuzzyOffsets) && match.fuzzyOffsets.length === 3) {
+              fuzzyOffsets = match.fuzzyOffsets;
+            } else {
+              const seed = match.id || 1;
+              const pseudorand = (s) => {
+                const x = Math.sin(s) * 10000;
+                return x - Math.floor(x);
+              };
+              fuzzyOffsets = [
+                {
+                  dLat: pseudorand(seed * 1) * 0.0008 + 0.0002,
+                  dLng: -(pseudorand(seed * 2) * 0.0025 + 0.0010)
+                },
+                {
+                  dLat: pseudorand(seed * 3) * 0.0008 + 0.0002,
+                  dLng: pseudorand(seed * 4) * 0.0025 + 0.0010
+                },
+                {
+                  dLat: -(pseudorand(seed * 5) * 0.0012 + 0.0004),
+                  dLng: (pseudorand(seed * 6) - 0.5) * 0.0030
+                }
+              ];
+            }
+
+            if (estadoVivo && estadoVivo.activo !== undefined) {
+              const dispSwitch = document.getElementById("switch-disponibilidad");
+              if (dispSwitch) dispSwitch.checked = estadoVivo.activo;
+            }
+
+            if (horarioStr) {
+              if (horarioStr === '24/7') {
+                const check247 = document.getElementById("check-24-7");
+                if (check247) { check247.checked = true; toggle247({ checked: true }); }
+              } else {
+                const hoursMatch = horarioStr.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+                if (hoursMatch) {
+                  document.getElementById("time-open").value = hoursMatch[1];
+                  document.getElementById("time-close").value = hoursMatch[2];
+                }
+              }
+            }
+
+            if (foto) {
+              document.getElementById("edit-img-url").value = foto;
+              document.getElementById("edit-img-preview").src = foto;
+            }
+
+            galleryImages = Array.isArray(galeria) ? [...galeria] : [];
+            updateLivePreview();
+            return;
+          }
+        }
+      }
+
+      // De lo contrario cargar de localStorage si existe (ignorando preset antiguo id: 999)
+      const existingRaw = localStorage.getItem('keilu_user_provider');
+      if (existingRaw) {
+        try {
+          const parsed = JSON.parse(existingRaw);
+          if (parsed && parsed.id !== 999 && parsed.tipo === 'azul') {
+            if (parsed.nombre && (parsed.nombre.includes("Diego") || parsed.nombre.includes("Sepúlveda"))) {
+              localStorage.removeItem('keilu_user_provider');
+              window.location.reload();
+              return;
+            }
+            document.getElementById("edit-name").value = parsed.nombre || "";
+            const rubroInputLocal = document.getElementById("edit-rubro") || document.getElementById("input-rubro-autocomplete");
+            if (rubroInputLocal) rubroInputLocal.value = (parsed.rubro || "").replace(" independiente", "").replace(" comercio", "");
+            if (parsed.stickerRubro) {
+              selectedRubroSticker = parsed.stickerRubro;
+              const liveImg = document.getElementById("rubro-live-sticker-img");
+              if (liveImg) liveImg.src = parsed.stickerRubro;
+            }
+            if (parsed.stickerAccion) {
+              selectedActionSticker = parsed.stickerAccion;
+              const parts = parsed.stickerAccion.split('/');
+              if (parts.length >= 3 && parts[parts.length - 2]) {
+                const folderCandidate = parts[parts.length - 2];
+                if (actionStickerTaxonomy[folderCandidate]) {
+                  currentActionFolder = folderCandidate;
+                  isActionSelected = true;
+                }
+              }
+            }
+            updateDestacaTriggerLabel();
+            updateActionLiveStickerSquare();
+            if (parsed.realLat !== undefined && parsed.realLng !== undefined) {
+              userLat = parsed.realLat;
+              userLng = parsed.realLng;
+            } else if (parsed.lat !== undefined && parsed.lng !== undefined) {
+              userLat = parsed.lat;
+              userLng = parsed.lng;
+            }
+            if (parsed.calle) document.getElementById("edit-street").value = parsed.calle;
+            if (parsed.numero) document.getElementById("edit-number").value = parsed.numero;
+            if (parsed.comuna) {
+              const cityElLocal = document.getElementById("edit-city");
+              if (cityElLocal) cityElLocal.value = parsed.comuna;
+            }
+            if (parsed.privacidad) {
+              setPrivacyOption(parsed.privacidad);
+            }
+            if (parsed.fuzzyOffsets && Array.isArray(parsed.fuzzyOffsets) && parsed.fuzzyOffsets.length === 3) {
+              fuzzyOffsets = parsed.fuzzyOffsets;
+            } else {
+              fuzzyOffsets = generateRandomOffsets();
+            }
+            if (parsed.notaAd) {
+              document.getElementById("edit-desc").value = parsed.notaAd;
+            }
+            if (parsed.swapStickerOrder !== undefined) {
+              swapStickerOrder = parsed.swapStickerOrder;
+            }
+            document.getElementById("edit-attendant").value = parsed.contacto || parsed.nombre || "";
+            document.getElementById("edit-phone").value = parsed.fono || "";
+            
+            if (parsed.foto) {
+              document.getElementById("edit-img-preview").src = parsed.foto;
+              document.getElementById("edit-img-url").value = parsed.foto;
+            }
+          }
+        } catch(e) {}
+      }
+    }
+
+    function guardarYPublicar() {
+      const photoEl = document.getElementById("edit-img-url");
+      const photo = (photoEl && photoEl.value.trim()) ? photoEl.value.trim() : "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80";
+
+      const name = document.getElementById("edit-name").value.trim();
+      const rubroEl = document.getElementById("edit-rubro") || document.getElementById("input-rubro-autocomplete");
+      const rubro = rubroEl ? rubroEl.value.trim() : "";
+      
+      const streetEl = document.getElementById("edit-street");
+      const street = (streetEl && streetEl.value.trim()) ? streetEl.value.trim() : "Av. Gran Bretaña";
+
+      const numberEl = document.getElementById("edit-number");
+      const number = (numberEl && numberEl.value.trim()) ? numberEl.value.trim() : "1234";
+
+      const cityEl = document.getElementById("edit-city");
+      const city = (cityEl && cityEl.value.trim()) ? cityEl.value.trim() : "Hualpén";
+      
+      if (!name) { alert("Por favor ingresa un Nombre Principal (Paso 1)."); return; }
+      if (!rubro) { alert("Por favor ingresa tu trabajo u oficio específico (Paso 2)."); return; }
+      if (activeDays.length === 0) { activeDays = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"]; }
+
+      let lat = userLat;
+      let lng = userLng;
+      const privacy = document.getElementById("select-privacy").value;
+      
+      if (privacy === 'aproximada' && fuzzyOffsets.length === 3) {
+        const randomChoice = fuzzyOffsets[Math.floor(Math.random() * 3)];
+        lat = userLat + randomChoice.dLat;
+        lng = userLng + randomChoice.dLng;
+      }
+
+      const is247 = document.getElementById("check-24-7").checked;
+      const abre = is247 ? "" : document.getElementById("time-open").value;
+      const cierra = is247 ? "" : document.getElementById("time-close").value;
+      const disponible = document.getElementById("switch-disponibilidad").checked;
+
+      const existingRaw = localStorage.getItem('keilu_user_provider');
+      let isPaid = false;
+      if (existingRaw) {
+        try {
+          const parsed = JSON.parse(existingRaw);
+          isPaid = parsed.dePago || false;
+        } catch(e) {}
+      }
+      const descEl = document.getElementById("edit-desc");
+      const adText = descEl ? descEl.value.trim() : "";
+
+      const userProvider = {
+        id: 999,
+        tipo: 'azul',
+        dePago: isPaid,
+        foto: photo,
+        stickerRubro: selectedRubroSticker,
+        stickerAccion: selectedActionSticker,
+        accionTitulo: selectedActionTitle,
+        swapStickerOrder: swapStickerOrder,
+        animClass: 'anim-wrench',
+        nombre: name,
+        rubro: rubro + " independiente",
+        contacto: document.getElementById("edit-attendant").value.trim() || name,
+        fono: document.getElementById("edit-phone").value.trim() || "+56912345678",
+        horario: is247 ? "24/7" : "fijo",
+        abre: abre,
+        cierra: cierra,
+        dias: activeDays.join(" a "),
+        disponible: disponible,
+        lat: lat,
+        lng: lng,
+        privacidad: privacy,
+        realLat: userLat,
+        realLng: userLng,
+        fuzzyOffsets: fuzzyOffsets,
+        calle: street,
+        numero: number,
+        comuna: city,
+        notaAd: adText
+      };
+
+      localStorage.setItem('keilu_user_provider', JSON.stringify(userProvider));
+      alert("🚀 ¡Perfil de Trabajador Guardado con éxito con tus Stickers Animados!");
+      window.location.href = "index.html";
+    }
+
+    function applyFuzzyOffset(lat, lng) {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 100 + Math.random() * 200;
+      const deltaLat = (distance * Math.cos(angle)) / 111320;
+      const deltaLng = (distance * Math.sin(angle)) / (111320 * Math.cos(lat * Math.PI / 180));
+      return {
+        lat: lat + deltaLat,
+        lng: lng + deltaLng
+      };
+    }
+
+    window.onload = () => {
+      try {
+        loadCachedData();
+        selectAccountType('azul');
+        updateActionLiveStickerSquare();
+        initMiniMap(userLat, userLng);
+        const savedPrivacy = document.getElementById("select-privacy").value || 'exacta';
+        setPrivacyOption(savedPrivacy);
+        
+        const trigger = document.getElementById("destaca-dropdown-trigger");
+        if (trigger) {
+          trigger.addEventListener("click", function(e) {
+            e.stopPropagation();
+            toggleCustomSpecialtyDropdown();
+          });
+        }
+
+        renderCustomSpecialtyDropdown();
+        if (currentWorkerCatFolder) renderRubroStickerVariants(currentWorkerCatFolder);
+        renderCard4StickerSelector();
+        lucide.createIcons();
+      } catch(e) {
+        console.error('Error en window.onload:', e);
+      }
+    };
+  </script>
+</body>
+</html>

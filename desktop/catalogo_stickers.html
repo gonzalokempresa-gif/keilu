@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo de Stickers Premium — Keilu</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Font Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+
+    /* === ANIMACIONES CSS SUAVES A 60 FPS === */
+
+    /* 1. Levitación Vertical Suave (Sushi / Hamburguesa) */
+    @keyframes floatLevitate {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    .anim-float {
+      animation: floatLevitate 3s ease-in-out infinite;
+    }
+
+    /* 2. Balanceo de Pintado (Manicura / Pollo) */
+    @keyframes nailPaint {
+      0%, 100% { transform: rotate(0deg) translateX(0); }
+      50% { transform: rotate(-8deg) translateX(-1px); }
+    }
+    .anim-paint {
+      transform-origin: top right;
+      animation: nailPaint 2s ease-in-out infinite;
+    }
+
+    /* 3. Chispas Eléctricas Intermitentes (Soldador) */
+    @keyframes sparkFlicker {
+      0%, 100% { opacity: 0.2; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+    .anim-spark {
+      animation: sparkFlicker 0.4s ease-in-out infinite;
+    }
+
+    /* 4. Clavado / Golpe de Martillo (Carpintero) */
+    @keyframes hammerStrike {
+      0%, 100% { transform: rotate(0deg) translate(0, 0); }
+      30% { transform: rotate(-15deg) translate(-2px, -3px); }
+      50% { transform: rotate(5deg) translate(1px, 2px); }
+    }
+    .anim-strike {
+      transform-origin: bottom right;
+      animation: hammerStrike 1.5s ease-in-out infinite;
+    }
+
+    /* 5. Humo Ascendente Suave (Pollería) */
+    @keyframes smokeRise {
+      0% { opacity: 0; transform: translateY(2px) scale(0.8); }
+      50% { opacity: 0.6; }
+      100% { opacity: 0; transform: translateY(-6px) scale(1.2); }
+    }
+    .anim-smoke-1 {
+      animation: smokeRise 2.5s ease-in-out infinite;
+    }
+    .anim-smoke-2 {
+      animation: smokeRise 2.5s ease-in-out infinite;
+      animation-delay: 1.25s;
+    }
+  </style>
+</head>
+<body class="p-6 md:p-12 min-h-screen flex flex-col items-center">
+
+  <!-- CABECERA -->
+  <header class="w-full max-w-4xl text-center mb-10">
+    <div class="inline-block bg-blue-500/10 border border-blue-500/30 px-4 py-1.5 rounded-full mb-3 text-sm text-blue-400 font-medium">
+      Previsualizador en Tiempo Real (Solo para los 6 con Boost)
+    </div>
+    <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-emerald-400 to-white bg-clip-text text-transparent mb-3">
+      Stickers Ilustrados Keilu
+    </h1>
+    <p class="text-slate-400 max-w-xl mx-auto text-sm md:text-base">
+      Diseños vectoriales limpios (SVG multitono) montados sobre la gota blanca 3D y con sombra en el piso. Abre este archivo en tu navegador para verlos en acción.
+    </p>
+  </header>
+
+  <!-- CONTENEDOR DE TARJETAS -->
+  <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-4xl">
+
+    <!-- 1. SUSHI (CATÁLOGO VERDE) -->
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 flex flex-col items-center shadow-xl backdrop-blur">
+      <h3 class="text-emerald-400 font-bold text-lg mb-1">🍣 Sushi Talca</h3>
+      <span class="text-xs text-slate-500 mb-6">ID 127 — Catálogo Verde</span>
+      
+      <!-- Visualizador del Pin -->
+      <div class="h-28 flex items-center justify-center relative w-full mb-4">
+        <!-- Contenedor del Pin (Gota 3D) -->
+        <div class="relative flex flex-col items-center group cursor-pointer transition-transform duration-200 hover:scale-110">
+          
+          <!-- 1. Cuerpo de la Gota Blanca -->
+          <div class="relative z-10 w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-200/50">
+            <!-- Círculo interior verde con el Sushi SVG -->
+            <div class="w-[36px] h-[36px] rounded-full bg-emerald-600 flex items-center justify-center text-white border border-white/20 overflow-hidden">
+              <svg class="w-7 h-7 anim-float" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Alga Nori exterior -->
+                <rect x="10" y="24" width="44" height="26" rx="13" fill="#1e293b" />
+                <!-- Arroz blanco interior -->
+                <rect x="13" y="27" width="38" height="20" rx="10" fill="#f8fafc" />
+                <!-- Relleno: Salmón Naranja -->
+                <circle cx="26" cy="37" r="7" fill="#f97316" />
+                <circle cx="26" cy="37" r="4" fill="#ffedd5" />
+                <!-- Relleno: Palta/Aguacate Verde -->
+                <circle cx="38" cy="34" r="5" fill="#22c55e" />
+                <!-- Relleno: Huevo Amarillo -->
+                <circle cx="37" cy="41" r="3.5" fill="#eab308" />
+              </svg>
+            </div>
+          </div>
+          
+          <!-- 2. Punta de la Gota -->
+          <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white -mt-0.5 z-10"></div>
+          
+          <!-- 3. Sombra en el Piso (Tono verde) -->
+          <div class="w-5 h-1.5 bg-emerald-500/30 rounded-full blur-[1px] -mt-0.5"></div>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400 text-center mt-2">Animación: Levitación vertical suave en el aire.</p>
+    </div>
+
+    <!-- 2. HAMBURGUESA (CATÁLOGO VERDE) -->
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 flex flex-col items-center shadow-xl backdrop-blur">
+      <h3 class="text-emerald-400 font-bold text-lg mb-1">🍔 Burger Bros</h3>
+      <span class="text-xs text-slate-500 mb-6">ID 128 — Catálogo Verde</span>
+      
+      <!-- Visualizador del Pin -->
+      <div class="h-28 flex items-center justify-center relative w-full mb-4">
+        <!-- Contenedor del Pin (Gota 3D) -->
+        <div class="relative flex flex-col items-center group cursor-pointer transition-transform duration-200 hover:scale-110">
+          
+          <!-- 1. Cuerpo de la Gota Blanca -->
+          <div class="relative z-10 w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-200/50">
+            <!-- Círculo interior verde con Hamburguesa SVG -->
+            <div class="w-[36px] h-[36px] rounded-full bg-emerald-600 flex items-center justify-center text-white border border-white/20 overflow-hidden">
+              <svg class="w-7 h-7 anim-float" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Pan Superior -->
+                <path d="M12 30C12 18.5 21 16 32 16C43 16 52 18.5 52 30H12Z" fill="#fb923c" />
+                <!-- Semillas de Sésamo -->
+                <circle cx="22" cy="22" r="1" fill="#f8fafc" />
+                <circle cx="32" cy="20" r="1" fill="#f8fafc" />
+                <circle cx="42" cy="23" r="1" fill="#f8fafc" />
+                <!-- Lechuga Verde -->
+                <path d="M10 30C10 30 14 33 21 31C28 29 36 33 43 31C50 29 54 30 54 30" stroke="#22c55e" stroke-width="3" stroke-linecap="round" />
+                <!-- Queso Amarillo Derretido -->
+                <path d="M13 33L17 38L21 33L37 33L42 39L47 33H51" stroke="#eab308" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                <!-- Carne de Vacuno -->
+                <rect x="11" y="37" width="42" height="5" rx="2.5" fill="#78350f" />
+                <!-- Pan Inferior -->
+                <path d="M12 43C12 47 16 49 32 49C48 49 52 47 52 43H12Z" fill="#fb923c" />
+              </svg>
+            </div>
+          </div>
+          
+          <!-- 2. Punta de la Gota -->
+          <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white -mt-0.5 z-10"></div>
+          
+          <!-- 3. Sombra en el Piso (Tono verde) -->
+          <div class="w-5 h-1.5 bg-emerald-500/30 rounded-full blur-[1px] -mt-0.5"></div>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400 text-center mt-2">Animación: Levitación vertical suave en el aire.</p>
+    </div>
+
+    <!-- 3. POLLERÍA (CATÁLOGO VERDE) -->
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 flex flex-col items-center shadow-xl backdrop-blur">
+      <h3 class="text-emerald-400 font-bold text-lg mb-1">🍗 Pollos El Cóndor</h3>
+      <span class="text-xs text-slate-500 mb-6">ID 129 — Catálogo Verde</span>
+      
+      <!-- Visualizador del Pin -->
+      <div class="h-28 flex items-center justify-center relative w-full mb-4">
+        <!-- Contenedor del Pin (Gota 3D) -->
+        <div class="relative flex flex-col items-center group cursor-pointer transition-transform duration-200 hover:scale-110">
+          
+          <!-- 1. Cuerpo de la Gota Blanca -->
+          <div class="relative z-10 w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-200/50">
+            <!-- Círculo interior verde con Pollo SVG -->
+            <div class="w-[36px] h-[36px] rounded-full bg-emerald-600 flex items-center justify-center text-white border border-white/20 overflow-hidden">
+              <svg class="w-7 h-7 relative" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Humo ascendente (Líneas animadas) -->
+                <path class="anim-smoke-1" d="M26 18C26 15 28 14 26 11" stroke="#f1f5f9" stroke-width="1.5" stroke-linecap="round" />
+                <path class="anim-smoke-2" d="M38 18C38 15 36 14 38 11" stroke="#f1f5f9" stroke-width="1.5" stroke-linecap="round" />
+                
+                <!-- Muslo de Pollo Crujiente -->
+                <g style="transform-origin: 32px 42px; animation: nailPaint 2.5s ease-in-out infinite;">
+                  <!-- Carne Dorada -->
+                  <path d="M16 35C16 23.5 29 20 42 27C51 32 49 45 38 46C27 47 16 46.5 16 35Z" fill="#b45309" />
+                  <!-- Hueso del Muslo -->
+                  <path d="M17 38L10 43" stroke="#f8fafc" stroke-width="5" stroke-linecap="round" />
+                  <circle cx="9" cy="41" r="3.5" fill="#f8fafc" />
+                  <circle cx="11" cy="45" r="3.5" fill="#f8fafc" />
+                  <!-- Detalle de Tostado -->
+                  <path d="M32 26C38 27.5 41 31 43 35" stroke="#78350f" stroke-width="2" stroke-linecap="round" />
+                </g>
+              </svg>
+            </div>
+          </div>
+          
+          <!-- 2. Punta de la Gota -->
+          <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white -mt-0.5 z-10"></div>
+          
+          <!-- 3. Sombra en el Piso (Tono verde) -->
+          <div class="w-5 h-1.5 bg-emerald-500/30 rounded-full blur-[1px] -mt-0.5"></div>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400 text-center mt-2">Animación: Humo ascendente y balanceo de calor.</p>
+    </div>
+
+    <!-- 4. MANICURISTA (CATÁLOGO AZUL) -->
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 flex flex-col items-center shadow-xl backdrop-blur">
+      <h3 class="text-blue-400 font-bold text-lg mb-1">💅 Ana González</h3>
+      <span class="text-xs text-slate-500 mb-6">ID 107 — Catálogo Azul</span>
+      
+      <!-- Visualizador del Pin -->
+      <div class="h-28 flex items-center justify-center relative w-full mb-4">
+        <!-- Contenedor del Pin (Gota 3D) -->
+        <div class="relative flex flex-col items-center group cursor-pointer transition-transform duration-200 hover:scale-110">
+          
+          <!-- 1. Cuerpo de la Gota Blanca -->
+          <div class="relative z-10 w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-200/50">
+            <!-- Círculo interior azul con Manicura SVG -->
+            <div class="w-[36px] h-[36px] rounded-full bg-blue-600 flex items-center justify-center text-white border border-white/20 overflow-hidden">
+              <svg class="w-7 h-7" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Mano -->
+                <path d="M10 44C10 32 15 28 22 28C28 28 32 32 30 44H10Z" fill="#ffedd5" />
+                <!-- Uña pintada -->
+                <path d="M21 28C21 26 23 26 23 28V31C23 31 22 32 21 31V28Z" fill="#ec4899" />
+                
+                <!-- Pincel con Esmalte de Uñas (Animado) -->
+                <g class="anim-paint">
+                  <!-- Frasco de Pintura de fondo -->
+                  <rect x="36" y="16" width="12" height="15" rx="2.5" fill="#ec4899" />
+                  <rect x="40" y="10" width="4" height="6" fill="#475569" />
+                  <!-- Línea del Pincel aplicando color -->
+                  <path d="M40 22L23 28.5" stroke="#475569" stroke-width="2.5" stroke-linecap="round" />
+                  <circle cx="23" cy="28.5" r="2" fill="#ec4899" />
+                </g>
+              </svg>
+            </div>
+          </div>
+          
+          <!-- 2. Punta de la Gota -->
+          <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white -mt-0.5 z-10"></div>
+          
+          <!-- 3. Sombra en el Piso (Tono azul) -->
+          <div class="w-5 h-1.5 bg-blue-500/30 rounded-full blur-[1px] -mt-0.5"></div>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400 text-center mt-2">Animación: Pincel aplicando esmalte de uñas rosa.</p>
+    </div>
+
+    <!-- 5. SOLDADOR (CATÁLOGO AZUL) -->
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 flex flex-col items-center shadow-xl backdrop-blur">
+      <h3 class="text-blue-400 font-bold text-lg mb-1">🔩 Rodrigo Vega</h3>
+      <span class="text-xs text-slate-500 mb-6">ID 108 — Catálogo Azul</span>
+      
+      <!-- Visualizador del Pin -->
+      <div class="h-28 flex items-center justify-center relative w-full mb-4">
+        <!-- Contenedor del Pin (Gota 3D) -->
+        <div class="relative flex flex-col items-center group cursor-pointer transition-transform duration-200 hover:scale-110">
+          
+          <!-- 1. Cuerpo de la Gota Blanca -->
+          <div class="relative z-10 w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-200/50">
+            <!-- Círculo interior azul con Soldadura SVG -->
+            <div class="w-[36px] h-[36px] rounded-full bg-blue-600 flex items-center justify-center text-white border border-white/20 overflow-hidden">
+              <svg class="w-7 h-7" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Máscara de Soldar -->
+                <rect x="18" y="16" width="28" height="32" rx="6" fill="#334155" />
+                <rect x="22" y="12" width="20" height="4" fill="#1e293b" />
+                <!-- Visor de Protección -->
+                <rect x="23" y="22" width="18" height="8" rx="2" fill="#38bdf8" stroke="#1e293b" stroke-width="2" />
+                <!-- Línea de costura de la máscara -->
+                <line x1="32" y1="34" x2="32" y2="44" stroke="#1e293b" stroke-width="2" />
+                
+                <!-- Chispas Eléctricas Amarillas de soldar (Animadas) -->
+                <g class="anim-spark">
+                  <path d="M12 40L6 44M52 40L58 44M32 50L32 56" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" />
+                  <circle cx="10" cy="38" r="1.5" fill="#f59e0b" />
+                  <circle cx="54" cy="38" r="1.5" fill="#f59e0b" />
+                </g>
+              </svg>
+            </div>
+          </div>
+          
+          <!-- 2. Punta de la Gota -->
+          <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white -mt-0.5 z-10"></div>
+          
+          <!-- 3. Sombra en el Piso (Tono azul) -->
+          <div class="w-5 h-1.5 bg-blue-500/30 rounded-full blur-[1px] -mt-0.5"></div>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400 text-center mt-2">Animación: Chispas de soldadura parpadeantes.</p>
+    </div>
+
+    <!-- 6. CARPINTERO (CATÁLOGO AZUL) -->
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 flex flex-col items-center shadow-xl backdrop-blur">
+      <h3 class="text-blue-400 font-bold text-lg mb-1">🪵 Cristóbal Soto</h3>
+      <span class="text-xs text-slate-500 mb-6">ID 109 — Catálogo Azul</span>
+      
+      <!-- Visualizador del Pin -->
+      <div class="h-28 flex items-center justify-center relative w-full mb-4">
+        <!-- Contenedor del Pin (Gota 3D) -->
+        <div class="relative flex flex-col items-center group cursor-pointer transition-transform duration-200 hover:scale-110">
+          
+          <!-- 1. Cuerpo de la Gota Blanca -->
+          <div class="relative z-10 w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-200/50">
+            <!-- Círculo interior azul con Carpintería SVG -->
+            <div class="w-[36px] h-[36px] rounded-full bg-blue-600 flex items-center justify-center text-white border border-white/20 overflow-hidden">
+              <svg class="w-7 h-7" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Tronco de Madera -->
+                <rect x="12" y="36" width="40" height="14" rx="3" fill="#d97706" />
+                <ellipse cx="12" cy="43" rx="3" ry="7" fill="#b45309" />
+                <ellipse cx="52" cy="43" rx="3" ry="7" fill="#fbbf24" />
+                
+                <!-- Clavo -->
+                <line x1="30" y1="36" x2="30" y2="28" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" />
+                <line x1="27" y1="28" x2="33" y2="28" stroke="#94a3b8" stroke-width="3" stroke-linecap="round" />
+
+                <!-- Martillo Golpeando (Animado) -->
+                <g class="anim-strike">
+                  <!-- Mango -->
+                  <path d="M42 18L49 32" stroke="#b45309" stroke-width="4" stroke-linecap="round" />
+                  <!-- Cabeza de Acero del Martillo -->
+                  <rect x="30" y="12" width="16" height="8" rx="2" fill="#64748b" />
+                  <path d="M30 16H27" stroke="#475569" stroke-width="4" stroke-linecap="round" />
+                </g>
+              </svg>
+            </div>
+          </div>
+          
+          <!-- 2. Punta de la Gota -->
+          <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white -mt-0.5 z-10"></div>
+          
+          <!-- 3. Sombra en el Piso (Tono azul) -->
+          <div class="w-5 h-1.5 bg-blue-500/30 rounded-full blur-[1px] -mt-0.5"></div>
+        </div>
+      </div>
+      <p class="text-xs text-slate-400 text-center mt-2">Animación: Martillo golpeando rítmicamente el clavo.</p>
+    </div>
+
+  </main>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="mt-12 text-slate-500 text-xs text-center border-t border-slate-800/80 pt-6 w-full max-w-4xl">
+    Keilu v2.0 © 2026. Todos los stickers anteriores están construidos mediante vectores SVG de código libre adaptados, listos para su uso comercial libre de derechos de autor.
+  </footer>
+
+</body>
+</html>

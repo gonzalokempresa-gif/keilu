@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keilu — Libro de Usuarios</title>
+  <meta name="description" content="Directorio completo de los 40 proveedores de prueba de la Zona 0 Keilu.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Outfit', 'sans-serif'] } } }
+    }
+  </script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="mock_data.js"></script>
+  <script src="js/utils.js"></script>
+
+  <style>
+    body { background: #F8FAFC; }
+
+    /* ── Emoji Animations (same as emojis.html) ── */
+    @keyframes wrenchTurn { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(45deg)} }
+    .anim-wrench { animation: wrenchTurn 1.6s infinite ease-in-out; }
+    @keyframes lightningFlicker { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.9)} }
+    .anim-lightning { animation: lightningFlicker 0.6s infinite alternate; }
+    @keyframes truckDrive { 0%,100%{transform:translateX(0)} 50%{transform:translateX(2px)} }
+    .anim-truck { animation: truckDrive 0.8s infinite linear; }
+    @keyframes scissorSnip { 0%,100%{transform:scale(1) rotate(0deg)} 50%{transform:scale(1.15) rotate(-15deg)} }
+    .anim-scissors { animation: scissorSnip 1s infinite ease-in-out; }
+    @keyframes nailsPolish { 0%,100%{transform:rotate(-10deg)} 50%{transform:rotate(10deg)} }
+    .anim-nails { animation: nailsPolish 2s infinite ease-in-out; }
+    @keyframes brickLay { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+    .anim-brick { animation: brickLay 1.5s infinite ease-out; }
+    @keyframes solderSpark { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.7) drop-shadow(0 0 10px yellow)} }
+    .anim-solder { animation: solderSpark 0.4s infinite alternate; }
+    @keyframes woodSaw { 0%,100%{transform:translateX(0)} 50%{transform:translateX(-5px)} }
+    .anim-wood { animation: woodSaw 1.2s infinite ease-in-out; }
+    @keyframes needlePoke { 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
+    .anim-needle { animation: needlePoke 0.7s infinite ease-in-out; }
+    @keyframes spongeWipe { 0%,100%{transform:translate(0,0)} 50%{transform:translate(4px,-3px)} }
+    .anim-sponge { animation: spongeWipe 1.5s infinite ease-in-out; }
+    @keyframes healthPulse { 0%,100%{transform:scale(1)} 30%{transform:scale(1.2)} 75%{transform:scale(1.25)} }
+    .anim-health { animation: healthPulse 1.4s infinite ease-in-out; }
+    @keyframes classBounce { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-3px) rotate(4deg)} }
+    .anim-class { animation: classBounce 2.2s infinite ease-in-out; }
+    @keyframes screenBlink { 0%,100%{opacity:1;filter:drop-shadow(0 0 1px cyan)} 50%{opacity:0.7;filter:drop-shadow(0 0 5px cyan)} }
+    .anim-screen { animation: screenBlink 1.4s infinite ease-in-out; }
+    @keyframes carVibrate { 0%,100%{transform:translate(0,0)} 25%{transform:translate(1px,-1px)} 50%{transform:translate(-1px,1px)} }
+    .anim-car { animation: carVibrate 0.15s infinite linear; }
+    @keyframes cameraShutter { 0%,90%,100%{filter:brightness(1)} 95%{filter:brightness(1.8) drop-shadow(0 0 8px white)} }
+    .anim-camera { animation: cameraShutter 2.5s infinite ease-in-out; }
+    @keyframes businessSway { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
+    .anim-business { animation: businessSway 2.5s infinite ease-in-out; }
+
+    @keyframes eatingTilt { 0%,100%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} }
+    .anim-eat { animation: eatingTilt 2s infinite ease-in-out; }
+    @keyframes sushiRoll { 0%,100%{transform:rotate(0)} 50%{transform:rotate(25deg)} }
+    .anim-sushi { animation: sushiRoll 3s infinite ease-in-out; }
+    @keyframes pizzaFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+    .anim-pizza { animation: pizzaFloat 2s infinite ease-in-out; }
+    @keyframes burgerSquish { 0%,100%{transform:scale(1)} 50%{transform:scale(1.18,0.88)} }
+    .anim-burger { animation: burgerSquish 1.5s infinite ease-in-out; }
+    @keyframes chickenGlow { 0%,100%{filter:drop-shadow(0 0 1px red)} 50%{filter:drop-shadow(0 0 8px orange)} }
+    .anim-chicken { animation: chickenGlow 1.5s infinite ease-in-out; }
+    @keyframes coffeeSteam { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+    .anim-coffee { animation: coffeeSteam 2.2s infinite ease-in-out; }
+    @keyframes cartSlide { 0%,100%{transform:translateX(0)} 50%{transform:translateX(5px)} }
+    .anim-cart { animation: cartSlide 1.5s infinite ease-in-out; }
+    @keyframes breadRise { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+    .anim-bread { animation: breadRise 2.5s infinite ease-in-out; }
+    @keyframes meatChop { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+    .anim-meat { animation: meatChop 1.2s infinite ease-in-out; }
+    @keyframes appleWobble { 0%,100%{transform:rotate(0)} 50%{transform:rotate(10deg)} }
+    .anim-apple { animation: appleWobble 2s infinite ease-in-out; }
+    @keyframes pillPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+    .anim-pill { animation: pillPulse 1.8s infinite ease-in-out; }
+    @keyframes pawsWalk { 0%,100%{opacity:1;transform:translateX(0)} 50%{opacity:0.6;transform:translateX(4px)} }
+    .anim-paws { animation: pawsWalk 1.6s infinite ease-in-out; }
+    @keyframes hammerBang { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-30deg)} }
+    .anim-hammer { animation: hammerBang 1.2s infinite ease-in-out; }
+    @keyframes bottlePop { 0%,100%{transform:rotate(0) scale(1)} 50%{transform:rotate(15deg) scale(1.12);filter:drop-shadow(0 0 8px yellow)} }
+    .anim-bottle { animation: bottlePop 1.8s infinite ease-in-out; }
+    @keyframes flowerSway { 0%,100%{transform:rotate(0) scale(1)} 50%{transform:rotate(25deg) scale(1.06)} }
+    .anim-flower { animation: flowerSway 3s infinite ease-in-out; }
+    @keyframes shopSwing { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+    .anim-shop { animation: shopSwing 2s infinite ease-in-out; }
+
+    /* ── Radar pulse for ultra_pro cards ── */
+    @keyframes radarCardPulse {
+      0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.5); }
+      70% { box-shadow: 0 0 0 10px rgba(250, 204, 21, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+    }
+    .ultra-pro-card { animation: radarCardPulse 2.5s infinite; }
+
+    /* ── Photo hover zoom ── */
+    .photo-hover { transition: transform 0.3s ease; }
+    .photo-hover:hover { transform: scale(1.05); }
+
+    /* ── Modal backdrop ── */
+    #modal-backdrop {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+    }
+    #modal-backdrop.visible { display: flex; align-items: center; justify-content: center; }
+
+    /* ── Gallery thumbnails ── */
+    .gallery-thumb { transition: transform 0.2s ease, opacity 0.2s ease; }
+    .gallery-thumb:hover { transform: scale(1.08); opacity: 0.9; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen font-sans">
+
+  <!-- Modal de Ficha Completa -->
+  <div id="modal-backdrop" onclick="closeModal()">
+    <div id="modal-panel" onclick="event.stopPropagation()"
+      class="relative bg-white border border-slate-200 rounded-3xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto shadow-2xl text-slate-800">
+      <button onclick="closeModal()" class="absolute top-4 right-4 z-10 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 p-2 rounded-full transition">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+      <div id="modal-content" class="p-6"></div>
+    </div>
+  </div>
+
+  <!-- ===== HEADER ===== -->
+  <header class="border-b border-slate-200 bg-white/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <a href="../index.html" class="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 transition text-xs font-bold">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Portal
+        </a>
+        <span class="text-slate-300">|</span>
+        <div class="flex items-center gap-2">
+          <i data-lucide="book-user" class="w-5 h-5 text-blue-600"></i>
+          <h1 class="text-lg font-black text-slate-900">Libro de Usuarios</h1>
+          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">Zona 0 · Hualpén / Talcahuano</span>
+        </div>
+      </div>
+      <!-- Stats globales interactivos -->
+      <div class="flex items-center gap-2 sm:gap-3 text-xs flex-wrap">
+        <button onclick="setFilter('all')" id="btn-filter-all" class="flex items-center gap-1.5 bg-blue-600 text-white font-bold px-3 py-1.5 rounded-xl border border-blue-500 hover:bg-blue-500 transition cursor-pointer">
+          <span class="text-blue-100">Total</span>
+          <span class="font-black text-white" id="stat-total-count">0</span>
+        </button>
+        <button onclick="setFilter('ultra_pro')" id="btn-filter-ultra_pro" class="flex items-center gap-1.5 bg-yellow-950/50 border border-yellow-900/50 hover:border-yellow-500 text-yellow-300 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer">
+          <span>👑</span>
+          <span class="font-black" id="stat-ultra-count">0 Ultra Pro</span>
+        </button>
+        <button onclick="setFilter('pro')" id="btn-filter-pro" class="flex items-center gap-1.5 bg-amber-950/40 border border-amber-900/50 hover:border-amber-500 text-amber-300 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer">
+          <span>🟡</span>
+          <span class="font-black" id="stat-pro-count">0 Pro</span>
+        </button>
+        <button onclick="setFilter('gratis')" id="btn-filter-gratis" class="flex items-center gap-1.5 bg-slate-800/80 border border-slate-700 hover:border-slate-500 text-slate-300 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer">
+          <span>⚪</span>
+          <span class="font-black" id="stat-gratis-count">0 Gratis</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== TABS ===== -->
+  <div class="max-w-7xl mx-auto px-4 pt-6">
+    <div class="flex gap-2 border-b border-slate-800 pb-0 mb-6">
+      <button id="tab-azul" onclick="switchTab('azul')"
+        class="flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 border-blue-500 text-blue-400 transition">
+        <span class="text-base">🔵</span> Catálogo Azul
+        <span id="count-azul" class="text-[10px] font-black bg-blue-900/50 text-blue-300 px-2 py-0.5 rounded-full">0</span>
+      </button>
+      <button id="tab-verde" onclick="switchTab('verde')"
+        class="flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition">
+        <span class="text-base">🟢</span> Catálogo Verde
+        <span id="count-verde" class="text-[10px] font-black bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">0</span>
+      </button>
+      <button id="tab-naranja" onclick="switchTab('naranja')"
+        class="flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition">
+        <span class="text-base">🟠</span> Catálogo Naranjo
+        <span id="count-naranja" class="text-[10px] font-black bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">0</span>
+      </button>
+    </div>
+
+    <!-- Catálogo Azul -->
+    <div id="catalog-azul">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-10" id="grid-azul"></div>
+    </div>
+
+    <!-- Catálogo Verde -->
+    <div id="catalog-verde" class="hidden">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-10" id="grid-verde"></div>
+    </div>
+
+    <!-- Catálogo Naranjo -->
+    <div id="catalog-naranja" class="hidden">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-10" id="grid-naranja"></div>
+    </div>
+  </div>
+
+  <script>
+    let currentTab = 'azul';
+    let currentPlanFilter = 'all';
+
+    /* ═══════════════════════════════════════
+       CHIP DE PLAN
+    ═══════════════════════════════════════ */
+    function planChip(plan, tipo) {
+      const chips = {
+        ultra_pro: `<span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-yellow-400/15 border border-yellow-500/40 text-yellow-300 px-2 py-0.5 rounded-full">👑 Ultra Pro</span>`,
+        pro:       `<span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-amber-400/10 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded-full">🟡 Pro</span>`,
+        gratis:    `<span class="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-slate-700/50 border border-slate-600 text-slate-400 px-2 py-0.5 rounded-full">⚪ Gratis</span>`
+      };
+      return chips[plan] || chips.gratis;
+    }
+
+    function buildCard(p) {
+      const isBlue    = p.tipo === 'azul';
+      const isOrange  = p.tipo === 'naranja';
+      const isUltra   = p.plan === 'ultra_pro';
+      const isPro     = p.plan === 'pro';
+
+      // Estilos de tarjeta según categoría
+      let bgClass = '';
+      let borderClass = '';
+      let textClass = '';
+      let subClass = '';
+      let btnStyle = '';
+
+      if (isBlue) {
+        bgClass = 'bg-[#eff6ff]';
+        borderClass = isUltra ? 'border-yellow-400 border-2 shadow-md' : 'border-blue-200/80';
+        textClass = 'text-blue-900';
+        subClass = 'text-blue-700';
+        btnStyle = 'bg-blue-600 hover:bg-blue-500';
+      } else if (isOrange) {
+        bgClass = 'bg-[#ffedd5]';
+        borderClass = isUltra ? 'border-yellow-400 border-2 shadow-md' : 'border-orange-200/80';
+        textClass = 'text-orange-950';
+        subClass = 'text-orange-700';
+        btnStyle = 'bg-orange-600 hover:bg-orange-500';
+      } else {
+        bgClass = 'bg-[#e6f4ea]';
+        borderClass = isUltra ? 'border-yellow-400 border-2 shadow-md' : 'border-emerald-200/80';
+        textClass = 'text-emerald-950';
+        subClass = 'text-emerald-700';
+        btnStyle = 'bg-emerald-700 hover:bg-emerald-600';
+      }
+
+      const item = (typeof KeiluUtils !== 'undefined') ? KeiluUtils.normalizeProvider(p) : p;
+
+      const liveBar = item.estadoVivo?.activo
+        ? `<div class="flex items-center gap-1.5 bg-white border border-emerald-200 rounded-lg px-2 py-1.5 mt-2">
+             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+             <span class="text-[9px] font-bold text-emerald-700 leading-tight">${item.estadoVivo.texto}</span>
+           </div>`
+        : '';
+
+      const targetView = isBlue ? 'profile_view_worker.html' : (isOrange ? 'profile_view_community.html' : 'profile_view_company.html');
+      const badgeText = isBlue ? 'Trabajador' : (isOrange ? 'Evento' : 'Empresa');
+
+      const rubroSticker = item.stickerRubro;
+      const actionSticker = item.stickerAccion;
+      const swapStickers = item.swapStickerOrder || false;
+
+      let borderColor = 'border-slate-300';
+      if (isBlue) borderColor = 'border-blue-400/90';
+      else if (isOrange) borderColor = 'border-orange-400/90';
+      else borderColor = 'border-emerald-400/90';
+      
+      const actionEmoji = (typeof KeiluUtils !== 'undefined') ? KeiluUtils.obtenerEmojiAccion(actionSticker) : '⚡';
+
+      const rubroImg = rubroSticker 
+        ? `<div class="w-8 h-8 rounded-xl bg-white border-2 ${borderColor} shadow flex items-center justify-center p-1 overflow-hidden">
+             <img src="${rubroSticker}" class="w-full h-full object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-base\'>${item.emoji}</span>';">
+           </div>` 
+        : `<div class="w-8 h-8 rounded-xl bg-white border-2 ${borderColor} shadow flex items-center justify-center text-lg">${item.emoji}</div>`;
+
+      const actionImg = actionSticker 
+        ? `<div class="w-8 h-8 rounded-xl bg-white border-2 ${borderColor} shadow flex items-center justify-center p-1 overflow-hidden">
+             <img src="${actionSticker}" class="w-full h-full object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-base\'>${actionEmoji}</span>';">
+           </div>` 
+        : `<div class="w-8 h-8 rounded-xl bg-white border-2 ${borderColor} shadow flex items-center justify-center text-base">${actionEmoji}</div>`;
+      
+      stickersHtml = `
+        <div class="flex items-center gap-1.5">
+          ${swapStickers ? actionImg + rubroImg : rubroImg + actionImg}
+        </div>
+      `;
+
+      return `
+        <div class="relative ${bgClass} border ${borderClass} rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl text-left shadow-sm">
+          <!-- Foto con stickers dobles animados -->
+          <div class="relative h-36 overflow-hidden bg-slate-100">
+            <img src="${item.foto}" alt="${item.nombre}"
+              class="w-full h-full object-cover photo-hover" style="object-position: 50% 20%;"
+              onerror="this.src='https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80'">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent"></div>
+            
+            <!-- Pastilla de Stickers Animados -->
+            <div class="absolute bottom-2 left-3 z-10">
+              ${stickersHtml}
+            </div>
+
+            <!-- Badge de plan -->
+            <div class="absolute top-2 right-2">${planChip(item.plan, item.tipo)}</div>
+            ${isUltra ? '<div class="absolute top-2 left-2 text-lg">⭐</div>' : ''}
+          </div>
+
+          <!-- Info -->
+          <div class="p-3 flex flex-col gap-1.5 flex-1">
+            <div>
+              <div class="flex items-center justify-between">
+                <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">#${item.id} · ${item.sector}</p>
+                <span class="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-white/80 border border-slate-200 text-slate-600">${badgeText}</span>
+              </div>
+              <h3 class="text-xs font-extrabold ${textClass} leading-tight mt-1">${item.nombre}</h3>
+              <p class="text-[10px] text-slate-600 mt-0.5 leading-snug line-clamp-1">${item.especialidad}</p>
+            </div>
+
+            <div class="flex items-center gap-1.5 text-slate-500">
+              <span class="text-[9px]">${item.horario}</span>
+              <span class="text-slate-300">·</span>
+              <span class="text-[9px] font-bold ${item.tarifaPagada === '$0 CLP' ? 'text-slate-400' : 'text-amber-600'}">${item.tarifaPagada}</span>
+            </div>
+
+            ${liveBar}
+
+            <!-- Botones -->
+            <div class="flex gap-1 mt-auto pt-2">
+              <button onclick="openModal(${p.id})"
+                class="flex-1 flex items-center justify-center gap-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[9.5px] font-bold py-2 rounded-xl transition shadow-sm">
+                <i data-lucide="eye" class="w-3 h-3"></i> Ficha
+              </button>
+              <a href="${targetView}?id=${p.id}"
+                class="flex-1 flex items-center justify-center gap-1 bg-white hover:bg-slate-100 border border-slate-200 text-blue-600 hover:text-blue-800 text-[9.5px] font-bold py-2 rounded-xl transition no-underline shadow-sm">
+                <i data-lucide="user" class="w-3 h-3"></i> Perfil
+              </a>
+              <button onclick="simularEnMapa(${p.id})"
+                class="flex-1 flex items-center justify-center gap-1 ${btnStyle} text-white text-[9.5px] font-bold py-2 rounded-xl transition shadow-sm">
+                <i data-lucide="map-pin" class="w-3 h-3"></i> Mapa
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    /* ═══════════════════════════════════════
+       MODAL DE FICHA COMPLETA
+    ═══════════════════════════════════════ */
+    function openModal(id) {
+      const p = providersData.find(x => x.id === id);
+      if (!p) return;
+      const item = (typeof KeiluUtils !== 'undefined') ? KeiluUtils.normalizeProvider(p) : p;
+
+      const isBlue   = item.tipo === 'azul';
+      const isOrange = item.tipo === 'naranja';
+      const liveSection = item.estadoVivo?.activo
+        ? `<div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5 mt-1">
+             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+             <span class="text-xs font-bold text-emerald-800">${item.estadoVivo.texto}</span>
+           </div>` : '';
+
+      const gallery = (item.galeria || []).map(url =>
+        `<img src="${url}" class="gallery-thumb w-full h-24 object-cover rounded-xl cursor-pointer shadow-sm border border-slate-200"
+          onerror="this.style.display='none'" alt="Galería">`
+      ).join('');
+
+      const targetView = isBlue ? 'profile_view_worker.html' : (isOrange ? 'profile_view_community.html' : 'profile_view_company.html');
+
+      // Emojis animados del modal con bordes de color del tema
+      const rubroSticker = item.stickerRubro;
+      const actionSticker = item.stickerAccion;
+      const swapStickers = item.swapStickerOrder || false;
+
+      let borderColor = 'border-slate-300';
+      if (isBlue) borderColor = 'border-blue-400/90';
+      else if (isOrange) borderColor = 'border-orange-400/90';
+      else borderColor = 'border-emerald-400/90';
+      
+      const actionEmoji = (typeof KeiluUtils !== 'undefined') ? KeiluUtils.obtenerEmojiAccion(actionSticker) : '⚡';
+
+      const rubroImg = rubroSticker 
+        ? `<div class="w-9 h-9 rounded-xl bg-white border-2 ${borderColor} shadow-md flex items-center justify-center p-1 overflow-hidden">
+             <img src="${rubroSticker}" class="w-full h-full object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-lg\'>${item.emoji}</span>';">
+           </div>` 
+        : `<div class="w-9 h-9 rounded-xl bg-white border-2 ${borderColor} shadow-md flex items-center justify-center text-xl">${item.emoji}</div>`;
+
+      const actionImg = actionSticker 
+        ? `<div class="w-9 h-9 rounded-xl bg-white border-2 ${borderColor} shadow-md flex items-center justify-center p-1 overflow-hidden">
+             <img src="${actionSticker}" class="w-full h-full object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-lg\'>${actionEmoji}</span>';">
+           </div>` 
+        : `<div class="w-9 h-9 rounded-xl bg-white border-2 ${borderColor} shadow-md flex items-center justify-center text-lg">${actionEmoji}</div>`;
+      
+      stickersHtml = `
+        <div class="flex items-center gap-1.5">
+          ${swapStickers ? actionImg + rubroImg : rubroImg + actionImg}
+        </div>
+      `;
+
+      document.getElementById('modal-content').innerHTML = `
+        <!-- Header foto -->
+        <div class="relative -mx-6 -mt-6 mb-4 h-48 overflow-hidden rounded-t-3xl text-left">
+          <img src="${p.identidad.foto}" class="w-full h-full object-cover"
+            onerror="this.src='https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80'" alt="${p.identidad.nombre}">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/30 to-transparent"></div>
+          
+          <!-- Pastilla de Emojis Animados del Modal -->
+          <div class="absolute top-4 left-4 z-10">
+            ${stickersHtml}
+          </div>
+
+          <div class="absolute bottom-4 left-5 right-12">
+            <div class="flex items-center gap-2 mb-1">${planChip(p.plan, p.tipo)} ${p.verificado ? '<span class="text-[9px] font-black text-blue-800 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-full">✅ Verificado</span>' : ''}</div>
+            <h2 class="text-lg font-black text-white leading-tight">${p.identidad.nombre}</h2>
+            <p class="text-xs text-slate-200 mt-0.5">${p.identidad.especialidad}</p>
+          </div>
+        </div>
+
+        ${liveSection}
+
+        <!-- Descripción -->
+        <div class="mt-3 text-left">
+          <p class="text-xs text-slate-600 leading-relaxed">${p.identidad.descripcion}</p>
+        </div>
+
+        <!-- Info rápida -->
+        <div class="grid grid-cols-2 gap-2 mt-3 text-left">
+          <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5">
+            <p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Respuesta</p>
+            <p class="text-xs font-bold text-slate-700 mt-0.5">⏱ ${p.tiemposYAcciones.tiempoRespuesta || 'Evento'}</p>
+          </div>
+          <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5">
+            <p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Horario / Fecha</p>
+            <p class="text-xs font-bold text-slate-700 mt-0.5">🕐 ${p.contacto.horario}</p>
+          </div>
+          <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5">
+            <p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Días</p>
+            <p class="text-xs font-bold text-slate-700 mt-0.5">📅 ${p.contacto.dias}</p>
+          </div>
+          <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5">
+            <p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Ubicación</p>
+            <p class="text-xs font-bold text-slate-700 mt-0.5">📍 ${p.ubicacion.sector}</p>
+          </div>
+        </div>
+
+        <!-- Dirección -->
+        <div class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 mt-2 text-left">
+          <p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Dirección</p>
+          <p class="text-xs text-slate-600 mt-0.5">${p.ubicacion.calle}</p>
+          <p class="text-[9px] text-slate-400">Privacidad: ${p.ubicacion.privacidad}</p>
+        </div>
+
+        <!-- Suscripción -->
+        <div class="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 mt-2 text-left">
+          <p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Plan Activo</p>
+          <div class="flex items-center justify-between mt-0.5">
+            <span class="text-xs text-slate-600">${p.suscripcionInfo.duracionActiva}</span>
+            <span class="text-xs font-black ${p.suscripcionInfo.tarifaPagada === '$0 CLP' ? 'text-slate-500' : 'text-amber-700'}">${p.suscripcionInfo.tarifaPagada}</span>
+          </div>
+        </div>
+
+        <!-- Galería -->
+        ${p.identidad.galeria && p.identidad.galeria.length > 0 ? `
+        <div class="mt-3 text-left">
+          <p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold mb-2">Galería de Trabajos</p>
+          <div class="grid grid-cols-3 gap-2">${gallery}</div>
+        </div>` : ''}
+
+        <!-- Atendido por -->
+        <div class="mt-3 flex items-center gap-2 text-left">
+          <div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-sm border border-slate-200">👤</div>
+          <span class="text-xs text-slate-550">${p.identidad.atendidoPor}</span>
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex flex-col gap-2 mt-4 text-left">
+          <a href="${targetView}?id=${p.id}" class="flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-blue-600 font-bold py-2.5 rounded-xl text-xs transition no-underline shadow-sm">
+            <i data-lucide="user" class="w-4 h-4"></i> Ver Perfil Completo
+          </a>
+          <div class="flex gap-2">
+            <a href="tel:${p.contacto.fono}" class="flex-1 flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl text-xs transition no-underline shadow-sm">
+              <i data-lucide="phone" class="w-4 h-4"></i> Llamar
+            </a>
+            <a href="${p.contacto.whatsapp}" target="_blank" class="flex-1 flex items-center justify-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs transition no-underline shadow-sm">
+              <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
+            </a>
+            <button onclick="simularEnMapa(${p.id})" class="flex items-center justify-center gap-1.5 bg-slate-150 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-sm">
+              <i data-lucide="map-pin" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>`;
+
+      document.getElementById('modal-backdrop').classList.add('visible');
+      lucide.createIcons();
+    }
+
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.remove('visible');
+    }
+
+    /* ═══════════════════════════════════════
+       SIMULAR EN MAPA
+    ═══════════════════════════════════════ */
+    function simularEnMapa(id) {
+      window.location.href = `index.html?preview=${id}`;
+    }
+
+    /* ═══════════════════════════════════════
+       TABS
+    ═══════════════════════════════════════ */
+    function switchTab(tab) {
+      currentTab = tab;
+      const tabAzul  = document.getElementById('tab-azul');
+      const tabVerde = document.getElementById('tab-verde');
+      const tabNaranja = document.getElementById('tab-naranja');
+      
+      const catAzul  = document.getElementById('catalog-azul');
+      const catVerde = document.getElementById('catalog-verde');
+      const catNaranja = document.getElementById('catalog-naranja');
+
+      // Reset
+      tabAzul.className = 'flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition';
+      tabVerde.className = 'flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition';
+      tabNaranja.className = 'flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-300 transition';
+      
+      catAzul.classList.add('hidden');
+      catVerde.classList.add('hidden');
+      catNaranja.classList.add('hidden');
+
+      if (tab === 'azul') {
+        tabAzul.className = 'flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 border-blue-500 text-blue-400 transition';
+        catAzul.classList.remove('hidden');
+      } else if (tab === 'verde') {
+        tabVerde.className = 'flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 border-emerald-500 text-emerald-400 transition';
+        catVerde.classList.remove('hidden');
+      } else {
+        tabNaranja.className = 'flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 border-orange-500 text-orange-400 transition';
+        catNaranja.classList.remove('hidden');
+      }
+    }
+
+    /* ═══════════════════════════════════════
+       FILTROS POR PLAN
+    ═══════════════════════════════════════ */
+    function setFilter(plan) {
+      currentPlanFilter = plan;
+      
+      const btnAll = document.getElementById('btn-filter-all');
+      const btnUltra = document.getElementById('btn-filter-ultra_pro');
+      const btnPro = document.getElementById('btn-filter-pro');
+      const btnGratis = document.getElementById('btn-filter-gratis');
+
+      [btnAll, btnUltra, btnPro, btnGratis].forEach(btn => {
+        if (btn) btn.classList.remove('ring-2', 'ring-blue-400', 'bg-blue-600', 'text-white');
+      });
+
+      const activeBtn = document.getElementById(`btn-filter-${plan}`);
+      if (activeBtn) {
+        activeBtn.classList.add('ring-2', 'ring-blue-400', 'bg-blue-600', 'text-white');
+      }
+
+      renderGrids();
+    }
+
+    /* ═══════════════════════════════════════
+       RENDER GRIDS
+    ═══════════════════════════════════════ */
+    function renderGrids() {
+      let allProviders = typeof providersData !== 'undefined' ? [...providersData] : [];
+      // Usar lista oficial de proveedores (20 Trabajadores + 10 Eventos Comunitarios = 30 Total)
+      const sorted = [...allProviders].sort((a,b) => (b.rankingScore || 0) - (a.rankingScore || 0));
+      
+      let filtered = sorted;
+      if (currentPlanFilter !== 'all') {
+        filtered = sorted.filter(p => {
+          if (currentPlanFilter === 'gratis') {
+            return p.plan === 'gratis' || p.plan === 'basico';
+          }
+          return p.plan === currentPlanFilter;
+        });
+      }
+
+      const azules    = filtered.filter(p => p.tipo === 'azul');
+      const verdes    = filtered.filter(p => p.tipo === 'verde');
+      const naranjas  = filtered.filter(p => p.tipo === 'naranja');
+
+      // Render counts in tabs
+      document.getElementById('count-azul').textContent  = sorted.filter(p => p.tipo === 'azul').length;
+      document.getElementById('count-verde').textContent = sorted.filter(p => p.tipo === 'verde').length;
+      document.getElementById('count-naranja').textContent = sorted.filter(p => p.tipo === 'naranja').length;
+
+      // Render global stats
+      document.getElementById('stat-total-count').textContent = allProviders.length;
+      document.getElementById('stat-ultra-count').textContent = `${allProviders.filter(p => p.plan === 'ultra_pro').length} Ultra Pro`;
+      document.getElementById('stat-pro-count').textContent = `${allProviders.filter(p => p.plan === 'pro').length} Pro`;
+      document.getElementById('stat-gratis-count').textContent = `${allProviders.filter(p => p.plan === 'gratis' || p.plan === 'basico').length} Gratis`;
+
+      const emptyAzulHtml = `<div class="col-span-full text-center py-12 bg-slate-900/50 border border-slate-800 rounded-2xl">
+        <p class="text-xs font-bold text-slate-400">No hay trabajadores independientes en esta categoría</p>
+      </div>`;
+
+      const emptyVerdeHtml = `<div class="col-span-full text-center py-12 bg-slate-900/50 border border-slate-800 rounded-2xl">
+        <p class="text-xs font-bold text-slate-400">No hay locales ni comercios en esta categoría</p>
+      </div>`;
+
+      const emptyNaranjaHtml = `<div class="col-span-full text-center py-12 bg-slate-900/50 border border-slate-800 rounded-2xl">
+        <p class="text-xs font-bold text-slate-400">No hay eventos comunitarios en esta categoría</p>
+      </div>`;
+
+      document.getElementById('grid-azul').innerHTML  = azules.length ? azules.map(buildCard).join('') : emptyAzulHtml;
+      document.getElementById('grid-verde').innerHTML = verdes.length ? verdes.map(buildCard).join('') : emptyVerdeHtml;
+      document.getElementById('grid-naranja').innerHTML = naranjas.length ? naranjas.map(buildCard).join('') : emptyNaranjaHtml;
+
+      lucide.createIcons();
+    }
+
+    window.onload = () => {
+      lucide.createIcons();
+      renderGrids();
+    };
+  </script>
+</body>
+</html>

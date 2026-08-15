@@ -1,0 +1,509 @@
+{
+    "acciones":  {
+                     "03-urgencias-24hrs":  [
+                                                "00-default.gif",
+                                                "01.gif",
+                                                "02.gif",
+                                                "03.gif",
+                                                "04.gif",
+                                                "05.gif",
+                                                "06.gif",
+                                                "07.gif",
+                                                "08.gif",
+                                                "09.gif",
+                                                "10.gif",
+                                                "11.gif",
+                                                "12.gif",
+                                                "13.gif",
+                                                "14.gif",
+                                                "15.gif",
+                                                "16.gif",
+                                                "17.gif",
+                                                "18.gif",
+                                                "19.gif"
+                                            ],
+                     "09-diagnosticar":  [
+                                             "00-default.gif",
+                                             "01.gif",
+                                             "02.gif",
+                                             "03.gif",
+                                             "04.gif",
+                                             "05.gif",
+                                             "06.gif",
+                                             "07.gif",
+                                             "08.gif",
+                                             "09.gif",
+                                             "10.gif",
+                                             "11.gif"
+                                         ],
+                     "02-domicilio":  [
+                                          "00-default.gif",
+                                          "01.gif",
+                                          "02.gif",
+                                          "03.gif",
+                                          "04.gif"
+                                      ],
+                     "04-construir":  [
+                                          "00-default.gif",
+                                          "01.gif",
+                                          "02.gif",
+                                          "03.gif",
+                                          "04.gif",
+                                          "05.gif",
+                                          "06.gif",
+                                          "07.gif",
+                                          "08.gif",
+                                          "09.gif",
+                                          "10.gif"
+                                      ],
+                     "10-cuidar":  [
+                                       "00-default.gif",
+                                       "01.gif",
+                                       "02.gif",
+                                       "04.gif",
+                                       "05.gif"
+                                   ],
+                     "05-limpiar":  [
+                                        "00-default.gif",
+                                        "01.gif",
+                                        "02.gif",
+                                        "03.gif",
+                                        "04.gif",
+                                        "05.gif",
+                                        "06.gif"
+                                    ],
+                     "06-transportar":  [
+                                            "00-default.gif",
+                                            "01.gif",
+                                            "02.gif",
+                                            "03.gif",
+                                            "04.gif",
+                                            "05.gif",
+                                            "06.gif",
+                                            "07.gif"
+                                        ],
+                     "01-reparar":  [
+                                        "00-default.gif",
+                                        "01.gif",
+                                        "02.gif",
+                                        "03.gif",
+                                        "04.gif",
+                                        "06.gif",
+                                        "07.gif",
+                                        "08.gif",
+                                        "09.gif",
+                                        "10.gif",
+                                        "11.gif"
+                                    ],
+                     "13-animar":  [
+                                       "00-default.gif",
+                                       "01.gif",
+                                       "02.gif",
+                                       "03.gif",
+                                       "04.gif",
+                                       "06.gif",
+                                       "07.gif",
+                                       "08.gif"
+                                   ],
+                     "12-gestionar":  [
+                                          "00-default.gif",
+                                          "01.gif",
+                                          "02.gif",
+                                          "03.gif",
+                                          "04.gif",
+                                          "05.gif",
+                                          "06.gif"
+                                      ],
+                     "11-ensenar":  [
+                                        "00-default.gif",
+                                        "01.gif",
+                                        "02.gif",
+                                        "03.gif",
+                                        "04.gif",
+                                        "05.gif",
+                                        "06.gif"
+                                    ],
+                     "07-pintar":  [
+                                       "00-default.gif",
+                                       "01.gif",
+                                       "02.gif",
+                                       "03.gif"
+                                   ],
+                     "08-cortar":  [
+                                       "00-default.gif",
+                                       "01.gif",
+                                       "02.gif",
+                                       "03.gif",
+                                       "04.gif",
+                                       "05.gif"
+                                   ]
+                 },
+    "trabajadores":  {
+                         "03-hogar":  [
+                                          "00-default.gif",
+                                          "01.gif",
+                                          "02.gif",
+                                          "03.gif",
+                                          "04.gif",
+                                          "05.gif",
+                                          "06.gif"
+                                      ],
+                         "11-educacion":  [
+                                              "00-default.gif",
+                                              "01.gif",
+                                              "02.gif",
+                                              "03.gif",
+                                              "04.gif",
+                                              "05.gif",
+                                              "06.gif",
+                                              "07.gif",
+                                              "08.gif"
+                                          ],
+                         "13-mascotas":  [
+                                             "00-default.gif",
+                                             "01.gif",
+                                             "02.gif",
+                                             "03.gif",
+                                             "04.gif",
+                                             "06.gif",
+                                             "07.gif",
+                                             "08.gif"
+                                         ],
+                         "10-salud":  [
+                                          "00-default.gif",
+                                          "01.gif",
+                                          "02.gif",
+                                          "03.gif",
+                                          "04.gif",
+                                          "05.gif",
+                                          "06.gif",
+                                          "07.gif",
+                                          "08.gif",
+                                          "09.gif",
+                                          "10.gif",
+                                          "11.gif",
+                                          "12.gif",
+                                          "13.gif",
+                                          "14.gif",
+                                          "15.gif",
+                                          "16.gif",
+                                          "17.gif",
+                                          "18.gif"
+                                      ],
+                         "01-agua":  [
+                                         "00-default.gif",
+                                         "01.gif",
+                                         "02.gif"
+                                     ],
+                         "08-textil":  [
+                                           "00-default.gif",
+                                           "01.gif",
+                                           "02.gif",
+                                           "03.gif",
+                                           "04.gif"
+                                       ],
+                         "02-electricidad":  [
+                                                 "00-default.gif",
+                                                 "01.gif",
+                                                 "02.gif",
+                                                 "03.gif",
+                                                 "04.gif",
+                                                 "05.gif",
+                                                 "06.gif"
+                                             ],
+                         "06-vehiculos":  [
+                                              "00-default.gif",
+                                              "01.gif",
+                                              "02.gif",
+                                              "04.gif",
+                                              "05.gif",
+                                              "06.gif",
+                                              "10.gif"
+                                          ],
+                         "12-eventos":  [
+                                            "00-default.gif",
+                                            "01.gif",
+                                            "02.gif",
+                                            "03.gif",
+                                            "04.gif",
+                                            "05.gif",
+                                            "06.gif",
+                                            "07.gif",
+                                            "08.gif",
+                                            "09.gif",
+                                            "10.gif",
+                                            "11.gif",
+                                            "12.gif",
+                                            "13.gif",
+                                            "14.gif",
+                                            "15.gif",
+                                            "16.gif",
+                                            "17.gif",
+                                            "18.gif",
+                                            "19.gif",
+                                            "20.gif"
+                                        ],
+                         "09-estetica":  [
+                                             "00-default.gif",
+                                             "01.gif",
+                                             "02.gif",
+                                             "03.gif",
+                                             "04.gif",
+                                             "05.gif",
+                                             "06.gif",
+                                             "07.gif",
+                                             "08.gif",
+                                             "09.gif",
+                                             "10.gif",
+                                             "11.gif",
+                                             "12.gif"
+                                         ],
+                         "04-madera":  [
+                                           "00-default.gif",
+                                           "01.gif",
+                                           "02.gif",
+                                           "03.gif"
+                                       ],
+                         "07-tecnologia":  [
+                                               "00-default.gif",
+                                               "01.gif",
+                                               "02.gif",
+                                               "03.gif"
+                                           ],
+                         "05-metales":  [
+                                            "00-default.gif",
+                                            "04.gif",
+                                            "05.gif",
+                                            "06.gif",
+                                            "07.gif"
+                                        ],
+                     "01-reparar":  [
+                                        "00-default.gif",
+                                        "01.gif",
+                                        "02.gif",
+                                        "03.gif",
+                                        "04.gif",
+                                        "06.gif",
+                                        "07.gif",
+                                        "08.gif",
+                                        "09.gif",
+                                        "10.gif",
+                                        "11.gif"
+                                    ],
+                     "13-animar":  [
+                                       "00-default.gif",
+                                       "01.gif",
+                                       "02.gif",
+                                       "03.gif",
+                                       "04.gif",
+                                       "06.gif",
+                                       "07.gif",
+                                       "08.gif"
+                                   ],
+                     "12-gestionar":  [
+                                          "00-default.gif",
+                                          "01.gif",
+                                          "02.gif",
+                                          "03.gif",
+                                          "04.gif",
+                                          "05.gif",
+                                          "06.gif"
+                                      ],
+                     "11-ensenar":  [
+                                        "00-default.gif",
+                                        "01.gif",
+                                        "02.gif",
+                                        "03.gif",
+                                        "04.gif",
+                                        "05.gif",
+                                        "06.gif"
+                                    ],
+                     "07-pintar":  [
+                                       "00-default.gif",
+                                       "01.gif",
+                                       "02.gif",
+                                       "03.gif"
+                                   ],
+                     "08-cortar":  [
+                                       "00-default.gif",
+                                       "01.gif",
+                                       "02.gif",
+                                       "03.gif",
+                                       "04.gif",
+                                       "05.gif"
+                                   ]
+                 },
+    "trabajadores":  {
+                         "03-hogar":  [
+                                          "00-default.gif",
+                                          "01.gif",
+                                          "02.gif",
+                                          "03.gif",
+                                          "04.gif",
+                                          "05.gif",
+                                          "06.gif"
+                                      ],
+                         "11-educacion":  [
+                                              "00-default.gif",
+                                              "01.gif",
+                                              "02.gif",
+                                              "03.gif",
+                                              "04.gif",
+                                              "05.gif",
+                                              "06.gif",
+                                              "07.gif",
+                                              "08.gif"
+                                          ],
+                         "13-mascotas":  [
+                                             "00-default.gif",
+                                             "01.gif",
+                                             "02.gif",
+                                             "03.gif",
+                                             "04.gif",
+                                             "06.gif",
+                                             "07.gif",
+                                             "08.gif"
+                                         ],
+                         "10-salud":  [
+                                          "00-default.gif",
+                                          "01.gif",
+                                          "02.gif",
+                                          "03.gif",
+                                          "04.gif",
+                                          "05.gif",
+                                          "06.gif",
+                                          "07.gif",
+                                          "08.gif",
+                                          "09.gif",
+                                          "10.gif",
+                                          "11.gif",
+                                          "12.gif",
+                                          "13.gif",
+                                          "14.gif",
+                                          "15.gif",
+                                          "16.gif",
+                                          "17.gif",
+                                          "18.gif"
+                                      ],
+                         "01-agua":  [
+                                         "00-default.gif",
+                                         "01.gif",
+                                         "02.gif"
+                                     ],
+                         "08-textil":  [
+                                           "00-default.gif",
+                                           "01.gif",
+                                           "02.gif",
+                                           "03.gif",
+                                           "04.gif"
+                                       ],
+                         "02-electricidad":  [
+                                                 "00-default.gif",
+                                                 "01.gif",
+                                                 "02.gif",
+                                                 "03.gif",
+                                                 "04.gif",
+                                                 "05.gif",
+                                                 "06.gif"
+                                             ],
+                         "06-vehiculos":  [
+                                              "00-default.gif",
+                                              "01.gif",
+                                              "02.gif",
+                                              "04.gif",
+                                              "05.gif",
+                                              "06.gif",
+                                              "10.gif"
+                                          ],
+                         "12-eventos":  [
+                                            "00-default.gif",
+                                            "01.gif",
+                                            "02.gif",
+                                            "03.gif",
+                                            "04.gif",
+                                            "05.gif",
+                                            "06.gif",
+                                            "07.gif",
+                                            "08.gif",
+                                            "09.gif",
+                                            "10.gif",
+                                            "11.gif",
+                                            "12.gif",
+                                            "13.gif",
+                                            "14.gif",
+                                            "15.gif",
+                                            "16.gif",
+                                            "17.gif",
+                                            "18.gif",
+                                            "19.gif",
+                                            "20.gif"
+                                        ],
+                         "09-estetica":  [
+                                             "00-default.gif",
+                                             "01.gif",
+                                             "02.gif",
+                                             "03.gif",
+                                             "04.gif",
+                                             "05.gif",
+                                             "06.gif",
+                                             "07.gif",
+                                             "08.gif",
+                                             "09.gif",
+                                             "10.gif",
+                                             "11.gif",
+                                             "12.gif"
+                                         ],
+                         "04-madera":  [
+                                           "00-default.gif",
+                                           "01.gif",
+                                           "02.gif",
+                                           "03.gif"
+                                       ],
+                         "07-tecnologia":  [
+                                               "00-default.gif",
+                                               "01.gif",
+                                               "02.gif",
+                                               "03.gif"
+                                           ],
+                         "05-metales":  [
+                                            "00-default.gif",
+                                            "01.gif",
+                                            "02.gif",
+                                            "03.gif",
+                                            "04.gif"
+                                        ],
+                          "14-comida":  [
+                                             "00-default.gif",
+                                             "01.gif",
+                                             "02.gif",
+                                             "03.gif",
+                                             "04.gif",
+                                             "05.gif",
+                                             "06.gif",
+                                             "07.gif",
+                                             "08.gif",
+                                             "09.gif",
+                                             "10.gif",
+                                             "11.gif"
+                                         ],
+                         "15-transporte":  [
+                                             "00-default.gif",
+                                             "01.gif",
+                                             "02.gif",
+                                             "03.gif",
+                                             "04.gif",
+                                             "05.gif",
+                                             "06.gif",
+                                             "07.gif"
+                                         ],
+                         "16-limpieza":  [
+                                             "00-default.gif",
+                                             "01.gif",
+                                             "02.gif",
+                                             "03.gif",
+                                             "04.gif",
+                                             "05.gif",
+                                             "06.gif"
+                                         ]
+                     }
+}

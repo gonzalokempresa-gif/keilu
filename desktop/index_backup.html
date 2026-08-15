@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Keilu - Mapa de Servicios</title>
+  <meta name="description" content="Encuentra servicios y proveedores cerca de ti en el mapa interactivo de Keilu.">
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- MapLibre GL JS CSS -->
+  <link href="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.css" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Outfit', 'sans-serif'] },
+          colors: {
+            keiluBlue: { 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' },
+            keiluGreen: { 500: '#10b981', 600: '#059669' }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Mock Data (40 proveedores Zona 0) -->
+  <script src="mock_data.js"></script>
+  <!-- MapLibre GL JS Library -->
+  <script src="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.js"></script>
+
+  <style>
+    /* === RESET TOTAL === */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* === SCROLLBARS === */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: rgba(15,23,42,0.05); }
+    ::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.25); border-radius: 4px; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+
+    /* === VARIABLES === */
+    :root {
+      --keilu-blue: #1A3D63;
+      --keilu-green: #337553;
+      --keilu-dark-text: #1E293B;
+    }
+
+    /* === MAPA FULL SCREEN === */
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
+    /* Neutralizar filtros CSS (brillo/saturación) para limpiar el color base del mapa */
+    #map, .maplibregl-map, .maplibregl-canvas, .maplibregl-canvas-container, .leaflet-tile-pane {
+      filter: none !important;
+    }
+    .maplibregl-ctrl-bottom-right,
+    .maplibregl-ctrl-bottom-left { display: none !important; }
+    .maplibregl-marker { overflow: visible !important; }
+    .maplibregl-canvas-container,
+    .maplibregl-canvas { width: 100% !important; height: 100% !important; }
+
+    /* === BARRA DE BÚSQUEDA — FIJA, CENTRADA === */
+    .top-search-dock {
+      position: fixed;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 500px;
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 22px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      border: 1px solid rgba(255,255,255,0.5);
+      z-index: 50;
+    }
+    .search-bar-container {
+      background: transparent;
+      border: none;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 10px;
+    }
+
+    /* === BARRA DE NAVEGACIÓN INFERIOR — FIJA === */
+    .map-control-deck {
+      position: fixed;
+      bottom: 1.25rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 380px;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 35px;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.6);
+      border: 1px solid rgba(210, 210, 210, 0.5);
+      z-index: 50;
+    }
+
+    /* === BOTONES DE NAVEGACIÓN === */
+    .btn-nav-common {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s ease;
+    }
+    .btn-nav-common:active { transform: scale(0.93); }
+    .btn-nav-gps-highlight {
+      background: rgba(26, 61, 99, 0.08);
+      border-radius: 12px;
+      padding: 6px 12px;
+      color: var(--keilu-blue) !important;
+      font-weight: bold;
+    }
+    .nav-btn-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--keilu-dark-text);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* === CATEGORÍAS — Columna en PC, scroll horizontal en móvil === */
+    .categories-panel {
+      position: fixed;
+      z-index: 40;
+      /* PC: columna vertical a la derecha */
+      top: 4.5rem;
+      right: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(2, 6, 23, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 8px;
+      max-width: 170px;
+    }
+    /* Móvil: fila horizontal debajo, encima del nav */
+    @media (max-width: 640px) {
+      .categories-panel {
+        top: auto;
+        bottom: 6rem;
+        right: auto;
+        left: 0;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+        background: transparent;
+        backdrop-filter: none;
+        border: none;
+        padding: 0 8px;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 8px;
+        scrollbar-width: none;
+      }
+      .categories-panel::-webkit-scrollbar { display: none; }
+      .cat-label { display: none; }
+    }
+
+    /* === PANEL DE AJUSTES (Settings Sidebar) === */
+    #settings-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 320px;
+      background: rgba(2, 6, 23, 0.96);
+      border-right: 1px solid rgba(255,255,255,0.08);
+      z-index: 100;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      padding: 1.25rem;
+      overflow-y: auto;
+    }
+    /* En móvil: ocupa pantalla completa */
+    @media (max-width: 640px) {
+      #settings-sidebar {
+        width: 100%;
+        border-right: none;
+      }
+    }
+    #settings-sidebar.open {
+      transform: translateX(0);
+    }
+    /* Overlay oscuro al abrir el panel en móvil */
+    #settings-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 90;
+    }
+    #settings-overlay.visible { display: block; }
+
+    /* === ANIMACIONES DE PINES === */
+    @keyframes radarPulse {
+      0% { transform: scale(0.6); opacity: 0.9; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+    .pulse-ring-blue {
+      position: absolute; width: 32px; height: 32px;
+      border: 2px solid rgba(26, 61, 99, 0.6);
+      border-radius: 50%; top: -4px; left: -4px;
+      animation: radarPulse 2s infinite ease-out;
+      pointer-events: none;
+    }
+    .pulse-ring-green {
+      position: absolute; width: 32px; height: 32px;
+      border: 2px solid rgba(51, 117, 83, 0.6);
+      border-radius: 50%; top: -4px; left: -4px;
+      animation: radarPulse 2s infinite ease-out;
+      pointer-events: none;
+    }
+    .custom-pin-v37 { overflow: visible !important; white-space: nowrap !important; }
+
+    /* === EMOJI ANIMATIONS === */
+    @keyframes wrenchTurn { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(45deg)} }
+    .anim-wrench { animation: wrenchTurn 1.6s infinite ease-in-out; }
+    @keyframes lightningFlicker { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.9)} }
+    .anim-lightning { animation: lightningFlicker 0.6s infinite alternate; }
+    @keyframes truckDrive { 0%,100%{transform:translateX(0)} 50%{transform:translateX(2px)} }
+    .anim-truck { animation: truckDrive 0.8s infinite linear; }
+    @keyframes eatingTilt { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} }
+    .anim-eat { animation: eatingTilt 2s infinite ease-in-out; }
+    @keyframes pizzaFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+    .anim-pizza { animation: pizzaFloat 2s infinite ease-in-out; }
+    @keyframes breadRise { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(1.1)} }
+    .anim-bread { animation: breadRise 1.8s infinite ease-in-out; }
+    @keyframes scissorSnip { 0%,100%{transform:rotate(0)} 50%{transform:rotate(-15deg)} }
+    .anim-scissors { animation: scissorSnip 1s infinite ease-in-out; }
+    @keyframes nailsPolish { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(8deg)} }
+    .anim-nails { animation: nailsPolish 2s infinite ease-in-out; }
+
+    /* === NUEVAS ANIMACIONES WAZE-STYLE STICKERS === */
+    @keyframes floatLevitate { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    .anim-float { animation: floatLevitate 3s ease-in-out infinite; }
+    @keyframes nailPaint { 0%, 100% { transform: rotate(0deg) translateX(0); } 50% { transform: rotate(-8deg) translateX(-1px); } }
+    .anim-paint { transform-origin: top right; animation: nailPaint 2s ease-in-out infinite; }
+    @keyframes sparkFlicker { 0%, 100% { opacity: 0.2; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } }
+    .anim-spark { animation: sparkFlicker 0.4s ease-in-out infinite; }
+    @keyframes hammerStrike { 0%, 100% { transform: rotate(0deg) translate(0, 0); } 30% { transform: rotate(-15deg) translate(-2px, -3px); } 50% { transform: rotate(5deg) translate(1px, 2px); } }
+    .anim-strike { transform-origin: bottom right; animation: hammerStrike 1.5s ease-in-out infinite; }
+    @keyframes smokeRise { 0% { opacity: 0; transform: translateY(2px) scale(0.8); } 50% { opacity: 0.6; } 100% { opacity: 0; transform: translateY(-6px) scale(1.2); } }
+    .anim-smoke-1 { animation: smokeRise 2.5s ease-in-out infinite; }
+    .anim-smoke-2 { animation: smokeRise 2.5s ease-in-out infinite; animation-delay: 1.25s; }
+
+    /* === BURBUJA AD === */
+    .ad-note-bubble {
+      opacity: 0;
+      transform: translate(-50%, 8px);
+      pointer-events: none;
+      transition: all 0.25s ease;
+    }
+    .ad-note-revealed .ad-note-bubble {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    /* === TARJETA EMERGENTE === */
+    #tarjeta-emergente {
+      position: fixed;
+      bottom: 5.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(140%);
+      width: 90%;
+      max-width: 480px;
+      z-index: 50;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+    }
+    #tarjeta-emergente.visible {
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Overlay para cuando el panel de ajustes está abierto -->
+  <div id="settings-overlay" onclick="toggleSettingsPanel()"></div>
+
+  <!-- Botón Engranaje (Ajustes) — FIJO, esquina inferior izquierda -->
+  <button id="btn-settings" onclick="toggleSettingsPanel()"
+    class="fixed bottom-24 left-4 z-50 bg-slate-900/90 hover:bg-slate-800 backdrop-blur text-white p-3 rounded-full border border-slate-700 shadow-xl flex items-center justify-center opacity-85 hover:opacity-100 transition select-none"
+    title="Ajustes de Diseño">
+    <i data-lucide="settings" class="w-5 h-5" style="animation: spin 8s linear infinite;"></i>
+  </button>
+  <style>@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} } </style>
+
+  <!-- ===== PANEL LATERAL DE AJUSTES ===== -->
+  <div id="settings-sidebar">
+    <!-- Cabecera del panel -->
+    <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-5">
+      <div class="flex items-center gap-2 text-blue-400">
+        <i data-lucide="palette" class="w-5 h-5"></i>
+        <h3 class="text-sm font-black text-white">Opciones del Mapa</h3>
+      </div>
+      <button onclick="toggleSettingsPanel()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="flex flex-col gap-5 text-xs text-slate-300">
+
+      <!-- Accesos rápidos -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 flex flex-col gap-2">
+        <span class="text-[9px] font-black text-blue-400 uppercase tracking-wider">🛠 Herramientas</span>
+        <a href="../index.html" class="flex items-center gap-2 py-2 px-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-[10px] font-bold text-white transition">
+          <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> Panel Principal (Portal)
+        </a>
+        <a href="profile_editor_worker.html" class="flex items-center gap-2 py-2 px-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-[10px] font-bold text-white transition">
+          <i data-lucide="user" class="w-3.5 h-3.5"></i> Editor Perfil Trabajador
+        </a>
+        <a href="profile_editor_company.html" class="flex items-center gap-2 py-2 px-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-[10px] font-bold text-white transition">
+          <i data-lucide="building-2" class="w-3.5 h-3.5"></i> Editor Perfil Empresa
+        </a>
+        <a href="subscription_editor.html" class="flex items-center gap-2 py-2 px-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-[10px] font-bold text-white transition">
+          <i data-lucide="credit-card" class="w-3.5 h-3.5"></i> Centro de Suscripción
+        </a>
+      </div>
+
+      <!-- Estilo de mapa base -->
+      <div class="flex flex-col gap-2">
+        <label class="font-black text-slate-400 uppercase tracking-wider text-[10px]">🗺 Estilo de Mapa</label>
+        <button onclick="selectMapStyle('streets')" id="map-btn-streets" class="p-2.5 rounded-xl bg-slate-800 border-2 border-blue-500 text-white font-bold flex items-center justify-between px-4 text-xs">
+          <span>🏙 Urbano Premium (Streets v2)</span>
+          <span class="text-[10px] text-blue-400">Activo</span>
+        </button>
+        <button onclick="selectMapStyle('hybrid')" id="map-btn-hybrid" class="p-2.5 rounded-xl bg-slate-800 border-2 border-transparent hover:border-slate-600 text-slate-400 font-bold flex items-center justify-between px-4 text-xs">
+          <span>🛰 Satélite (Hybrid)</span>
+        </button>
+        <button onclick="selectMapStyle('dataviz')" id="map-btn-dataviz" class="p-2.5 rounded-xl bg-slate-800 border-2 border-transparent hover:border-slate-600 text-slate-400 font-bold flex items-center justify-between px-4 text-xs">
+          <span>🌑 Oscuro (Dataviz Dark)</span>
+        </button>
+      </div>
+
+      <!-- Colores del mapa -->
+      <div class="flex flex-col gap-2">
+        <label class="font-black text-slate-400 uppercase tracking-wider text-[10px]">🎨 Colores del Mapa</label>
+
+        <!-- Calles -->
+        <div class="flex flex-col gap-1">
+          <span class="text-[9px] font-bold text-slate-500 uppercase">🛣 Calles</span>
+          <div class="grid grid-cols-3 gap-1">
+            <button onclick="changeMapColor('road', null)" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition">Original</button>
+            <button onclick="changeMapColor('road', '#2C2C2C')" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-blue-500 transition">Gris Waze</button>
+            <button onclick="changeMapColor('road', '#111111')" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition">Negro</button>
+          </div>
+        </div>
+
+        <!-- Agua -->
+        <div class="flex flex-col gap-1">
+          <span class="text-[9px] font-bold text-slate-500 uppercase">💧 Agua</span>
+          <div class="grid grid-cols-2 gap-1">
+            <button onclick="changeMapColor('water', '#7cd4f7')" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-cyan-500 transition">Celeste</button>
+            <button onclick="changeMapColor('water', '#1E3A8A')" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-blue-600 transition">Azul Real</button>
+          </div>
+        </div>
+
+        <!-- Parques -->
+        <div class="flex flex-col gap-1">
+          <span class="text-[9px] font-bold text-slate-500 uppercase">🌲 Parques</span>
+          <div class="grid grid-cols-2 gap-1">
+            <button onclick="changeMapColor('park', '#a1e1b8')" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-green-500 transition">Menta</button>
+            <button onclick="changeMapColor('park', '#2D6A4F')" class="py-1.5 text-[9px] font-bold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-green-700 transition">Bosque</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estilo de badge / pin -->
+      <div class="flex flex-col gap-2">
+        <label class="font-black text-slate-400 uppercase tracking-wider text-[10px]">📍 Estilo de Pines</label>
+        <div class="grid grid-cols-2 gap-1">
+          <button onclick="changeBadgeStyle('glass')" id="badge-btn-glass" class="py-2 text-[10px] font-bold rounded-xl bg-slate-800 border-2 border-blue-500 text-white transition">Cápsula</button>
+          <button onclick="changeBadgeStyle('minimal')" id="badge-btn-minimal" class="py-2 text-[10px] font-bold rounded-xl bg-slate-800 border-2 border-transparent text-slate-400 hover:border-slate-600 transition">Minimal</button>
+        </div>
+      </div>
+
+      <!-- Viaje Rápido -->
+      <div class="flex flex-col gap-2">
+        <label class="font-black text-slate-400 uppercase tracking-wider text-[10px]">✈️ Viaje Rápido</label>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button onclick="flyToCity(-36.7946, -73.1118, 'Hualpén')" class="py-2 px-1 text-[10px] font-bold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-blue-500 hover:bg-blue-950/30 transition truncate">🏠 Hualpén</button>
+          <button onclick="flyToCity(-33.4489, -70.6693, 'Santiago')" class="py-2 px-1 text-[10px] font-bold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-emerald-500 hover:bg-emerald-950/30 transition truncate">🏙 Santiago</button>
+          <button onclick="flyToCity(-33.0153, -71.5500, 'Viña del Mar')" class="py-2 px-1 text-[10px] font-bold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-cyan-500 hover:bg-cyan-950/30 transition truncate">🏖 Viña del Mar</button>
+          <button onclick="flyToCity(-39.2829, -71.9625, 'Pucón')" class="py-2 px-1 text-[10px] font-bold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-orange-500 hover:bg-orange-950/30 transition truncate">🌋 Pucón</button>
+          <button onclick="flyToCity(-34.6037, -58.3816, 'Buenos Aires')" class="py-2 px-1 text-[10px] font-bold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-blue-400 hover:bg-blue-950/30 transition truncate">🇦🇷 Buenos Aires</button>
+          <button onclick="flyToCity(6.2442, -75.5812, 'Medellín')" class="py-2 px-1 text-[10px] font-bold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:border-pink-500 hover:bg-pink-950/30 transition truncate">🇨🇴 Medellín</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== MAPA ===== -->
+  <div id="map"></div>
+
+  <!-- ===== BARRA DE BÚSQUEDA ===== -->
+  <div class="top-search-dock pointer-events-auto">
+    <div class="search-bar-container">
+      <i data-lucide="search" class="w-5 h-5 text-slate-500 shrink-0"></i>
+      <input type="text" id="search-input" placeholder="¿Qué necesitas hoy?"
+        oninput="ejecutarBusqueda()"
+        class="bg-transparent text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none flex-1 py-0.5">
+      <button onclick="clearSearch()" id="clear-search-btn" class="hidden text-slate-400 hover:text-slate-700 transition shrink-0">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== CATEGORÍAS ===== -->
+  <div class="categories-panel pointer-events-auto">
+    <span class="cat-label text-[8px] font-black text-slate-400 uppercase tracking-widest text-center py-1">Categorías</span>
+    <button onclick="filtrarCategoriaQuick('todos')" id="cat-btn-todos"
+      class="flex items-center gap-2 bg-white text-slate-900 px-3.5 py-2 rounded-xl shadow-md text-[10px] font-extrabold transition shrink-0 hover:scale-105">
+      <span>⭐️</span><span class="hidden sm:inline">Recomendados</span>
+    </button>
+    <button onclick="filtrarCategoriaQuick('fletes')" id="cat-btn-fletes"
+      class="flex items-center gap-2 bg-slate-900/90 text-white px-3.5 py-2 rounded-xl shadow-md text-[10px] font-extrabold transition shrink-0 hover:bg-slate-800">
+      <span>🛻</span><span class="hidden sm:inline">Fletes y Mudanzas</span>
+    </button>
+    <button onclick="filtrarCategoriaQuick('pan')" id="cat-btn-pan"
+      class="flex items-center gap-2 bg-slate-900/90 text-white px-3.5 py-2 rounded-xl shadow-md text-[10px] font-extrabold transition shrink-0 hover:bg-slate-800">
+      <span>🥖</span><span class="hidden sm:inline">Panaderías</span>
+    </button>
+    <button onclick="filtrarCategoriaQuick('comida')" id="cat-btn-comida"
+      class="flex items-center gap-2 bg-slate-900/90 text-white px-3.5 py-2 rounded-xl shadow-md text-[10px] font-extrabold transition shrink-0 hover:bg-slate-800">
+      <span>🍽️</span><span class="hidden sm:inline">Restaurantes</span>
+    </button>
+  </div>
+
+  <!-- ===== TARJETA DE PROVEEDOR (pop-up) ===== -->
+  <div id="tarjeta-emergente">
+    <div class="bg-white text-slate-800 rounded-3xl p-5 shadow-2xl border border-slate-100 relative">
+      <button onclick="cerrarTarjeta()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-sm font-bold transition">✕</button>
+      <div id="tarjeta-contenido"></div>
+    </div>
+  </div>
+
+  <!-- ===== BARRA DE NAVEGACIÓN INFERIOR ===== -->
+  <div class="map-control-deck pointer-events-auto">
+    <!-- Suscripción -->
+    <a href="subscription_editor.html" class="btn-nav-common">
+      <i data-lucide="gem" class="w-5 h-5 text-slate-600"></i>
+      <span class="nav-btn-label">Suscripción</span>
+    </a>
+    <!-- Guardados -->
+    <button onclick="alert('🔖 Favoritos próximamente!')" class="btn-nav-common">
+      <i data-lucide="bookmark" class="w-5 h-5 text-slate-600"></i>
+      <span class="nav-btn-label">Guardados</span>
+    </button>
+    <!-- GPS -->
+    <button onclick="recenterMapOnGPS()" class="btn-nav-common btn-nav-gps-highlight">
+      <div class="flex items-center gap-1">
+        <i data-lucide="target" class="w-4.5 h-4.5"></i>
+        <span class="text-[11px] uppercase tracking-wider font-extrabold">GPS</span>
+      </div>
+    </button>
+    <!-- Perfil -->
+    <button onclick="openProfileEditor()" class="btn-nav-common">
+      <i data-lucide="user" class="w-5 h-5 text-slate-600"></i>
+      <span class="nav-btn-label">Perfil</span>
+    </button>
+  </div>
+
+  <!-- MODAL DE SELECCIÓN DE REGISTRO DE PERFIL -->
+  <div id="modal-registro-selector" onclick="cerrarModalRegistro()" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+    <div onclick="event.stopPropagation()" class="bg-white rounded-3xl p-6 w-[90%] max-w-[420px] shadow-2xl border border-slate-100 relative text-slate-800">
+      <button onclick="cerrarModalRegistro()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      
+      <div class="text-center mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="user-plus" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-black text-slate-900">¿Qué deseas registrar?</h3>
+        <p class="text-xs text-slate-500 mt-1">Selecciona el tipo de cuenta para ingresar tus datos</p>
+      </div>
+
+      <div class="space-y-3">
+        <!-- OPCIÓN TRABAJADOR -->
+        <a href="profile_editor_worker.html?mode=new" class="flex items-center gap-4 p-4 rounded-2xl border border-blue-100 bg-blue-50/50 hover:bg-blue-100/80 transition-all group text-left">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform">
+            <i data-lucide="user-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="font-extrabold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">Trabajador / Oficio Independiente</h4>
+            <p class="text-[11px] text-slate-500 mt-0.5">Plomero, mecánico, manicurista, fletes, profesor, etc.</p>
+          </div>
+        </a>
+
+        <!-- OPCIÓN EMPRESA / LOCAL -->
+        <a href="profile_editor_company.html?mode=new" class="flex items-center gap-4 p-4 rounded-2xl border border-emerald-100 bg-emerald-50/50 hover:bg-emerald-100/80 transition-all group text-left">
+          <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform">
+            <i data-lucide="store" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="font-extrabold text-sm text-slate-900 group-hover:text-emerald-600 transition-colors">Comercio / Empresa / Local</h4>
+            <p class="text-[11px] text-slate-500 mt-0.5">Sushi, minimarket, pizzería, ferretería, botillería, etc.</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===================== ESTADO ===================== */
+    const MAPTILER_KEY = 'MQuOUJQLNwoXkS6nnqxw';
+    let map;
+    let marcadores = [];
+    let badgeStyle = 'glass';
+    let userCoords = [-36.7820, -73.1000];
+
+    let currentColors = {
+      water: null,
+      park:  null,
+      road:  null
+    };
+
+    /* ===================== PROVEEDORES — desde mock_data.js + localStorage ===================== */
+    const proveedores = typeof providersData !== 'undefined' ? [...providersData] : [];
+    
+    // Cargar proveedor registrado por el usuario si existe en localStorage (ignorando preset antiguo id: 999)
+    const savedUserRaw = localStorage.getItem('keilu_user_provider');
+    if (savedUserRaw) {
+      try {
+        const savedUser = JSON.parse(savedUserRaw);
+        if (savedUser && savedUser.id !== 999 && (savedUser.nombre || savedUser.identidad?.nombre)) {
+          savedUser.rankingScore = 200;
+          savedUser.verificado = true;
+          proveedores.unshift(savedUser);
+        }
+      } catch(e) {
+        console.error('Error al cargar proveedor registrado:', e);
+      }
+    }
+
+    /* ===================== INIT ===================== */
+    document.addEventListener("DOMContentLoaded", async () => {
+      lucide.createIcons();
+      
+      // Intentar geolocalizar por IP por defecto para centrar en su ciudad (sin pedir permiso de GPS aún)
+      try {
+        const ipRes = await fetch("https://freeipapi.com/api/json");
+        if (ipRes.ok) {
+          const ipData = await ipRes.json();
+          if (ipData.latitude && ipData.longitude) {
+            userCoords = [ipData.latitude, ipData.longitude];
+          }
+        }
+      } catch (e) {
+        console.warn("Error en geolocalización por IP:", e);
+      }
+
+      initMap(userCoords[0], userCoords[1]);
+      
+      // Opcional: Refinar con GPS de alta precisión si el usuario otorga permiso
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            if (map) {
+              map.setCenter([pos.coords.longitude, pos.coords.latitude]);
+            }
+          },
+          err => {
+            console.warn("GPS de alta precisión no disponible, permaneciendo en la ciudad de la IP.", err);
+          },
+          { enableHighAccuracy: true, timeout: 4000 }
+        );
+      }
+    });
+
+    /* ===================== MAPA ===================== */
+    function initMap(lat, lng) {
+      if (map) return;
+      map = new maplibregl.Map({
+        container: 'map',
+        style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
+        center: [lng, lat],
+        zoom: 13,
+        maxZoom: 20,
+        attributionControl: false
+      });
+
+      map.on('load', () => {
+        setTimeout(() => map.resize(), 250);
+        applyAllCustomColors();
+        renderizarPines(proveedores);
+      });
+
+      map.on('style.load', () => applyAllCustomColors());
+    }
+
+    function hidePOIsAndTransit() {
+      if (!map) return;
+      const style = map.getStyle();
+      if (!style || !style.layers) return;
+      style.layers.forEach(layer => {
+        const sl = layer['source-layer'];
+        const id = layer.id || '';
+        
+        // Ocultar por completo TODOS los puntos de interés (POIs), iconos de negocios, paraderos y etiquetas ajenas
+        const isPOIOrTransit = (
+          sl === 'poi' ||
+          sl === 'transit_stop' ||
+          sl === 'transit' ||
+          id.includes('poi') ||
+          id.includes('transit') ||
+          id.includes('bus') ||
+          id.includes('station') ||
+          id.includes('stop') ||
+          id.includes('amenity') ||
+          id.includes('shop') ||
+          id.includes('restaurant') ||
+          id.includes('bar') ||
+          id.includes('cafe') ||
+          id.includes('store') ||
+          id.includes('fast_food') ||
+          id.includes('church') ||
+          id.includes('worship') ||
+          id.includes('school') ||
+          id.includes('hospital') ||
+          id.includes('clinic') ||
+          id.includes('health') ||
+          id.includes('airport') ||
+          id.includes('aerodrome') ||
+          id.includes('police') ||
+          id.includes('fire') ||
+          id.includes('emergency') ||
+          id.includes('government') ||
+          id.includes('townhall')
+        );
+
+        if (isPOIOrTransit) {
+          try {
+            map.setLayoutProperty(layer.id, 'visibility', 'none');
+          } catch(e) {}
+        }
+      });
+    }
+
+    function applyAllCustomColors() {
+      if (!map) return;
+      hidePOIsAndTransit();
+      const style = map.getStyle();
+      if (!style || !style.layers) return;
+      style.layers.forEach(layer => {
+        const sl = layer['source-layer'];
+        // Water
+        if (layer.type === 'fill' && (sl === 'water' || (layer.id && (layer.id.includes('water') || layer.id.includes('sea') || layer.id.includes('lake') || layer.id.includes('river'))))) {
+          try {
+            if (currentColors.water === null) {
+              // No aplicar color personalizado en el arranque si es null
+            } else {
+              map.setPaintProperty(layer.id, 'fill-color', currentColors.water);
+            }
+          } catch(e) {}
+        }
+        // Parks
+        if (layer.type === 'fill' && (sl === 'landcover' || sl === 'landuse' || (layer.id && (layer.id.includes('park') || layer.id.includes('forest') || layer.id.includes('wood') || layer.id.includes('green') || layer.id.includes('garden')))) && layer.id && !layer.id.includes('residential') && !layer.id.includes('commercial') && !layer.id.includes('industrial')) {
+          try {
+            if (currentColors.park === null) {
+              // No aplicar
+            } else {
+              map.setPaintProperty(layer.id, 'fill-color', currentColors.park);
+            }
+          } catch(e) {}
+        }
+        // Roads
+        if (layer.type === 'line' && (sl === 'transportation' || (layer.id && (layer.id.includes('road') || layer.id.includes('highway') || layer.id.includes('street') || layer.id.includes('bridge') || layer.id.includes('tunnel') || layer.id.includes('path') || layer.id.includes('track') || layer.id.includes('route'))))) {
+          try {
+            if (currentColors.road === null) {
+              // No aplicar
+            } else {
+              map.setPaintProperty(layer.id, 'line-color', currentColors.road);
+            }
+          } catch(e) {}
+        }
+      });
+    }
+
+    function changeMapColor(type, value) {
+      currentColors[type] = value;
+      applyAllCustomColors();
+    }
+
+    function selectMapStyle(styleName) {
+      ['streets', 'hybrid', 'dataviz'].forEach(s => {
+        const btn = document.getElementById(`map-btn-${s}`);
+        if (!btn) return;
+        if (s === styleName) { btn.classList.add('border-blue-500', 'text-white'); btn.classList.remove('border-transparent', 'text-slate-400'); }
+        else { btn.classList.remove('border-blue-500', 'text-white'); btn.classList.add('border-transparent', 'text-slate-400'); }
+      });
+      const styleUrls = {
+        streets: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
+        hybrid:  `https://api.maptiler.com/maps/hybrid/style.json?key=${MAPTILER_KEY}`,
+        dataviz: `https://api.maptiler.com/maps/dataviz-dark/style.json?key=${MAPTILER_KEY}`
+      };
+      if (map && styleUrls[styleName]) {
+        map.setStyle(styleUrls[styleName]);
+        map.once('styledata', () => {
+          applyAllCustomColors();
+          renderizarPines(proveedores);
+        });
+      }
+    }
+
+    /* ===================== GPS ===================== */
+    function recenterMapOnGPS() {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(
+        pos => map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 15, duration: 1500 }),
+        ()  => map.flyTo({ center: [userCoords[1], userCoords[0]], zoom: 15, duration: 1500 }),
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    }
+
+    function flyToCity(lat, lng) {
+      if (map) map.flyTo({ center: [lng, lat], zoom: 12, duration: 1800 });
+    }
+
+    /* ===================== PANEL DE AJUSTES ===================== */
+    function toggleSettingsPanel() {
+      const panel   = document.getElementById('settings-sidebar');
+      const overlay = document.getElementById('settings-overlay');
+      panel.classList.toggle('open');
+      overlay.classList.toggle('visible');
+    }
+
+    /* ===================== PINES — renderizado por plan ===================== */
+    function renderizarPines(lista) {
+      marcadores.forEach(m => m.remove());
+      marcadores = [];
+
+      // Ordenar: ultra_pro primero, luego pro, luego gratis
+      const ordenados = [...lista].sort((a, b) => (b.rankingScore || 0) - (a.rankingScore || 0));
+
+      const coordsRegistradas = [];
+      const offsetPaso = 0.00035; // Distancia de dispersión en grados (aprox 35-40 metros físicos)
+
+      ordenados.forEach(p => {
+        try {
+          // Soporte doble schema: nuevo (mock_data.js) y legacy plano
+          const isNew     = !!p.identidad;
+          const tipo      = p.tipo;
+          const plan      = isNew ? p.plan : (p.dePago ? 'pro' : 'gratis');
+          const emoji     = isNew ? p.identidad.emoji     : p.emoji;
+          const animClass = isNew ? p.visualMapa.animClass : (p.animClass || '');
+          const nombre    = isNew ? p.identidad.nombre    : p.nombre;
+          let lat         = isNew ? p.ubicacion.lat       : p.lat;
+          let lng         = isNew ? p.ubicacion.lng       : p.lng;
+          const foto      = isNew ? p.identidad.foto      : (p.foto || '');
+          const estadoVivo = isNew ? p.tiemposYAcciones?.estadoVivo : null;
+          const notaAd    = isNew ? (estadoVivo?.activo ? estadoVivo.texto : '') : (p.notaAd || '');
+
+          // BLINDAJE DE COLOR ESTRICTO (Azul vs Verde)
+          const isAzul     = tipo === 'azul';
+          const colorClass = isAzul ? 'bg-blue-600' : 'bg-emerald-600';
+
+          // Evitar colisiones visuales sumando un pequeño offset en espiral si están muy encimados
+          let colision = true;
+          let intentos = 0;
+          while (colision && intentos < 12) {
+            const match = coordsRegistradas.find(c => Math.abs(c.lat - lat) < 0.00028 && Math.abs(c.lng - lng) < 0.00028);
+            if (match) {
+              const angulo = intentos * (Math.PI / 6); // Incremento angular para espiral más densa
+              lat += Math.sin(angulo) * offsetPaso;
+              lng += Math.cos(angulo) * offsetPaso;
+              intentos++;
+            } else {
+              colision = false;
+            }
+          }
+          coordsRegistradas.push({ lat, lng });
+
+          // Condición para mostrar gota 3D: ÚNICAMENTE los 6 Gratis con Boost que trabajamos
+          const boostIds = [107, 108, 109, 127, 128, 129];
+          const tieneBoost = boostIds.includes(p.id) || (isNew && p.tiemposYAcciones?.boostGratis?.activo);
+          
+          let pinHtml = '';
+
+          if (tieneBoost) {
+            // 🚀 REDISEÑO DE GOTA PREMIUM 3D (Solo para los 6 Gratis con Boost que trabajamos)
+            const innerColor = isAzul ? 'bg-blue-600' : 'bg-emerald-600';
+            const shadowColor = isAzul ? 'bg-blue-600/30' : 'bg-emerald-600/30';
+
+            // Elegir el GIF animado o sticker para cada uno de los 6 gratis
+            let stickerContent = '';
+            
+            if (p.id === 128) {
+              // 🍔 Hamburguesa (ID 128) -> GIF animado
+              stickerContent = `<img src="gif/hamburguesa_boost.gif" class="w-[28px] h-[28px] object-contain block select-none">`;
+            } else if (p.id === 127) {
+              // 🍣 Sushi (ID 127) -> GIF animado
+              stickerContent = `<img src="gif/sushi_boost.gif" class="w-[28px] h-[28px] object-contain block select-none">`;
+            } else if (p.id === 129) {
+              // 🍗 Pollo (ID 129) -> GIF animado
+              stickerContent = `<img src="gif/pollo_boost.gif" class="w-[28px] h-[28px] object-contain block select-none">`;
+            } else if (p.id === 109) {
+              // 🪵 Carpintero (ID 109) -> GIF animado
+              stickerContent = `<img src="gif/carpintero_boost.gif" class="w-[28px] h-[28px] object-contain block select-none">`;
+            } else if (p.id === 108) {
+              // 🔩 Soldador (ID 108) -> GIF animado
+              stickerContent = `<img src="gif/soldador_boost.gif" class="w-[28px] h-[28px] object-contain block select-none">`;
+            } else if (p.id === 107) {
+              // 💅 Manicura (ID 107) -> GIF animado
+              stickerContent = `<img src="gif/manicura_boost.gif" class="w-[28px] h-[28px] object-contain block select-none">`;
+            } else {
+              stickerContent = `<span class="${animClass}" style="font-size: 13.5px; display: inline-block; line-height: 1;">${emoji}</span>`;
+            }
+
+            pinHtml = `
+              <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-110" style="position: absolute; transform: translate(-50%, -50%);">
+                <!-- 1. CUERPO PRINCIPAL DE LA GOTA (Blanco exterior, color interior) -->
+                <div class="relative z-10 w-9 h-9 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-200/50">
+                  <div class="w-[28px] h-[28px] rounded-full ${innerColor} flex items-center justify-center text-white border border-white/20 overflow-hidden">
+                    ${stickerContent}
+                  </div>
+                </div>
+                
+                <!-- 2. PUNTA INFERIOR -->
+                <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[7px] border-t-white -mt-0.5 z-10 shadow-sm"></div>
+                
+                <!-- 3. SOMBRA DE LEVITACIÓN EN EL PISO 3D -->
+                <div class="w-4.5 h-1 ${shadowColor} rounded-full blur-[1px] -mt-0.5 pointer-events-none"></div>
+              </div>`;
+          } else {
+            // ESTRUCTURA DE PIN / PUNTO LIMPIO PARA TODOS LOS DEMÁS (34 PROVEEDORES)
+            pinHtml = `
+              <div class="relative flex items-center justify-center pointer-events-auto cursor-pointer transition-transform duration-200 hover:scale-150 select-none shadow-sm group" style="position: absolute; transform: translate(-50%, -50%);">
+                <!-- Punto Central Sólido (10px) -->
+                <div class="w-2.5 h-2.5 rounded-full border border-white/90 shadow-sm ${colorClass}"></div>
+                <!-- Anillo sutil al hacer hover para feedback táctil -->
+                <div class="absolute inset-0 rounded-full border border-white/40 scale-150 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+              </div>`;
+          }
+
+          const el = document.createElement('div');
+          el.className = 'pointer-events-auto cursor-pointer';
+          el.innerHTML = pinHtml;
+          el.style.overflow = 'visible';
+          el.style.cursor = 'pointer';
+          el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mostrarTarjetaProveedor(p);
+          });
+
+          // ASIGNACIÓN DE Z-INDEX JERÁRQUICO ESTRICTO
+          if (plan === 'ultra_pro') {
+            el.style.zIndex = '50';
+          } else if (plan === 'pro') {
+            el.style.zIndex = '30';
+          } else {
+            el.style.zIndex = '10';
+          }
+          
+          // Centrar exactamente en las coordenadas GPS
+          const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+            .setLngLat([lng, lat]).addTo(map);
+          marcadores.push(marker);
+
+        } catch (err) {
+          console.error(`Error al procesar o renderizar el proveedor ID ${p?.id || 'desconocido'}:`, err);
+        }
+      });
+    }
+
+    /* ===================== TARJETA (bottom sheet) ===================== */
+    function mostrarTarjetaProveedor(p) {
+      try {
+        if (!p) return;
+        const isNew     = !!p.identidad;
+        const emoji     = (isNew ? p.identidad?.emoji     : p.emoji) || '📍';
+        const nombre    = (isNew ? p.identidad?.nombre    : p.nombre) || 'Proveedor';
+        const contacto  = (isNew ? p.identidad?.atendidoPor : p.contacto) || nombre;
+        const rawFono   = (isNew ? p.contacto?.fono       : p.fono) || '';
+        const fono      = String(rawFono || '');
+        const horario   = (isNew ? p.contacto?.horario    : p.horario) || '09:00 - 18:00 hrs';
+        const foto      = (isNew ? p.identidad?.foto      : p.foto) || '';
+        const plan      = isNew ? p.plan                : (p.dePago ? 'pro' : 'gratis');
+        const especialidad = (isNew ? p.identidad?.especialidad : (p.rubro || '')) || 'Servicio';
+        const verificado = isNew ? !!p.verificado       : false;
+        const estadoVivo = isNew ? p.tiemposYAcciones?.estadoVivo : null;
+        const isAzul    = p.tipo === 'azul';
+        const planLabel = plan === 'ultra_pro' ? '👑 Ultra Pro' : plan === 'pro' ? '🟡 Pro' : '⚪ Gratis';
+        const targetEditor = isAzul ? 'profile_editor_worker.html' : 'profile_editor_company.html';
+        const profileParam = p.id ? `id=${p.id}` : 'mode=user';
+
+        const liveSection = estadoVivo?.activo
+          ? `<div style="display:flex;align-items:center;gap:6px;background:rgba(6,78,59,0.4);border:1px solid rgba(6,95,70,0.5);border-radius:10px;padding:6px 10px;margin-bottom:8px;">
+               <span style="width:7px;height:7px;border-radius:50%;background:#34d399;display:inline-block;animation:pulse 1.5s infinite;"></span>
+               <span style="font-size:10px;font-weight:700;color:#6ee7b7;">${estadoVivo.texto}</span>
+             </div>` : '';
+
+        const fotoSection = foto
+          ? `<img src="${foto}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:3px solid ${isAzul ? '#1A3D63' : '#337553'};flex-shrink:0;" onerror="this.style.display='none'">` : '';
+
+        const instagram = p.instagram || (isNew ? p.contacto?.instagram : p.instagram) || '';
+        const whatsappMsg = p.whatsappMsg || (isNew ? p.contacto?.whatsappMsg : p.whatsappMsg) || '';
+
+        const cleanFonoDigits = fono.replace(/\D/g,'');
+        let waLink = `https://wa.me/${cleanFonoDigits}`;
+        if (whatsappMsg) {
+          waLink += `?text=${encodeURIComponent(whatsappMsg)}`;
+        }
+
+        let instagramButton = '';
+        if (instagram) {
+          const instaLink = instagram.startsWith('http') ? instagram : `https://instagram.com/${instagram.replace('@', '')}`;
+          const instaLabel = instagram.startsWith('http') ? 'Instagram' : `@${instagram.replace('@', '')}`;
+          instagramButton = `
+            <a href="${instaLink}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);color:white;font-weight:700;padding:10px;border-radius:14px;font-size:11px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,0.15);margin-top:2px;">📸 Instagram (${instaLabel})</a>`;
+        }
+
+        document.getElementById('tarjeta-contenido').innerHTML = `
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+            ${fotoSection}
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
+                <span style="font-size:9px;font-weight:900;color:#94a3b8;">${planLabel}</span>
+                ${verificado ? '<span style="font-size:8px;color:#60a5fa;">✅ Verificado</span>' : ''}
+              </div>
+              <h4 style="font-size:13px;font-weight:900;color:#1e293b;margin:0;">${emoji} ${nombre}</h4>
+              <p style="font-size:10px;color:#64748b;margin:2px 0 0;">${especialidad}</p>
+            </div>
+          </div>
+          ${liveSection}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px;">
+              <p style="font-size:8px;color:#94a3b8;font-weight:700;text-transform:uppercase;margin:0;">Horario</p>
+              <p style="font-size:10px;font-weight:700;color:#1e293b;margin:3px 0 0;">🕐 ${horario}</p>
+            </div>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px;">
+              <p style="font-size:8px;color:#94a3b8;font-weight:700;text-transform:uppercase;margin:0;">Atendido por</p>
+              <p style="font-size:10px;font-weight:700;color:#1e293b;margin:3px 0 0;">👤 ${contacto}</p>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <a href="${targetEditor}?${profileParam}" style="display:flex;align-items:center;justify-content:center;gap:6px;background:#0f172a;color:white;font-weight:700;padding:10px;border-radius:14px;font-size:11px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,0.15);">👤 Ver Perfil Completo</a>
+            <div style="display:flex;gap:8px;">
+              <a href="tel:${fono}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:#2563eb;color:white;font-weight:700;padding:10px;border-radius:14px;font-size:11px;text-decoration:none;">📞 Llamar</a>
+              <a href="${waLink}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:#065f46;color:white;font-weight:700;padding:10px;border-radius:14px;font-size:11px;text-decoration:none;">💬 WhatsApp</a>
+            </div>
+            ${instagramButton}
+          </div>`;
+
+        document.getElementById('tarjeta-emergente').classList.add('visible');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      } catch (err) {
+        console.error("Error al mostrar tarjeta del proveedor:", err);
+      }
+    }
+
+    function cerrarTarjeta() {
+      document.getElementById('tarjeta-emergente').classList.remove('visible');
+    }
+
+    /* ===================== FILTROS ===================== */
+    function filtrarCategoriaQuick(category) {
+      ['todos','fletes','pan','comida'].forEach(c => {
+        const btn = document.getElementById(`cat-btn-${c}`);
+        if (!btn) return;
+        if (c === category) { btn.classList.add('bg-white','text-slate-900'); btn.classList.remove('bg-slate-900/90','text-white'); }
+        else { btn.classList.remove('bg-white','text-slate-900'); btn.classList.add('bg-slate-900/90','text-white'); }
+      });
+      if (category === 'todos') { renderizarPines(proveedores); return; }
+      // Búsqueda en nuevo schema (especialidad + rubroId) y legacy (rubro)
+      const matches = proveedores.filter(p => {
+        const texto = p.identidad
+          ? `${p.identidad.especialidad} ${p.identidad.rubroId} ${p.identidad.nombre}`.toLowerCase()
+          : (p.rubro || '').toLowerCase();
+        return texto.includes(category);
+      });
+      renderizarPines(matches);
+    }
+
+    function ejecutarBusqueda() {
+      const query = document.getElementById("search-input").value.toLowerCase().trim();
+      const clearBtn = document.getElementById("clear-search-btn");
+      if (clearBtn) { query ? clearBtn.classList.remove("hidden") : clearBtn.classList.add("hidden"); }
+      if (!query) { renderizarPines(proveedores); return; }
+      renderizarPines(proveedores.filter(p => p.nombre.toLowerCase().includes(query) || p.rubro.toLowerCase().includes(query)));
+    }
+
+    function clearSearch() {
+      document.getElementById("search-input").value = "";
+      document.getElementById("clear-search-btn")?.classList.add("hidden");
+      renderizarPines(proveedores);
+      cerrarTarjeta();
+    }
+
+    /* ===================== BADGE STYLE ===================== */
+    function changeBadgeStyle(style) {
+      badgeStyle = style;
+      ['glass','minimal'].forEach(s => {
+        const btn = document.getElementById(`badge-btn-${s}`);
+        if (!btn) return;
+        if (s === style) { btn.classList.add('border-blue-500','text-white'); btn.classList.remove('border-transparent','text-slate-400'); }
+        else { btn.classList.remove('border-blue-500','text-white'); btn.classList.add('border-transparent','text-slate-400'); }
+      });
+      renderizarPines(proveedores);
+    }
+
+    /* ===================== PERFIL ===================== */
+    function openProfileEditor() {
+      const modal = document.getElementById('modal-registro-selector');
+      if (modal) {
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100', 'pointer-events-auto');
+        lucide.createIcons();
+      }
+    }
+
+    function cerrarModalRegistro() {
+      const modal = document.getElementById('modal-registro-selector');
+      if (modal) {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.classList.remove('opacity-100', 'pointer-events-auto');
+      }
+    }
+  </script>
+</body>
+</html>

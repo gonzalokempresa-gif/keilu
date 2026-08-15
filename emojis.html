@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keilu - Laboratorio de Diseño de Emojis</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    /* ==============================================================
+       INDIVIDUAL EMOJI KEYFRAME ANIMATIONS (DRAFT LAB VERSION)
+       ============================================================== */
+    
+    /* BLUE PINES (INDEPENDIENTES) */
+    @keyframes wrenchTurn {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(45deg); }
+    }
+    .anim-wrench { animation: wrenchTurn var(--speed-wrench, 1.6s) infinite ease-in-out; }
+
+    @keyframes lightningFlicker {
+      0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 1px yellow); }
+      50% { opacity: 0.5; transform: scale(0.9); filter: drop-shadow(0 0 8px yellow); }
+    }
+    .anim-lightning { animation: lightningFlicker var(--speed-lightning, 0.6s) infinite alternate; }
+
+    @keyframes truckDrive {
+      0%, 100% { transform: translateX(0) translateY(0); }
+      25% { transform: translateX(2px) translateY(-0.8px); }
+      50% { transform: translateX(-2px) translateY(0.8px); }
+    }
+    .anim-truck { animation: truckDrive var(--speed-truck, 0.8s) infinite linear; }
+
+    @keyframes scissorSnip {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.15) rotate(-15deg); }
+    }
+    .anim-scissors { animation: scissorSnip var(--speed-scissors, 1s) infinite ease-in-out; }
+
+    @keyframes nailsPolish {
+      0%, 100% { transform: rotate(-10deg); }
+      50% { transform: rotate(10deg); }
+    }
+    .anim-nails { animation: nailsPolish var(--speed-nails, 2s) infinite ease-in-out; }
+
+    @keyframes brickLay {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .anim-brick { animation: brickLay var(--speed-brick, 1.5s) infinite ease-out; }
+
+    @keyframes solderSpark {
+      0%, 100% { filter: brightness(1) drop-shadow(0 0 0px orange); }
+      50% { filter: brightness(1.7) drop-shadow(0 0 10px yellow); }
+    }
+    .anim-solder { animation: solderSpark var(--speed-solder, 0.4s) infinite alternate; }
+
+    @keyframes woodSaw {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(-5px); }
+    }
+    .anim-wood { animation: woodSaw var(--speed-wood, 1.2s) infinite ease-in-out; }
+
+    @keyframes needlePoke {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(5px); }
+    }
+    .anim-needle { animation: needlePoke var(--speed-needle, 0.7s) infinite ease-in-out; }
+
+    @keyframes spongeWipe {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(4px, -3px); }
+    }
+    .anim-sponge { animation: spongeWipe var(--speed-sponge, 1.5s) infinite ease-in-out; }
+
+    @keyframes healthPulse {
+      0%, 100% { transform: scale(1); }
+      30% { transform: scale(1.2); }
+      60% { transform: scale(1.05); }
+      75% { transform: scale(1.25); }
+    }
+    .anim-health { animation: healthPulse var(--speed-health, 1.4s) infinite ease-in-out; }
+
+    @keyframes classBounce {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-3px) rotate(4deg); }
+    }
+    .anim-class { animation: classBounce var(--speed-class, 2.2s) infinite ease-in-out; }
+
+    @keyframes screenBlink {
+      0%, 100% { opacity: 1; filter: drop-shadow(0 0 1px cyan); }
+      50% { opacity: 0.7; filter: drop-shadow(0 0 5px cyan); }
+    }
+    .anim-screen { animation: screenBlink var(--speed-screen, 1.4s) infinite ease-in-out; }
+
+    @keyframes carVibrate {
+      0%, 100% { transform: translate(0, 0); }
+      25% { transform: translate(1px, -1px); }
+      50% { transform: translate(-1px, 1px); }
+    }
+    .anim-car { animation: carVibrate var(--speed-car, 0.15s) infinite linear; }
+
+    @keyframes cameraShutter {
+      0%, 90%, 100% { filter: brightness(1) contrast(1); }
+      95% { filter: brightness(1.8) drop-shadow(0 0 8px white); }
+    }
+    .anim-camera { animation: cameraShutter var(--speed-camera, 2.5s) infinite ease-in-out; }
+
+    @keyframes businessSway {
+      0%, 100% { transform: rotate(-4deg); }
+      50% { transform: rotate(4deg); }
+    }
+    .anim-business { animation: businessSway var(--speed-business, 2.5s) infinite ease-in-out; }
+
+    /* GREEN PINES (LOCALES / COMERCIOS) */
+    @keyframes eatingTilt {
+      0%, 100% { transform: rotate(-6deg); }
+      50% { transform: rotate(6deg); }
+    }
+    .anim-eat { animation: eatingTilt var(--speed-eat, 2s) infinite ease-in-out; }
+
+    @keyframes sushiRoll {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(25deg); }
+    }
+    .anim-sushi { animation: sushiRoll var(--speed-sushi, 3s) infinite ease-in-out; }
+
+    @keyframes pizzaFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    .anim-pizza { animation: pizzaFloat var(--speed-pizza, 2s) infinite ease-in-out; }
+
+    @keyframes burgerSquish {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.18, 0.88); }
+    }
+    .anim-burger { animation: burgerSquish var(--speed-burger, 1.5s) infinite ease-in-out; }
+
+    @keyframes chickenGlow {
+      0%, 100% { filter: drop-shadow(0 0 1px red); }
+      50% { filter: drop-shadow(0 0 8px orange); }
+    }
+    .anim-chicken { animation: chickenGlow var(--speed-chicken, 1.5s) infinite ease-in-out; }
+
+    @keyframes coffeeSteam {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .anim-coffee { animation: coffeeSteam var(--speed-coffee, 2.2s) infinite ease-in-out; }
+
+    @keyframes cartSlide {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(5px); }
+    }
+    .anim-cart { animation: cartSlide var(--speed-cart, 1.5s) infinite ease-in-out; }
+
+    @keyframes breadRise {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    .anim-bread { animation: breadRise var(--speed-bread, 2.5s) infinite ease-in-out; }
+
+    @keyframes meatChop {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+    .anim-meat { animation: meatChop var(--speed-meat, 1.2s) infinite ease-in-out; }
+
+    @keyframes appleWobble {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(10deg); }
+    }
+    .anim-apple { animation: appleWobble var(--speed-apple, 2s) infinite ease-in-out; }
+
+    @keyframes pillPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12); }
+    }
+    .anim-pill { animation: pillPulse var(--speed-pill, 1.8s) infinite ease-in-out; }
+
+    @keyframes pawsWalk {
+      0%, 100% { opacity: 1; transform: translateX(0); }
+      50% { opacity: 0.6; transform: translateX(4px); }
+    }
+    .anim-paws { animation: pawsWalk var(--speed-paws, 1.6s) infinite ease-in-out; }
+
+    @keyframes hammerBang {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-30deg); }
+    }
+    .anim-hammer { animation: hammerBang var(--speed-hammer, 1.2s) infinite ease-in-out; }
+
+    @keyframes bottlePop {
+      0%, 100% { transform: rotate(0deg) scale(1); filter: drop-shadow(0 0 1px green); }
+      35% { transform: rotate(-8deg) scale(1.05); }
+      50% { transform: rotate(15deg) scale(1.12); filter: drop-shadow(0 0 8px yellow); }
+    }
+    .anim-bottle { animation: bottlePop var(--speed-bottle, 1.8s) infinite ease-in-out; }
+
+    @keyframes flowerSway {
+      0%, 100% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(25deg) scale(1.06); }
+    }
+    .anim-flower { animation: flowerSway var(--speed-flower, 3s) infinite ease-in-out; }
+
+    @keyframes shopSwing {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+    .anim-shop { animation: shopSwing var(--speed-shop, 2s) infinite ease-in-out; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6 font-sans">
+
+  <!-- Header -->
+  <header class="max-w-6xl mx-auto mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6">
+    <div>
+      <div class="flex items-center gap-2 text-blue-500">
+        <i data-lucide="sparkles" class="w-6 h-6"></i>
+        <span class="text-xs font-bold uppercase tracking-widest">Keilu Design Sandbox</span>
+      </div>
+      <h1 class="text-3xl font-black text-white mt-1">Laboratorio de Emojis y Movimientos</h1>
+      <p class="text-slate-400 text-xs mt-1">Ajusta los diseños y la velocidad de movimiento antes de implementarlos en el mapa principal.</p>
+    </div>
+    
+    <div class="flex gap-3">
+      <a href="index.html" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver a Keilu Map
+      </a>
+      <button onclick="resetAllSpeeds()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Reestablecer
+      </button>
+    </div>
+  </header>
+
+  <!-- Sandbox Main Grid -->
+  <main class="max-w-6xl mx-auto space-y-12 pb-24">
+
+    <!-- 🔵 SECTION: BLUE PINES (TRABAJADORES E INDEPENDIENTES) -->
+    <section class="space-y-4">
+      <div class="flex items-center gap-2 border-b border-blue-900/40 pb-2">
+        <div class="w-3.5 h-3.5 bg-blue-500 rounded-full border border-white"></div>
+        <h2 class="text-lg font-black text-white">Trabajadores e Independientes (Pins Azules)</h2>
+        <span class="text-xs text-slate-500 font-semibold">(16 Categorías)</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" id="grid-blue">
+        <!-- Javascript will inject 16 Blue Cards here -->
+      </div>
+    </section>
+
+    <!-- 🟢 SECTION: GREEN PINES (LOCALES Y COMERCIOS) -->
+    <section class="space-y-4">
+      <div class="flex items-center gap-2 border-b border-emerald-900/40 pb-2">
+        <div class="w-3.5 h-3.5 bg-emerald-500 rounded-full border border-white"></div>
+        <h2 class="text-lg font-black text-white">Locales, Comercios y Comida (Pins Verdes)</h2>
+        <span class="text-xs text-slate-500 font-semibold">(16 Categorías)</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" id="grid-green">
+        <!-- Javascript will inject 16 Green Cards here -->
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // 16 Blue categories definition
+    const blueCategories = [
+      { id: 'wrench', emoji: '🔧', animClass: 'anim-wrench', title: "Gasfitería / Plomería", defSpeed: 1.6, desc: "Ajuste/torsión de llave inglesa" },
+      { id: 'lightning', emoji: '⚡', animClass: 'anim-lightning', title: "Electricidad / Iluminación", defSpeed: 0.6, desc: "Parpadeo rápido y brillo eléctrico" },
+      { id: 'truck', emoji: '🛻', animClass: 'anim-truck', title: "Fletes y Mudanzas", defSpeed: 0.8, desc: "Vibración de motor en carretera" },
+      { id: 'scissors', emoji: '✂️', animClass: 'anim-scissors', title: "Peluquería y Barbería", defSpeed: 1.0, desc: "Corte de tijeras (abrir/cerrar)" },
+      { id: 'nails', emoji: '💅', animClass: 'anim-nails', title: "Manicure y Estética", defSpeed: 2.0, desc: "Balanceo mostrando esmalte" },
+      { id: 'brick', emoji: '🧱', animClass: 'anim-brick', title: "Albañilería y Construcción", defSpeed: 1.5, desc: "Pequeño brinco al apilar" },
+      { id: 'solder', emoji: '👨‍🏭', animClass: 'anim-solder', title: "Soldadura y Estructuras", defSpeed: 0.4, desc: "Chispazos intensos de calor" },
+      { id: 'wood', emoji: '🪚', animClass: 'anim-wood', title: "Carpintería y Muebles", defSpeed: 1.2, desc: "Corte de sierra adelante/atrás" },
+      { id: 'needle', emoji: '🪡', animClass: 'anim-needle', title: "Costura y Arreglos Ropa", defSpeed: 0.7, desc: "Puntadas rápidas arriba/abajo" },
+      { id: 'sponge', emoji: '🧽', animClass: 'anim-sponge', title: "Aseo y Limpieza Domicilio", defSpeed: 1.5, desc: "Movimiento de frotado circular" },
+      { id: 'health', emoji: '👨‍⚕️', animClass: 'anim-health', title: "Salud y Cuidados", defSpeed: 1.4, desc: "Doble latido de corazón" },
+      { id: 'class', emoji: '👨‍🏫', animClass: 'anim-class', title: "Clases e Instrucción", defSpeed: 2.2, desc: "Inclinación de explicación" },
+      { id: 'screen', emoji: '💻', animClass: 'anim-screen', title: "Computadores y Celulares", defSpeed: 1.4, desc: "Parpadeo de pantalla terminal" },
+      { id: 'car', emoji: '🚗', animClass: 'anim-car', title: "Mecánico y Grúas", defSpeed: 0.15, desc: "Ralentí y vibración mecánica" },
+      { id: 'camera', emoji: '📷', animClass: 'anim-camera', title: "Fotografía y Eventos", defSpeed: 2.5, desc: "Destello periódico de flash" },
+      { id: 'business', emoji: '💼', animClass: 'anim-business', title: "Servicios Profesionales", defSpeed: 2.5, desc: "Vaivén formal de maletín" }
+    ];
+
+    // 16 Green categories definition
+    const greenCategories = [
+      { id: 'eat', emoji: '🍽️', animClass: 'anim-eat', title: "Restaurante / Cocina", defSpeed: 2.0, desc: "Cuchillo y tenedor balanceándose" },
+      { id: 'sushi', emoji: '🍣', animClass: 'anim-sushi', title: "Sushi y Comida Asiática", defSpeed: 3.0, desc: "Giro sutil de pieza circular" },
+      { id: 'pizza', emoji: '🍕', animClass: 'anim-pizza', title: "Pizzerías y Pastas", defSpeed: 2.0, desc: "Efecto flotante de vapor caliente" },
+      { id: 'burger', emoji: '🍔', animClass: 'anim-burger', title: "Burgers y Rápida", defSpeed: 1.5, desc: "Deformación compresiva suave" },
+      { id: 'chicken', emoji: '🍗', animClass: 'anim-chicken', title: "Pollos y Asados", defSpeed: 1.5, desc: "Brillo rojizo de brasas calientes" },
+      { id: 'coffee', emoji: '☕', animClass: 'anim-coffee', title: "Cafeterías y Pastelerías", defSpeed: 2.2, desc: "Sube y baja simulando vapor" },
+      { id: 'cart', emoji: '🛒', animClass: 'anim-cart', title: "Almacenes y Minimarkets", defSpeed: 1.5, desc: "Desplazamiento de carro" },
+      { id: 'bread', emoji: '🥖', animClass: 'anim-bread', title: "Panaderías", defSpeed: 2.5, desc: "Crecimiento/hinchado de masa" },
+      { id: 'meat', emoji: '🥩', animClass: 'anim-meat', title: "Carnicerías", defSpeed: 1.2, desc: "Impacto del corte en el bloque" },
+      { id: 'apple', emoji: '🍎', animClass: 'anim-apple', title: "Verdulerías y Fruterías", defSpeed: 2.0, desc: "Tambaleo de fruta" },
+      { id: 'pill', emoji: '💊', animClass: 'anim-pill', title: "Farmacias y Salud", defSpeed: 1.8, desc: "Pulso médico de escala" },
+      { id: 'paws', emoji: '🐾', animClass: 'anim-paws', title: "Veterinarias y Mascotas", defSpeed: 1.6, desc: "Pasos/desplazamiento de huella" },
+      { id: 'hammer', emoji: '🛠️', animClass: 'anim-hammer', title: "Ferreterías y Materiales", defSpeed: 1.2, desc: "Golpeteo rotativo de martillo" },
+      { id: 'bottle', emoji: '🍾', animClass: 'anim-bottle', title: "Botillerías y Bebidas", defSpeed: 1.8, desc: "Destape espumoso periódico" },
+      { id: 'flower', emoji: '🌸', animClass: 'anim-flower', title: "Florerías y Regalos", defSpeed: 3.0, desc: "Pétalos balanceándose suave" },
+      { id: 'shop', emoji: '🏪', animClass: 'anim-shop', title: "Tiendas de Ropa", defSpeed: 2.0, desc: "Giro elástico de apertura de local" }
+    ];
+
+    // Inject cards on DOM load
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      renderCards('grid-blue', blueCategories, 'border-blue-900/30 bg-blue-950/20');
+      renderCards('grid-green', greenCategories, 'border-emerald-900/30 bg-emerald-950/20');
+    });
+
+    function renderCards(targetId, categories, extraClass) {
+      const container = document.getElementById(targetId);
+      container.innerHTML = "";
+
+      categories.forEach((cat) => {
+        let displayContent = `<span id="demo-emoji-${cat.id}" class="text-2xl inline-block ${cat.animClass}">${cat.emoji}</span>`;
+
+        const card = document.createElement("div");
+        card.className = `p-4 rounded-2xl border ${extraClass} flex flex-col gap-4 relative overflow-hidden`;
+        
+        card.innerHTML = `
+          <!-- Visual Sandbox -->
+          <div class="h-28 bg-slate-900 rounded-xl flex items-center justify-center relative overflow-hidden border border-slate-800">
+            <!-- White capsule bubble from Keilu Map Design -->
+            <div class="bg-white text-slate-850 px-3.5 py-2 shadow-lg border border-slate-100 rounded-full flex items-center gap-2 select-none">
+              ${displayContent}
+              <div class="flex flex-col text-left leading-none pr-1">
+                <span class="text-[10px] font-black text-slate-900">Demo Keilu</span>
+                <span class="text-[8px] text-slate-450 font-bold uppercase tracking-wider mt-0.5">${cat.id.substring(0, 7)}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls and texts -->
+          <div class="space-y-2">
+            <div>
+              <h3 class="font-bold text-xs text-white">${cat.title}</h3>
+              <p class="text-[9px] text-slate-450 mt-0.5">${cat.desc}</p>
+            </div>
+            
+            <div class="space-y-1">
+              <div class="flex justify-between text-[8px] font-black text-slate-500 uppercase tracking-wider">
+                <span>Velocidad de Ciclo</span>
+                <span id="speed-label-${cat.id}">${cat.defSpeed}s</span>
+              </div>
+              <input type="range" min="0.1" max="4.0" step="0.05" value="${cat.defSpeed}" 
+                oninput="updateSpeed('${cat.id}', this.value)"
+                class="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Dynamic style update for speed slider
+    function updateSpeed(id, val) {
+      document.getElementById(`speed-label-${id}`).textContent = `${val}s`;
+      document.documentElement.style.setProperty(`--speed-${id}`, `${val}s`);
+    }
+
+    function resetAllSpeeds() {
+      // Blue resets
+      blueCategories.forEach(cat => {
+        updateSpeed(cat.id, cat.defSpeed);
+        // Sync sliders manually
+        const slider = document.querySelector(`input[oninput*="updateSpeed('${cat.id}'"]`);
+        if (slider) slider.value = cat.defSpeed;
+      });
+      // Green resets
+      greenCategories.forEach(cat => {
+        updateSpeed(cat.id, cat.defSpeed);
+        const slider = document.querySelector(`input[oninput*="updateSpeed('${cat.id}'"]`);
+        if (slider) slider.value = cat.defSpeed;
+      });
+    }
+  </script>
+</body>
+</html>

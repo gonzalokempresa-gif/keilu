@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keilu - Editor de Perfil (Empresa)</title>
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            keiluBlue: '#1A3D63',
+            keiluGreen: '#375534'
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons & Mock Data -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="mock_data.js"></script>
+  <script src="js/utils.js"></script>
+
+  <!-- MapLibre GL JS & CSS -->
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  
+  <style>
+    :root {
+      --keilu-company-header: #375534;
+      --keilu-company-accent: #6B9071;
+    }
+
+    body {
+      color: #0F172A !important;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(241, 245, 249, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.3);
+      border-radius: 4px;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hero-header {
+      position: relative;
+      height: 160px;
+      background-color: #375534;
+      border-bottom-left-radius: 50% 15%;
+      border-bottom-right-radius: 50% 15%;
+      transition: background-color 0.3s ease;
+      flex-shrink: 0;
+      z-index: 30;
+    }
+
+    /* Flat premium input styles */
+    .flat-input {
+      width: 100%;
+      background-color: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      color: #0F172A;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .flat-input:focus {
+      outline: none;
+      background-color: #FFFFFF;
+      border-color: #6B9071;
+      box-shadow: 0 0 0 3px rgba(107, 144, 113, 0.2);
+    }
+
+    /* Day tags styling */
+    .day-tag {
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+    .day-tag.active {
+      background-color: #375534 !important;
+      color: #FFFFFF !important;
+      border: 1px solid #375534 !important;
+    }
+    .day-tag.inactive {
+      background-color: #F8FAFC !important;
+      color: #64748B !important;
+      border: 1px solid #E2E8F0 !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen p-0 sm:p-6 font-sans">
+
+  <!-- Main Container -->
+  <div class="max-w-4xl mx-auto flex flex-col bg-white border-0 sm:border border-slate-100 rounded-none sm:rounded-3xl overflow-hidden shadow-none pb-12 min-h-screen sm:min-h-0">
+    
+    <!-- Hero Header -->
+    <div id="hero-header-container" class="hero-header">
+      <!-- Top buttons row -->
+      <div class="flex justify-between items-center w-full px-4 sm:px-8 pt-4">
+        <a href="index.html" class="text-white/90 hover:text-white flex items-center gap-1.5 text-xs font-bold transition">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Mapa
+        </a>
+        <button onclick="guardarYPublicar()" id="btn-submit-action" class="bg-white text-slate-850 hover:bg-slate-50 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md">
+          <i data-lucide="check" class="w-4 h-4"></i> Guardar Cambios
+        </button>
+      </div>
+      <!-- Center Title -->
+      <div class="text-center text-white mt-1">
+        <span id="hero-subtitle" class="text-[10px] font-black uppercase tracking-wider opacity-75">Catálogo Verde 🟢</span>
+        <h1 id="hero-title" class="text-xl font-black mt-0.5">Editor de Perfil (Empresa)</h1>
+      </div>
+      <!-- Avatar click overlay -->
+      <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 z-40">
+        <div class="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-md cursor-pointer bg-slate-100 flex items-center justify-center" onclick="document.getElementById('avatar-file-input').click()">
+          <img id="edit-img-preview" src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=200" class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition flex items-center justify-center text-white text-[9.5px] font-bold">
+            <i data-lucide="camera" class="w-4.5 h-4.5 mr-1"></i> Subir Foto
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden Inputs -->
+    <input type="file" id="avatar-file-input" class="hidden" accept="image/*" onchange="loadAvatarImage(event)">
+    <input type="hidden" id="edit-img-url" value="">
+
+    <!-- Profile Form Content Area -->
+    <div class="px-4 sm:px-8 pt-16 flex flex-col gap-6">
+
+      <!-- Paso 1 Grid Layout -->
+      <div id="step-1-block" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Column 1: Info General (Pasos 1 al 5) -->
+        <div class="flex flex-col gap-6">
+          <h3 class="text-xs font-black text-[#375534] uppercase tracking-widest border-b border-emerald-100 pb-2 flex items-center justify-between">
+            <span>Datos Principales de la Empresa</span>
+            <span class="text-[9px] font-bold text-[#375534] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">5 Pasos Simples</span>
+          </h3>
+
+          <div class="grid grid-cols-1 gap-4">
+            
+            <!-- PASO 1: Nombre de la Empresa -->
+            <div class="flex flex-col gap-3.5 p-3.5 bg-emerald-100/90 border border-emerald-200/90 rounded-2xl">
+              <div class="flex justify-between items-center">
+                <label class="text-[10px] text-[#375534] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="w-4 h-4 rounded-full bg-[#375534] text-white text-[9px] flex items-center justify-center font-black">1</span>
+                  NOMBRE Y GIRO
+                </label>
+              </div>
+
+              <!-- Nombre -->
+              <div class="flex flex-col gap-0.5">
+                <div class="flex justify-between items-center">
+                  <span class="text-[8.5px] text-[#375534] uppercase font-black tracking-wider">Nombre del Negocio (Público)</span>
+                  <span id="name-counter" class="text-[8.5px] text-slate-400 font-bold">0 / 25</span>
+                </div>
+                <input type="text" id="edit-name" value="" placeholder="Ej: Pizzería Al Forno o Minimarket El Roble" maxlength="25" oninput="document.getElementById('name-counter').textContent = this.value.length + ' / 25'; updateLivePreview();" class="flat-input text-xs font-semibold">
+              </div>
+
+              <!-- Giro o Detalle -->
+              <div class="flex flex-col gap-0.5">
+                <div class="flex justify-between items-center">
+                  <span class="text-[8.5px] text-[#375534] uppercase font-black tracking-wider">Giro o Rubro Detallado</span>
+                  <span id="rubro-counter" class="text-[8.5px] text-slate-400 font-bold">0 / 30</span>
+                </div>
+                <input type="text" id="edit-rubro" placeholder="Ej: Pizza Napolitana, Sushi Express, Ferretería..." maxlength="30" oninput="document.getElementById('rubro-counter').textContent = this.value.length + ' / 30'; updateLivePreview();" class="flat-input text-xs font-semibold">
+              </div>
+            </div>
+
+            <!-- PASO 2: Categorías de la Empresa -->
+            <div class="flex flex-col gap-3.5 p-3.5 bg-emerald-100/90 border border-emerald-200/90 rounded-2xl">
+              <div class="flex justify-between items-center">
+                <label class="text-[10px] text-[#375534] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="w-4 h-4 rounded-full bg-[#375534] text-white text-[9px] flex items-center justify-center font-black">2</span>
+                  CATEGORÍA DE TU LOCAL
+                </label>
+              </div>
+
+              <!-- Categoría Principal -->
+              <div class="flex flex-col gap-1">
+                <span class="text-[8.5px] text-[#375534] font-black uppercase tracking-wider">Categoría del Local (Rubro)</span>
+                <div class="flex items-center gap-2">
+                  <div class="relative flex-1">
+                    <div id="rubro-dropdown-trigger" class="w-full h-10 px-3 rounded-xl bg-white border border-[#E2E8F0] hover:border-[#6B9071] cursor-pointer flex items-center justify-between shadow-sm transition select-none">
+                      <div id="rubro-trigger-label" class="flex items-center gap-2 text-xs font-semibold text-slate-450 truncate w-full pr-2">
+                        Selecciona el rubro de tu empresa
+                      </div>
+                      <svg class="w-4 h-4 text-slate-450 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                    <div id="custom-rubro-dropdown-menu" class="absolute left-0 right-0 top-11 z-50 bg-white border border-slate-200 rounded-xl shadow-xl p-2 max-h-60 overflow-y-auto hidden flex-col gap-1.5">
+                      <!-- Inyectado dinámicamente -->
+                    </div>
+                  </div>
+                  <div id="rubro-live-sticker-square" class="w-10 h-10 rounded-xl bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
+                    <img id="rubro-live-sticker-img" src="stickers/empresa/01-gastronomia-cafes/00-default.gif" class="w-8 h-8 object-contain">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Acción Destacada -->
+              <div class="flex flex-col gap-1 border-t border-emerald-200/40 pt-2.5 mt-1">
+                <span class="text-[8.5px] text-[#375534] font-black uppercase tracking-wider">Acción o Canal de Atención (Destaca)</span>
+                <div class="flex items-center gap-2">
+                  <div class="relative flex-1">
+                    <div id="destaca-dropdown-trigger" class="w-full h-10 px-3 rounded-xl bg-white border border-[#E2E8F0] hover:border-[#6B9071] cursor-pointer flex items-center justify-between shadow-sm transition select-none">
+                      <div id="destaca-trigger-label" class="flex items-center gap-2 text-xs font-semibold text-slate-450 truncate w-full pr-2">
+                        Selecciona la acción a destacar
+                      </div>
+                      <svg class="w-4 h-4 text-slate-450 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                    <div id="custom-destaca-dropdown-menu" class="absolute left-0 right-0 top-11 z-50 bg-white border border-slate-200 rounded-xl shadow-xl p-2 max-h-60 overflow-y-auto hidden flex-col gap-1.5">
+                      <!-- Inyectado dinámicamente -->
+                    </div>
+                  </div>
+                  <div id="accion-live-sticker-square" class="w-10 h-10 rounded-xl bg-white border border-[#E2E8F0] shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
+                    <img id="accion-live-sticker-img" src="stickers/acciones empresas/01-desapacho-delivery/00-default.gif" class="w-8 h-8 object-contain">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PASO 3: Sticker Animado de tu Local -->
+            <div id="stickers-selector-card-container" class="flex flex-col gap-2 p-3.5 bg-emerald-100/90 border border-emerald-200/90 rounded-2xl">
+              <div class="flex justify-between items-center">
+                <label class="text-[10px] text-[#375534] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="w-4 h-4 rounded-full bg-[#375534] text-white text-[9px] flex items-center justify-center font-black">3</span>
+                  Sticker Animado de tu Local
+                </label>
+              </div>
+              <p class="text-[9.5px] text-slate-650 font-medium">Elige el diseño de tu sticker y organiza su orden:</p>
+              
+              <!-- Double Emojis Display (Side-by-side) -->
+              <div class="flex justify-center gap-4 my-2" id="card4-emojis-container">
+                <!-- Will render programmatically -->
+              </div>
+
+              <!-- Swap Location/Order Button -->
+              <div class="flex justify-center">
+                <button type="button" onclick="swapStickerPositions()" class="py-1.5 px-4 bg-white hover:bg-slate-50 text-[#375534] border border-emerald-200 rounded-xl text-[10px] font-extrabold transition shadow-sm flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 text-[#375534]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 16V4m0 12l-4-4m4 4l4-4m7-4v12m0-12l-4 4m4-4l4 4"></path>
+                  </svg>
+                  Cambiar ubicación (Intercambiar orden)
+                </button>
+              </div>
+
+              <!-- Variants Selection Grid -->
+              <div id="card4-variants-container" class="mt-2 pt-2 border-t border-emerald-200/50">
+                <p class="text-[9px] text-[#375534] font-black uppercase tracking-wider mb-1.5">
+                  Variantes de: <span id="active-variant-category-name" class="text-emerald-700 font-black">Local</span>
+                </p>
+                <div id="card4-variants-grid" class="flex gap-2 overflow-x-auto py-1 no-scrollbar">
+                  <!-- Injected dynamically -->
+                </div>
+              </div>
+            </div>
+
+            <!-- PASO 4: Descripción de la Empresa -->
+            <div class="flex flex-col gap-3 p-3.5 bg-emerald-100/90 border border-emerald-200/90 rounded-2xl">
+              <div class="flex justify-between items-center">
+                <label class="text-[10px] text-[#375534] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="w-4 h-4 rounded-full bg-[#375534] text-white text-[9px] flex items-center justify-center font-black">4</span>
+                  DESCRIPCIÓN DEL LOCAL
+                </label>
+                <span id="desc-counter" class="text-[9px] text-[#375534] font-bold">0 / 200</span>
+              </div>
+              <textarea id="edit-desc" rows="3" placeholder="Escribe una breve descripción sobre tus productos, menús, promociones..." oninput="updateLivePreview()" maxlength="200" class="flat-input resize-none mt-0.5"></textarea>
+            </div>
+
+            <!-- PASO 5: Vitrina de la Empresa -->
+            <div class="flex flex-col gap-3 p-3.5 bg-emerald-100/90 border border-emerald-200/90 rounded-2xl">
+              <div class="flex justify-between items-center">
+                <label class="text-[10px] text-[#375534] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="w-4 h-4 rounded-full bg-[#375534] text-white text-[9px] flex items-center justify-center font-black">5</span>
+                  VITRINA DE TU LOCAL
+                </label>
+                <span id="gallery-counter" class="text-[9px] text-slate-500 font-bold">0 / 10</span>
+              </div>
+              <p class="text-[9.5px] text-slate-650 font-medium">Sube fotos de tus productos, carta o local (máximo 10 fotos):</p>
+              
+              <div class="flex gap-2.5 overflow-x-auto py-1 no-scrollbar" id="edit-gallery-previews">
+                <!-- Thumbnail items -->
+              </div>
+
+              <!-- Hidden file input -->
+              <input type="file" id="gallery-file-input" accept="image/*" multiple class="hidden" onchange="handleGalleryFileUpload(event)">
+
+              <div class="flex gap-2 mt-0.5">
+                <button onclick="document.getElementById('gallery-file-input').click()" class="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-bold transition flex items-center justify-center gap-1.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v1M16 16l-4-4m0 0l-4 4m4-4v12"></path>
+                  </svg>
+                  Subir Fotos desde tu Equipo
+                </button>
+                <button onclick="clearGallery()" class="py-2 px-3 bg-red-50 hover:bg-red-100 text-red-650 rounded-xl text-[10px] font-bold border border-red-100 transition flex items-center justify-center gap-1">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                  Limpiar Todo
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Column 2: Ubicación & Horarios (Pasos 6 al 7) -->
+        <div class="flex flex-col gap-6">
+          
+          <!-- PASO 6: Ubicación y Dirección -->
+          <div id="paso-6-ubicacion-container" class="flex flex-col gap-3 p-3.5 bg-emerald-100/90 border border-emerald-200/90 rounded-2xl">
+            <div class="flex justify-between items-center">
+              <label class="text-[10px] text-[#375534] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-4 h-4 rounded-full bg-[#375534] text-white text-[9px] flex items-center justify-center font-black">6</span>
+                ¿DÓNDE SE UBICA TU LOCAL?
+              </label>
+            </div>
+            <p class="text-[9.5px] text-slate-650 font-medium">Busca en el mapa o arrastra el mapa para posicionar el pin rojo en el centro exacto de tu local:</p>
+
+            <!-- GPS Button -->
+            <button type="button" onclick="obtenerCoordenadasGPS()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[10px] font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Usar Mi Ubicación GPS Actual
+            </button>
+
+            <!-- Interactive Map -->
+            <div class="relative w-full h-48 rounded-xl border border-slate-200 overflow-hidden shadow-inner mt-0.5 z-0">
+              <div id="editor-mini-map" class="w-full h-full"></div>
+              <div id="center-pin-overlay" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10" style="transform: translateY(-16px); z-index: 9999;">
+                <div class="relative flex flex-col items-center">
+                  <svg class="w-8 h-8 text-red-500 drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- GPS Coords Display -->
+            <div id="gps-coords-display" class="text-[9px] font-bold text-slate-500 bg-white/70 py-1.5 px-3 rounded-lg border border-slate-200/50 text-center tracking-wide">
+              ⌛ Cargando ubicación de tu zona...
+            </div>
+
+            <!-- Lock Map Button -->
+            <button type="button" id="btn-lock-map" onclick="toggleMapLock()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-[9.5px] font-extrabold transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm mt-0.5 select-none cursor-pointer">
+              <span>🔓 Confirmar Ubicación del Mapa</span>
+            </button>
+
+            <!-- Physical address inputs -->
+            <div class="flex flex-col gap-2 border-t border-emerald-200/40 pt-2.5 mt-0.5">
+              <div class="grid grid-cols-3 gap-2">
+                <div class="col-span-2 flex flex-col gap-0.5">
+                  <span class="text-[8px] text-[#375534] uppercase font-black tracking-wider">Calle (Física)</span>
+                  <input type="text" id="edit-street" placeholder="Ej: O'Higgins" class="flat-input">
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[8px] text-[#375534] uppercase font-black tracking-wider">Número</span>
+                  <input type="text" id="edit-number" placeholder="Ej: 145" class="flat-input">
+                </div>
+              </div>
+              <div class="flex flex-col gap-0.5">
+                <span class="text-[8px] text-[#375534] uppercase font-black tracking-wider">Comuna / Ciudad</span>
+                <input type="text" id="edit-city" value="Hualpén" class="flat-input">
+              </div>
+            </div>
+          </div>
+
+          <!-- PASO 7: Contacto y Disponibilidad -->
+          <div id="paso-7-contacto-container" class="flex flex-col gap-3.5 p-3.5 bg-emerald-100/90 border border-emerald-200/90 rounded-2xl">
+            <div class="flex justify-between items-center">
+              <label class="text-[10px] text-[#375534] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-4 h-4 rounded-full bg-[#375534] text-white text-[9px] flex items-center justify-center font-black">7</span>
+                ¿CÓMO Y CUÁNDO TE CONTACTAN?
+              </label>
+            </div>
+
+            <!-- Disponibilidad en Tiempo Real -->
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] text-[#375534] font-black uppercase tracking-wider">Disponibilidad en Tiempo Real</span>
+              <label class="relative inline-flex items-center cursor-pointer select-none">
+                <input type="checkbox" id="switch-disponibilidad" checked class="sr-only peer">
+                <div class="w-[32px] h-[18px] bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[1px] after:left-[1.5px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 peer-checked:after:bg-white"></div>
+                <span class="ml-1.5 text-[9px] font-bold text-slate-500">Disponible</span>
+              </label>
+            </div>
+
+            <!-- Days -->
+            <div class="flex flex-col gap-1.5 pt-1">
+              <span class="text-[8.5px] text-[#375534] font-black uppercase tracking-wider">Días Activos de Atención</span>
+              <div class="flex gap-1.5 flex-wrap">
+                <button type="button" onclick="toggleDayTag(this, 'Lunes')" class="day-tag active">Lu</button>
+                <button type="button" onclick="toggleDayTag(this, 'Martes')" class="day-tag active">Ma</button>
+                <button type="button" onclick="toggleDayTag(this, 'Miércoles')" class="day-tag active">Mi</button>
+                <button type="button" onclick="toggleDayTag(this, 'Jueves')" class="day-tag active">Ju</button>
+                <button type="button" onclick="toggleDayTag(this, 'Viernes')" class="day-tag active">Vi</button>
+                <button type="button" onclick="toggleDayTag(this, 'Sábado')" class="day-tag active">Sá</button>
+                <button type="button" onclick="toggleDayTag(this, 'Domingo')" class="day-tag active">Do</button>
+              </div>
+            </div>
+
+            <!-- Hours select -->
+            <div class="flex flex-col gap-2 pt-1 border-b border-emerald-200/50 pb-3">
+              <div class="flex justify-between items-center">
+                <span class="text-[8.5px] text-[#375534] font-black uppercase tracking-wider">Rango Horario</span>
+                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" id="check-24-7" onchange="toggle247(this)" class="rounded border-slate-300 bg-slate-50 text-emerald-650 focus:ring-emerald-550 w-3.5 h-3.5">
+                  <span class="text-[10px] font-semibold text-slate-500">Atención 24/7</span>
+                </label>
+              </div>
+              <div id="standard-hours-container" class="grid grid-cols-2 gap-2">
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[8px] text-[#375534] uppercase font-black tracking-wider">Abre</span>
+                  <input type="time" id="time-open" value="08:00" class="flat-input">
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[8px] text-[#375534] uppercase font-black tracking-wider">Cierra</span>
+                  <input type="time" id="time-close" value="18:00" class="flat-input">
+                </div>
+              </div>
+              <div id="label-247-hours" class="text-[10px] text-emerald-600 font-extrabold text-center py-2 bg-emerald-50 border border-emerald-100 rounded-xl hidden">
+                ✨ ABIERTO 24/7 (CONTINUO / URGENCIAS)
+              </div>
+            </div>
+
+            <!-- Contact Details in grid -->
+            <div class="flex flex-col gap-2.5 pb-1 border-t border-emerald-200/40 pt-2.5">
+              <div class="grid grid-cols-2 gap-3">
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[8px] text-[#375534] uppercase font-black tracking-wider">Atendido Por</span>
+                  <input type="text" id="edit-attendant" value="" placeholder="Ej: Atendido por su dueño" oninput="updateLivePreview()" class="flat-input">
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[8px] text-[#375534] uppercase font-black tracking-wider">Número de Contacto</span>
+                  <input type="text" id="edit-phone" value="" placeholder="Ej: +56987654321" oninput="updateLivePreview()" class="flat-input">
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[8px] text-[#375534] uppercase font-black tracking-wider">Instagram (Opcional)</span>
+                  <input type="text" id="edit-instagram" value="" placeholder="Ej: @tucuenta" oninput="updateLivePreview()" class="flat-input">
+                </div>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[8px] text-[#375534] uppercase font-black tracking-wider">Mensaje WhatsApp (Opcional)</span>
+                  <input type="text" id="edit-whatsapp-msg" value="" placeholder="Ej: Hola, quiero consultar por..." oninput="updateLivePreview()" class="flat-input">
+                </div>
+              </div>
+            </div>
+
+            <!-- Botón Guardar (Estético / No Funcional de momento) -->
+            <button type="button" onclick="event.preventDefault();" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm mt-1 select-none cursor-pointer">
+              <i data-lucide="check" class="w-4 h-4"></i> Guardar Cambios
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      alert("⚠️ Error en Keilu: " + message + " en la línea " + lineno);
+      return false;
+    };
+
+    let accountType = 'verde';
+    let galleryImages = [
+      "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=150",
+      "https://images.unsplash.com/photo-1549931319-a545dcf3bc73?auto=format&fit=crop&q=80&w=150",
+      "https://images.unsplash.com/photo-1608686207856-001b95cf60ca?auto=format&fit=crop&q=80&w=150"
+    ];
+
+    let userLat = -36.7960; 
+    let userLng = -73.1140;
+    let miniMap = null;
+    let isMapLocked = false;
+    const MAPTILER_KEY = 'MQuOUJQLNwoXkS6nnqxw';
+
+    let activeDays = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+
+    // Helper function to create file list arrays of sequential files
+    function makeFileList(count) {
+      const list = ["00-default.gif"];
+      for (let i = 1; i < count; i++) {
+        list.push(i.toString().padStart(2, '0') + ".gif");
+      }
+      return list;
+    }
+
+    // Dynamic Category Selection
+    let selectedRubroSticker = "stickers/empresa/01-gastronomia-cafes/00-default.gif";
+    let currentCompanyCatFolder = "01-gastronomia-cafes";
+    let isCategorySelected = true;
+
+    let selectedActionSticker = "stickers/acciones empresas/01-desapacho-delivery/00-default.gif";
+    let currentActionFolder = "01-desapacho-delivery";
+    let isActionSelected = true;
+
+    let selectedActionTitle = "Delivery";
+    let activeCard4Tab = 'empresa';
+    let swapStickerOrder = false;
+
+    // 13 Categories Taxonomy for Companies/Local Shops matching exact counts
+    const companyStickerTaxonomy = {
+      "01-gastronomia-cafes": {
+        name: "Gastronomía y Cafés",
+        default: "00-default.gif",
+        files: makeFileList(25),
+        variants: ["Comida Rápida y Burgers", "Restaurantes y Menús", "Sushi y Comida Oriental", "Pizzerías e Italiana", "Pollos Asados y Parrilladas", "Cafeterías y Salones de Té"]
+      },
+      "02-almacenes-minimarkets": {
+        name: "Almacenes y Minimarkets",
+        default: "00-default.gif",
+        files: makeFileList(19),
+        variants: ["Almacén de Barrio", "Minimarket de Autoservicio", "Fiambrería y Lácteos", "Frutas y Verduras"]
+      },
+      "03-panaderia-reposteria": {
+        name: "Panadería y Repostería",
+        default: "00-default.gif",
+        files: makeFileList(16),
+        variants: ["Pan Amasado Caliente", "Pastelería Artesanal", "Tortas de Cumpleaños", "Kuchen y Masas Dulces"]
+      },
+      "04-ropa-zapatos-accesorios": {
+        name: "Ropa, Zapatos y Accesorios",
+        default: "00-default.gif",
+        files: makeFileList(19),
+        variants: ["Boutique Ropa Femenina", "Calzado y Zapatillas", "Carteras y Accesorios", "Ropa Infantil y Bebés", "Ropa Usada y Americana"]
+      },
+      "05-bazar-libreria": {
+        name: "Bazar y Librería",
+        default: "00-default.gif",
+        files: makeFileList(8),
+        variants: ["Artículos Escolares y Oficina", "Bazar y Paquetería", "Artículos de Fiesta y Cumpleaños", "Regalos y Juguetería"]
+      },
+      "06-hogar-decoracion": {
+        name: "Hogar y Decoración",
+        default: "00-default.gif",
+        files: makeFileList(19),
+        variants: ["Florería y Arreglos Florales", "Vivero y Plantas", "Cortinaje y Tapicería", "Velas Aromáticas y Decoración"]
+      },
+      "07-ferreteria-construccion": {
+        name: "Ferretería y Construcción",
+        default: "00-default.gif",
+        files: makeFileList(11),
+        variants: ["Ferretería General", "Herramientas y Tornillos", "Materiales de Construcción", "Pinturas y Brochas"]
+      },
+      "08-automotriz-repuestos": {
+        name: "Automotriz y Repuestos",
+        default: "00-default.gif",
+        files: makeFileList(9),
+        variants: ["Repuestos Multimarca", "Lubricentro y Aceites", "Vulcanización", "Baterías e Instalación"]
+      },
+      "09-salud-farmacia": {
+        name: "Salud y Farmacia",
+        default: "00-default.gif",
+        files: makeFileList(11),
+        variants: ["Farmacia Popular o de Barrio", "Clínica Dental", "Podología y Cuidado de Pies", "Óptica de Barrio"]
+      },
+      "10-mascotas-veterinaria": {
+        name: "Mascotas y Veterinaria",
+        default: "00-default.gif",
+        files: makeFileList(13),
+        variants: ["Alimento para Perros y Gatos", "Consulta Veterinaria", "Peluquería Canina", "Accesorios para Mascotas"]
+      },
+      "11-servicios-oficinas": {
+        name: "Servicios y Oficinas",
+        default: "00-default.gif",
+        files: makeFileList(16),
+        variants: ["Servicios de Contabilidad", "Asesorías Legales y Notaría", "Corretaje de Propiedades", "Servicio Técnico de PC y Celulares"]
+      },
+      "12-licoreria-botilleria": {
+        name: "Licores y Vida Nocturna",
+        default: "00-default.gif",
+        files: makeFileList(19),
+        variants: ["Botillería Tradicional", "Cervezas Heladas y Licores", "Bebidas y Hielo", "Karaokes y Vida Nocturna"]
+      },
+      "13-carnes-alimentos-frescos": {
+        name: "Carnes y Alimentos Frescos",
+        default: "00-default.gif",
+        files: makeFileList(15),
+        variants: ["Carnicería y Cortes de Vacuno", "Pescadería y Mariscos", "Fiambrería y Quesos", "Congelados y Alimentos Frescos"]
+      }
+    };
+
+    // 7 Actions Taxonomy for Companies matching exact counts
+    const companyActionStickerTaxonomy = {
+      "01-desapacho-delivery": {
+        name: "Despacho a Domicilio",
+        shortName: "Delivery",
+        default: "00-default.gif",
+        files: makeFileList(6)
+      },
+      "02-retiro-en-tienda": {
+        name: "Retiro en Tienda",
+        shortName: "Takeaway",
+        default: "00-default.gif",
+        files: makeFileList(8)
+      },
+      "03-consumo-en-local": {
+        name: "Consumo en Local",
+        shortName: "Mesas",
+        default: "00-default.gif",
+        files: makeFileList(9)
+      },
+      "04-reservas-agendas": {
+        name: "Reserva de Citas",
+        shortName: "Agendamiento",
+        default: "00-default.gif",
+        files: makeFileList(5)
+      },
+      "05-despacho-nacional": {
+        name: "Envíos Nacionales",
+        shortName: "Envíos",
+        default: "00-default.gif",
+        files: makeFileList(4)
+      },
+      "06-servicio-en-terreno": {
+        name: "Servicio en Terreno",
+        shortName: "Terreno",
+        default: "00-default.gif",
+        files: makeFileList(7)
+      },
+      "07-compras-presencial": {
+        name: "Compra Presencial",
+        shortName: "En Caja",
+        default: "00-default.gif",
+        files: makeFileList(6)
+      }
+    };
+
+    function renderCustomRubroDropdown() {
+      const menu = document.getElementById("custom-rubro-dropdown-menu");
+      if (!menu) return;
+      menu.innerHTML = "";
+
+      for (const [key, data] of Object.entries(companyStickerTaxonomy)) {
+        const isSelected = currentCompanyCatFolder === key && isCategorySelected;
+        const defaultGif = `stickers/empresa/${key}/${data.default}`;
+        const secondGif = data.files && data.files[1] ? `stickers/empresa/${key}/${data.files[1]}` : defaultGif;
+
+        const optionCard = document.createElement("div");
+        optionCard.className = `flex items-center justify-between p-2 rounded-xl border ${isSelected ? 'bg-emerald-600 text-white border-emerald-700 shadow-md' : 'bg-white text-slate-800 border-slate-200/80 hover:bg-emerald-50/50 hover:border-emerald-300'} cursor-pointer transition select-none`;
+        
+        optionCard.innerHTML = `
+          <span class="text-[11px] font-extrabold truncate mr-2">${data.name}</span>
+          <div class="flex items-center gap-1 ${isSelected ? 'bg-white/10 border-white/20' : 'bg-slate-100/90 border-slate-200/60'} p-0.5 rounded-lg border shrink-0">
+            <img src="${defaultGif}" class="w-8 h-8 object-contain rounded-md">
+            <img src="${secondGif}" class="w-8 h-8 object-contain rounded-md">
+          </div>
+        `;
+
+        optionCard.onclick = (e) => {
+          e.stopPropagation();
+          selectRubroFromDropdown(key);
+          toggleCustomRubroDropdown(false);
+        };
+
+        menu.appendChild(optionCard);
+      }
+    }
+
+    function toggleCustomRubroDropdown(forceState) {
+      const menu = document.getElementById("custom-rubro-dropdown-menu");
+      if (!menu) return;
+      
+      let shouldShow = false;
+      if (typeof forceState === 'boolean') {
+        shouldShow = forceState;
+      } else {
+        shouldShow = menu.classList.contains('hidden');
+      }
+
+      if (shouldShow) {
+        menu.classList.remove('hidden');
+        menu.classList.add('flex');
+        toggleCustomDestacaDropdown(false);
+      } else {
+        menu.classList.add('hidden');
+        menu.classList.remove('flex');
+      }
+    }
+
+    function selectRubroFromDropdown(key) {
+      currentCompanyCatFolder = key;
+      isCategorySelected = true;
+      const rubroData = companyStickerTaxonomy[key];
+      selectedRubroSticker = `stickers/empresa/${key}/${rubroData.default}`;
+
+      updateRubroTriggerLabel();
+      updateRubroLiveStickerSquare();
+      
+      // Auto-populate variants dropdown/select
+      const selectSpec = document.getElementById("select-especialidad");
+      if (selectSpec) {
+        selectSpec.innerHTML = "";
+        rubroData.variants.forEach(variant => {
+          const opt = document.createElement("option");
+          opt.value = variant;
+          opt.textContent = variant;
+          selectSpec.appendChild(opt);
+        });
+        document.getElementById("especialidad-container")?.classList.remove("hidden");
+      }
+
+      activeCard4Tab = 'empresa';
+      renderRubroStickerVariants(key);
+      renderCard4StickerSelector();
+      updateLivePreview();
+    }
+
+    function renderCustomDestacaDropdown() {
+      const menu = document.getElementById("custom-destaca-dropdown-menu");
+      if (!menu) return;
+      menu.innerHTML = "";
+
+      for (const [key, data] of Object.entries(companyActionStickerTaxonomy)) {
+        const isSelected = currentActionFolder === key && isActionSelected;
+        const defaultGif = `stickers/acciones empresas/${key}/${data.default}`;
+        const secondGif = data.files && data.files[1] ? `stickers/acciones empresas/${key}/${data.files[1]}` : defaultGif;
+
+        const optionCard = document.createElement("div");
+        optionCard.className = `flex items-center justify-between p-2 rounded-xl border ${isSelected ? 'bg-emerald-600 text-white border-emerald-700 shadow-md' : 'bg-white text-slate-800 border-slate-200/80 hover:bg-emerald-50/50 hover:border-emerald-300'} cursor-pointer transition select-none`;
+
+        optionCard.innerHTML = `
+          <span class="text-[11px] font-extrabold truncate mr-2">${data.name}</span>
+          <div class="flex items-center gap-1 ${isSelected ? 'bg-white/10 border-white/20' : 'bg-slate-100/90 border-slate-200/60'} p-0.5 rounded-lg border shrink-0">
+            <img src="${defaultGif}" class="w-8 h-8 object-contain rounded-md">
+            <img src="${secondGif}" class="w-8 h-8 object-contain rounded-md">
+          </div>
+        `;
+
+        optionCard.onclick = (e) => {
+          e.stopPropagation();
+          selectDestacaFromDropdown(key);
+          toggleCustomDestacaDropdown(false);
+        };
+
+        menu.appendChild(optionCard);
+      }
+    }
+
+    function toggleCustomDestacaDropdown(forceState) {
+      const menu = document.getElementById("custom-destaca-dropdown-menu");
+      if (!menu) return;
+
+      let shouldShow = false;
+      if (typeof forceState === 'boolean') {
+        shouldShow = forceState;
+      } else {
+        shouldShow = menu.classList.contains('hidden');
+      }
+
+      if (shouldShow) {
+        menu.classList.remove('hidden');
+        menu.classList.add('flex');
+        toggleCustomRubroDropdown(false);
+      } else {
+        menu.classList.add('hidden');
+        menu.classList.remove('flex');
+      }
+    }
+
+    function selectDestacaFromDropdown(key) {
+      currentActionFolder = key;
+      isActionSelected = true;
+      const actionData = companyActionStickerTaxonomy[key];
+      selectedActionTitle = actionData.shortName;
+      selectedActionSticker = `stickers/acciones empresas/${key}/${actionData.default}`;
+
+      updateDestacaTriggerLabel();
+      updateActionLiveStickerSquare();
+
+      activeCard4Tab = 'accion';
+      renderActionStickerVariants(key);
+      renderCard4StickerSelector();
+      updateLivePreview();
+    }
+
+    function updateRubroTriggerLabel() {
+      const label = document.getElementById("rubro-trigger-label");
+      if (!label) return;
+      if (currentCompanyCatFolder && isCategorySelected && companyStickerTaxonomy[currentCompanyCatFolder]) {
+        const data = companyStickerTaxonomy[currentCompanyCatFolder];
+        const defaultGif = `stickers/empresa/${currentCompanyCatFolder}/${data.default}`;
+        label.innerHTML = `
+          <img src="${defaultGif}" class="w-6 h-6 object-contain rounded shrink-0 mr-1.5">
+          <span class="text-slate-800 font-extrabold truncate text-xs">${data.name}</span>
+        `;
+      } else {
+        label.innerHTML = `<span class="text-slate-400 font-semibold truncate text-xs">Selecciona la categoría de tu empresa</span>`;
+      }
+    }
+
+    function updateDestacaTriggerLabel() {
+      const label = document.getElementById("destaca-trigger-label");
+      if (!label) return;
+      if (currentActionFolder && isActionSelected && companyActionStickerTaxonomy[currentActionFolder]) {
+        const data = companyActionStickerTaxonomy[currentActionFolder];
+        const defaultGif = `stickers/acciones empresas/${currentActionFolder}/${data.default}`;
+        label.innerHTML = `
+          <img src="${defaultGif}" class="w-6 h-6 object-contain rounded shrink-0 mr-1.5">
+          <span class="text-slate-800 font-extrabold truncate text-xs">${data.name}</span>
+        `;
+      } else {
+        label.innerHTML = `<span class="text-slate-400 font-semibold truncate text-xs">Selecciona la categoría de tu acción</span>`;
+      }
+    }
+
+    function updateRubroLiveStickerSquare() {
+      const img = document.getElementById("rubro-live-sticker-img");
+      if (img && selectedRubroSticker) {
+        img.src = selectedRubroSticker;
+      }
+    }
+
+    function updateActionLiveStickerSquare() {
+      const img = document.getElementById("accion-live-sticker-img");
+      if (img && selectedActionSticker) {
+        img.src = selectedActionSticker;
+      }
+    }
+
+    function renderCard4StickerSelector() {
+      const container = document.getElementById('card4-emojis-container');
+      if (!container) return;
+      container.innerHTML = "";
+
+      const rubroCardHtml = `
+        <div onclick="selectActiveCard4Tab('empresa')" class="w-20 h-20 rounded-2xl bg-white border-2 ${activeCard4Tab === 'empresa' ? 'border-emerald-600 shadow-md ring-2 ring-emerald-600/10' : 'border-slate-200/80'} shadow-sm flex items-center justify-center shrink-0 overflow-hidden cursor-pointer relative transition">
+          <img src="${selectedRubroSticker}" class="w-16 h-16 object-contain select-none">
+          <span class="absolute bottom-1 bg-slate-900/80 text-white text-[7.5px] font-black uppercase px-1.5 py-0.5 rounded-md tracking-wider">Local</span>
+        </div>
+      `;
+
+      const actionCardHtml = `
+        <div onclick="selectActiveCard4Tab('accion')" class="w-20 h-20 rounded-2xl bg-white border-2 ${activeCard4Tab === 'accion' ? 'border-emerald-600 shadow-md ring-2 ring-emerald-600/10' : 'border-slate-200/80'} shadow-sm flex items-center justify-center shrink-0 overflow-hidden cursor-pointer relative transition">
+          <img src="${selectedActionSticker}" class="w-16 h-16 object-contain select-none">
+          <span class="absolute bottom-1 bg-slate-900/80 text-white text-[7.5px] font-black uppercase px-1.5 py-0.5 rounded-md tracking-wider">${selectedActionTitle}</span>
+        </div>
+      `;
+
+      if (swapStickerOrder) {
+        container.innerHTML = actionCardHtml + rubroCardHtml;
+      } else {
+        container.innerHTML = rubroCardHtml + actionCardHtml;
+      }
+    }
+
+    function selectActiveCard4Tab(tab) {
+      activeCard4Tab = tab;
+      const catLabel = document.getElementById('active-variant-category-name');
+      if (catLabel) {
+        catLabel.textContent = tab === 'empresa' ? 'Local' : selectedActionTitle;
+      }
+      
+      if (tab === 'empresa') {
+        renderRubroStickerVariants(currentCompanyCatFolder);
+      } else {
+        renderActionStickerVariants(currentActionFolder);
+      }
+      renderCard4StickerSelector();
+    }
+
+    function swapStickerPositions() {
+      swapStickerOrder = !swapStickerOrder;
+      renderCard4StickerSelector();
+      updateLivePreview();
+    }
+
+    function renderRubroStickerVariants(catKey) {
+      const grid = document.getElementById('card4-variants-grid');
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      const data = companyStickerTaxonomy[catKey];
+      if (!data || !data.files) return;
+
+      data.files.forEach(file => {
+        const fullPath = `stickers/empresa/${catKey}/${file}`;
+        const isCurrent = selectedRubroSticker === fullPath;
+
+        const opt = document.createElement('div');
+        opt.className = `w-14 h-14 rounded-xl border-2 ${isCurrent ? 'border-emerald-600 bg-emerald-50/20' : 'border-slate-200/80 bg-white hover:border-slate-350'} shadow-sm flex items-center justify-center shrink-0 overflow-hidden cursor-pointer relative transition`;
+        opt.innerHTML = `
+          <img src="${fullPath}" class="w-11 h-11 object-contain select-none">
+        `;
+        opt.onclick = () => {
+          selectedRubroSticker = fullPath;
+          updateRubroLiveStickerSquare();
+          renderRubroStickerVariants(catKey);
+          renderCard4StickerSelector();
+          updateLivePreview();
+        };
+        grid.appendChild(opt);
+      });
+    }
+
+    function renderActionStickerVariants(actionKey) {
+      const grid = document.getElementById('card4-variants-grid');
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      const data = companyActionStickerTaxonomy[actionKey];
+      if (!data || !data.files) return;
+
+      data.files.forEach(file => {
+        const fullPath = `stickers/acciones empresas/${actionKey}/${file}`;
+        const isCurrent = selectedActionSticker === fullPath;
+
+        const opt = document.createElement('div');
+        opt.className = `w-14 h-14 rounded-xl border-2 ${isCurrent ? 'border-emerald-600 bg-emerald-50/20' : 'border-slate-200/80 bg-white hover:border-slate-350'} shadow-sm flex items-center justify-center shrink-0 overflow-hidden cursor-pointer relative transition`;
+        opt.innerHTML = `
+          <img src="${fullPath}" class="w-11 h-11 object-contain select-none">
+        `;
+        opt.onclick = () => {
+          selectedActionSticker = fullPath;
+          updateActionLiveStickerSquare();
+          renderActionStickerVariants(actionKey);
+          renderCard4StickerSelector();
+          updateLivePreview();
+        };
+        grid.appendChild(opt);
+      });
+    }
+
+    function toggleDayTag(btn, dayName) {
+      const idx = activeDays.indexOf(dayName);
+      if (idx > -1) {
+        activeDays.splice(idx, 1);
+        btn.classList.remove("active");
+        btn.classList.add("inactive");
+      } else {
+        activeDays.push(dayName);
+        btn.classList.add("active");
+        btn.classList.remove("inactive");
+      }
+      updateLivePreview();
+    }
+
+    function toggle247(checkbox) {
+      const hoursContainer = document.getElementById("standard-hours-container");
+      const label247 = document.getElementById("label-247-hours");
+      const openInput = document.getElementById("time-open");
+      const closeInput = document.getElementById("time-close");
+      
+      if (checkbox.checked) {
+        hoursContainer.classList.add("hidden");
+        label247.classList.remove("hidden");
+        if (openInput) openInput.disabled = true;
+        if (closeInput) closeInput.disabled = true;
+      } else {
+        hoursContainer.classList.remove("hidden");
+        label247.classList.add("hidden");
+        if (openInput) openInput.disabled = false;
+        if (closeInput) closeInput.disabled = false;
+      }
+    }
+
+    // Mini Map Methods
+    function initMiniMap(lat, lng) {
+      try {
+        if (!maplibregl) return;
+        
+        miniMap = new maplibregl.Map({
+          container: 'editor-mini-map',
+          style: `https://api.maptiler.com/maps/streets/style.json?key=${MAPTILER_KEY}`,
+          center: [lng, lat],
+          zoom: 14.8,
+          attributionControl: false
+        });
+
+        miniMap.on('move', () => {
+          if (isMapLocked) return;
+          const center = miniMap.getCenter();
+          userLat = center.lat;
+          userLng = center.lng;
+          
+          const display = document.getElementById("gps-coords-display");
+          if (display) {
+            display.textContent = `📍 GPS: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+          }
+        });
+      } catch (err) {
+        console.error("Mini Map failed to load:", err);
+      }
+    }
+
+    function toggleMapLock() {
+      const btn = document.getElementById("btn-lock-map");
+      if (!btn) return;
+
+      isMapLocked = !isMapLocked;
+      if (isMapLocked) {
+        btn.innerHTML = "🔒 Ubicación Confirmada (Fijado)";
+        btn.className = "w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-full text-[9.5px] font-extrabold transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm mt-0.5 select-none cursor-pointer";
+        if (miniMap) {
+          miniMap.dragPan.disable();
+          miniMap.scrollZoom.disable();
+          miniMap.doubleClickZoom.disable();
+        }
+      } else {
+        btn.innerHTML = "🔓 Confirmar Ubicación del Mapa";
+        btn.className = "w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-[9.5px] font-extrabold transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm mt-0.5 select-none cursor-pointer";
+        if (miniMap) {
+          miniMap.dragPan.enable();
+          miniMap.scrollZoom.enable();
+          miniMap.doubleClickZoom.enable();
+        }
+      }
+    }
+
+    function obtenerCoordenadasGPS() {
+      const display = document.getElementById("gps-coords-display");
+      if (display) display.textContent = "⌛ Capturando ubicación...";
+      
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            userLat = position.coords.latitude;
+            userLng = position.coords.longitude;
+            if (display) display.textContent = `📍 GPS: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+            if (miniMap) {
+              miniMap.setCenter([userLng, userLat]);
+            }
+            updateLivePreview();
+          },
+          (error) => {
+            console.error("GPS error:", error);
+            if (display) display.textContent = `📍 GPS (Simulado): ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      }
+    }
+
+    // Gallery Upload
+    function handleGalleryFileUpload(event) {
+      const files = Array.from(event.target.files);
+      if (galleryImages.length + files.length > 10) {
+        alert("Puedes subir como máximo 10 fotos en tu vitrina.");
+        return;
+      }
+      
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          galleryImages.push(e.target.result);
+          updateLivePreview();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removeGalleryImage(index) {
+      galleryImages.splice(index, 1);
+      updateLivePreview();
+    }
+
+    function clearGallery() {
+      galleryImages = [];
+      updateLivePreview();
+    }
+
+    function loadAvatarImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById("edit-img-preview").src = e.target.result;
+          document.getElementById("edit-img-url").value = e.target.result;
+          updateLivePreview();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function updateLivePreview() {
+      const nameVal = document.getElementById("edit-name").value;
+      const nameCounter = document.getElementById("name-counter");
+      if (nameCounter) nameCounter.textContent = `${nameVal.length} / 25`;
+
+      const rubroVal = document.getElementById("edit-rubro").value;
+      const rubroCounter = document.getElementById("rubro-counter");
+      if (rubroCounter) rubroCounter.textContent = `${rubroVal.length} / 30`;
+
+      const descVal = document.getElementById("edit-desc").value;
+      const descCounter = document.getElementById("desc-counter");
+      if (descCounter) descCounter.textContent = `${descVal.length} / 200`;
+
+      const imgUrl = document.getElementById("edit-img-url").value;
+      if (imgUrl) {
+        document.getElementById("edit-img-preview").src = imgUrl;
+      }
+      renderGallery();
+    }
+
+    function renderGallery() {
+      const previewsContainer = document.getElementById('edit-gallery-previews');
+      if (!previewsContainer) return;
+      previewsContainer.innerHTML = "";
+      
+      galleryImages.forEach((img, index) => {
+        const item = document.createElement('div');
+        item.className = "w-14 h-14 rounded-xl overflow-hidden bg-slate-50 border border-slate-200 relative shrink-0 group";
+        item.innerHTML = `
+          <img src="${img}" class="w-full h-full object-cover">
+          <button onclick="removeGalleryImage(${index})" class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-red-400">
+            <i data-lucide="trash" class="w-4 h-4"></i>
+          </button>
+        `;
+        previewsContainer.appendChild(item);
+      });
+
+      for (let i = galleryImages.length; i < 10; i++) {
+        const blank = document.createElement('div');
+        blank.className = "w-14 h-14 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-slate-400 shrink-0 text-[10px] font-bold";
+        blank.textContent = i + 1;
+        previewsContainer.appendChild(blank);
+      }
+
+      document.getElementById('gallery-counter').textContent = `${galleryImages.length} / 10`;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function initializeCompanyCategories(rubroKey, actionKey) {
+      if (rubroKey && companyStickerTaxonomy[rubroKey]) {
+        currentCompanyCatFolder = rubroKey;
+        isCategorySelected = true;
+        const rubroData = companyStickerTaxonomy[rubroKey];
+        selectedRubroSticker = `stickers/empresa/${rubroKey}/${rubroData.default}`;
+      } else {
+        currentCompanyCatFolder = null;
+        isCategorySelected = false;
+        selectedRubroSticker = "stickers/empresa/01-gastronomia-cafes/00-default.gif";
+      }
+
+      if (actionKey && companyActionStickerTaxonomy[actionKey]) {
+        currentActionFolder = actionKey;
+        isActionSelected = true;
+        const actionData = companyActionStickerTaxonomy[actionKey];
+        selectedActionTitle = actionData.shortName;
+        selectedActionSticker = `stickers/acciones empresas/${actionKey}/${actionData.default}`;
+      } else {
+        currentActionFolder = null;
+        isActionSelected = false;
+        selectedActionTitle = "";
+        selectedActionSticker = "stickers/acciones empresas/01-desapacho-delivery/00-default.gif";
+      }
+
+      updateRubroTriggerLabel();
+      updateDestacaTriggerLabel();
+      updateRubroLiveStickerSquare();
+      updateActionLiveStickerSquare();
+      
+      selectActiveCard4Tab('empresa');
+      updateLivePreview();
+    }
+
+    function loadCachedData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isNewMode = urlParams.get('mode') === 'new';
+      const paramId = urlParams.get('id');
+
+      const heroTitle = document.getElementById('hero-title');
+      const submitBtn = document.getElementById('btn-submit-action');
+
+      if (isNewMode || (!paramId && !localStorage.getItem('keilu_user_provider'))) {
+        if (heroTitle) heroTitle.textContent = "Registro de Perfil (Empresa)";
+        if (submitBtn) submitBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Registrar Mi Empresa`;
+        
+        document.getElementById("edit-name").value = "";
+        document.getElementById("edit-rubro").value = "";
+        document.getElementById("edit-desc").value = "";
+        document.getElementById("edit-attendant").value = "";
+        document.getElementById("edit-phone").value = "";
+        document.getElementById("edit-street").value = "";
+        document.getElementById("edit-number").value = "";
+        document.getElementById("edit-city").value = "";
+        document.getElementById("edit-img-preview").src = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=200&q=80";
+        document.getElementById("edit-img-url").value = "";
+        
+        document.getElementById("edit-instagram").value = "";
+        document.getElementById("edit-whatsapp-msg").value = "";
+
+        initializeCompanyCategories(null, null);
+        updateLivePreview();
+        return;
+      }
+
+      if (paramId) {
+        if (typeof providersData !== 'undefined') {
+          const match = providersData.find(p => p.id === parseInt(paramId));
+          if (match) {
+            const isNew = !!match.identidad;
+            const nombre = isNew ? match.identidad.nombre : match.nombre;
+            const rubroVal = isNew ? (match.identidad.especialidad || match.identidad.rubroId) : match.rubro;
+            const descripcion = isNew ? match.identidad.descripcion : '';
+            const foto = isNew ? match.identidad.foto : (match.foto || '');
+            const galeria = isNew ? (match.identidad.galeria || []) : [];
+            const atendidoPor = isNew ? match.identidad.atendidoPor : match.contacto;
+            const fono = isNew ? match.contacto?.fono : match.fono;
+            
+            const calleFull = isNew ? (match.ubicacion?.calle || '') : '';
+            const sector = isNew ? (match.ubicacion?.sector || '') : '';
+            const horarioStr = isNew ? match.contacto?.horario : match.horario;
+            
+            if (isNew && match.ubicacion) {
+              userLat = match.ubicacion.lat;
+              userLng = match.ubicacion.lng;
+            } else {
+              userLat = match.realLat !== undefined ? match.realLat : (match.lat || -36.7960);
+              userLng = match.realLng !== undefined ? match.realLng : (match.lng || -73.1140);
+            }
+
+            if (heroTitle) heroTitle.textContent = `Perfil de ${nombre}`;
+            if (submitBtn) submitBtn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Guardar Cambios`;
+
+            document.getElementById("edit-name").value = nombre || "";
+            document.getElementById("edit-rubro").value = (rubroVal || "").replace(" comercio", "");
+            document.getElementById("edit-desc").value = descripcion || "";
+            document.getElementById("edit-attendant").value = atendidoPor || "";
+            document.getElementById("edit-phone").value = fono || "";
+
+            document.getElementById("edit-instagram").value = (isNew ? match.contacto?.instagram : match.instagram) || "";
+            document.getElementById("edit-whatsapp-msg").value = (isNew ? match.contacto?.whatsappMsg : match.whatsappMsg) || "";
+
+            // Sticker initialization from data
+            let loadedRubro = match.stickerRubro || "";
+            let loadedAction = match.stickerAccion || "";
+            swapStickerOrder = match.swapStickerOrder || false;
+
+            // Resolve folder keys from paths
+            let rKey = null;
+            if (loadedRubro) {
+              const parts = loadedRubro.split('/');
+              if (parts.length >= 3) rKey = parts[2];
+            }
+            let aKey = null;
+            if (loadedAction) {
+              const parts = loadedAction.split('/');
+              if (parts.length >= 3) aKey = parts[2];
+            }
+
+            initializeCompanyCategories(rKey, aKey);
+            if (loadedRubro) selectedRubroSticker = loadedRubro;
+            if (loadedAction) selectedActionSticker = loadedAction;
+
+            if (calleFull) {
+              const matchCalle = calleFull.match(/^(.*?)\s+(\d+)$/);
+              if (matchCalle) {
+                document.getElementById("edit-street").value = matchCalle[1];
+                document.getElementById("edit-number").value = matchCalle[2];
+              } else {
+                document.getElementById("edit-street").value = calleFull;
+              }
+            }
+            if (sector) {
+              document.getElementById("edit-city").value = sector;
+            }
+
+            if (horarioStr) {
+              if (horarioStr === '24/7') {
+                const check247 = document.getElementById("check-24-7");
+                if (check247) { check247.checked = true; toggle247({ checked: true }); }
+              } else {
+                const hoursMatch = horarioStr.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+                if (hoursMatch) {
+                  document.getElementById("time-open").value = hoursMatch[1];
+                  document.getElementById("time-close").value = hoursMatch[2];
+                }
+              }
+            }
+
+            if (foto) {
+              document.getElementById("edit-img-url").value = foto;
+              document.getElementById("edit-img-preview").src = foto;
+            }
+
+            galleryImages = Array.isArray(galeria) ? [...galeria] : [];
+            updateLivePreview();
+            return;
+          }
+        }
+      }
+
+      // Load from localStorage
+      const existingRaw = localStorage.getItem('keilu_user_provider');
+      if (existingRaw) {
+        try {
+          const parsed = JSON.parse(existingRaw);
+          if (parsed && parsed.id === 999 && parsed.tipo === 'verde') {
+            document.getElementById("edit-name").value = parsed.nombre || "";
+            document.getElementById("edit-rubro").value = (parsed.rubro || "").replace(" comercio", "");
+            
+            let loadedRubro = parsed.stickerRubro || "";
+            let loadedAction = parsed.stickerAccion || "";
+            swapStickerOrder = parsed.swapStickerOrder || false;
+
+            let rKey = null;
+            if (loadedRubro) {
+              const parts = loadedRubro.split('/');
+              if (parts.length >= 3) rKey = parts[2];
+            }
+            let aKey = null;
+            if (loadedAction) {
+              const parts = loadedAction.split('/');
+              if (parts.length >= 3) aKey = parts[2];
+            }
+
+            initializeCompanyCategories(rKey, aKey);
+            if (loadedRubro) selectedRubroSticker = loadedRubro;
+            if (loadedAction) selectedActionSticker = loadedAction;
+
+            if (parsed.realLat !== undefined && parsed.realLng !== undefined) {
+              userLat = parsed.realLat;
+              userLng = parsed.realLng;
+            } else if (parsed.lat !== undefined && parsed.lng !== undefined) {
+              userLat = parsed.lat;
+              userLng = parsed.lng;
+            }
+
+            if (parsed.calle) document.getElementById("edit-street").value = parsed.calle;
+            if (parsed.numero) document.getElementById("edit-number").value = parsed.numero;
+            if (parsed.comuna) document.getElementById("edit-city").value = parsed.comuna;
+            if (parsed.notaAd) document.getElementById("edit-desc").value = parsed.notaAd;
+
+            document.getElementById("edit-attendant").value = parsed.contacto || "";
+            document.getElementById("edit-phone").value = parsed.fono || "";
+            
+            document.getElementById("edit-instagram").value = parsed.instagram || "";
+            document.getElementById("edit-whatsapp-msg").value = parsed.whatsappMsg || "";
+
+            if (parsed.foto) {
+              document.getElementById("edit-img-preview").src = parsed.foto;
+              document.getElementById("edit-img-url").value = parsed.foto;
+            }
+          }
+        } catch(e) {}
+      }
+      updateLivePreview();
+    }
+
+    function selectAccountType(type) {
+      accountType = 'verde';
+    }
+
+    function guardarYPublicar() {
+      const photoEl = document.getElementById("edit-img-url");
+      const photo = (photoEl && photoEl.value.trim()) ? photoEl.value.trim() : "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=200&q=80";
+
+      const name = document.getElementById("edit-name").value.trim();
+      const rubro = document.getElementById("edit-rubro").value.trim();
+      
+      const street = document.getElementById("edit-street").value.trim();
+      const number = document.getElementById("edit-number").value.trim();
+      const city = document.getElementById("edit-city").value.trim();
+
+      if (!name) { alert("Por favor ingresa el Nombre Principal (Paso 1)."); return; }
+      if (!rubro) { alert("Por favor ingresa el Giro o Rubro Detallado (Paso 1)."); return; }
+      if (!street || !number || !city) { alert("Por favor completa la dirección del local (Paso 6)."); return; }
+
+      const is247 = document.getElementById("check-24-7").checked;
+      const abre = is247 ? "" : document.getElementById("time-open").value;
+      const cierra = is247 ? "" : document.getElementById("time-close").value;
+      const disponible = document.getElementById("switch-disponibilidad").checked;
+
+      const existingRaw = localStorage.getItem('keilu_user_provider');
+      let isPaid = false;
+      if (existingRaw) {
+        try {
+          const parsed = JSON.parse(existingRaw);
+          isPaid = parsed.dePago || false;
+        } catch(e) {}
+      }
+      const descEl = document.getElementById("edit-desc");
+      const adText = descEl ? descEl.value.trim() : "";
+
+      // Fallback emoji based on selected category
+      let fallbackEmoji = "🏪";
+      if (currentCompanyCatFolder && companyStickerTaxonomy[currentCompanyCatFolder]) {
+        // Just use first character or fallback
+        const nameMapping = {
+          "01-gastronomia-cafes": "🍔",
+          "02-almacenes-minimarkets": "🏪",
+          "03-panaderia-reposteria": "🥖",
+          "04-ropa-zapatos-accesorios": "👕",
+          "05-bazar-libreria": "📚",
+          "06-hogar-decoracion": "🪴",
+          "07-ferreteria-construccion": "🛠️",
+          "08-automotriz-repuestos": "⚙️",
+          "09-salud-farmacia": "💊",
+          "10-mascotas-veterinaria": "🐾",
+          "11-servicios-oficinas": "👔",
+          "12-licoreria-botilleria": "🍾",
+          "13-carnes-alimentos-frescos": "🥩"
+        };
+        fallbackEmoji = nameMapping[currentCompanyCatFolder] || "🏪";
+      }
+
+      const userProvider = {
+        id: 999,
+        tipo: 'verde',
+        dePago: isPaid,
+        foto: photo,
+        emoji: fallbackEmoji,
+        stickerRubro: selectedRubroSticker,
+        stickerAccion: selectedActionSticker,
+        swapStickerOrder: swapStickerOrder,
+        nombre: name,
+        rubro: rubro + " comercio",
+        contacto: document.getElementById("edit-attendant").value.trim() || name,
+        fono: document.getElementById("edit-phone").value.trim() || "+56987654321",
+        instagram: document.getElementById("edit-instagram").value.trim(),
+        whatsappMsg: document.getElementById("edit-whatsapp-msg").value.trim(),
+        horario: is247 ? "24/7" : "fijo",
+        abre: abre,
+        cierra: cierra,
+        dias: activeDays.join(" a "),
+        disponible: disponible,
+        lat: userLat,
+        lng: userLng,
+        privacidad: 'exacta',
+        realLat: userLat,
+        realLng: userLng,
+        calle: street,
+        numero: number,
+        comuna: city,
+        notaAd: adText,
+        galeria: galleryImages
+      };
+
+      localStorage.setItem('keilu_user_provider', JSON.stringify(userProvider));
+      alert("🚀 ¡Perfil de Empresa Guardado con éxito en tu zona local!");
+      window.location.href = "index.html";
+    }
+
+    window.onload = async () => {
+      try {
+        loadCachedData();
+        selectAccountType('verde');
+
+        // Si es un registro nuevo, geolocalizar por IP primero
+        const urlParams = new URLSearchParams(window.location.search);
+        const isNewMode = urlParams.get('mode') === 'new';
+        const paramId = urlParams.get('id');
+        let hasSaved = false;
+        const savedRaw = localStorage.getItem('keilu_user_provider');
+        if (savedRaw) {
+          try {
+            const parsed = JSON.parse(savedRaw);
+            if (parsed && parsed.id === 999) hasSaved = true;
+          } catch(e) {}
+        }
+        const isNew = isNewMode || (!paramId && !hasSaved);
+
+        if (isNew) {
+          try {
+            const ipRes = await fetch("https://freeipapi.com/api/json");
+            if (ipRes.ok) {
+              const ipData = await ipRes.json();
+              if (ipData.latitude && ipData.longitude) {
+                userLat = ipData.latitude;
+                userLng = ipData.longitude;
+                if (ipData.cityName) {
+                  const cityInput = document.getElementById("edit-city");
+                  if (cityInput) cityInput.value = ipData.cityName;
+                }
+              }
+            }
+          } catch (e) {
+            console.warn("Geolocalización por IP falló:", e);
+          }
+        }
+
+        initMiniMap(userLat, userLng);
+        
+        // Auto GPS refinar si es nuevo
+        if (isNew && navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            position => {
+              userLat = position.coords.latitude;
+              userLng = position.coords.longitude;
+              if (miniMap) {
+                miniMap.setCenter([userLng, userLat]);
+              }
+              const display = document.getElementById("gps-coords-display");
+              if (display) display.textContent = `📍 GPS: ${userLat.toFixed(5)}, ${userLng.toFixed(5)}`;
+              updateLivePreview();
+            },
+            err => console.warn("GPS falló al cargar, usando IP.", err),
+            { enableHighAccuracy: true, timeout: 4000 }
+          );
+        }
+
+        const rubroTrigger = document.getElementById("rubro-dropdown-trigger");
+        if (rubroTrigger) {
+          rubroTrigger.addEventListener("click", function(e) {
+            e.stopPropagation();
+            toggleCustomRubroDropdown();
+          });
+        }
+
+        const destacaTrigger = document.getElementById("destaca-dropdown-trigger");
+        if (destacaTrigger) {
+          destacaTrigger.addEventListener("click", function(e) {
+            e.stopPropagation();
+            toggleCustomDestacaDropdown();
+          });
+        }
+
+        document.addEventListener("click", function(e) {
+          const rMenu = document.getElementById("custom-rubro-dropdown-menu");
+          if (rMenu && !rMenu.contains(e.target) && e.target !== rubroTrigger) {
+            rMenu.classList.add('hidden');
+            rMenu.classList.remove('flex');
+          }
+          const dMenu = document.getElementById("custom-destaca-dropdown-menu");
+          if (dMenu && !dMenu.contains(e.target) && e.target !== destacaTrigger) {
+            dMenu.classList.add('hidden');
+            dMenu.classList.remove('flex');
+          }
+        });
+
+        renderCustomRubroDropdown();
+        renderCustomDestacaDropdown();
+        lucide.createIcons();
+      } catch (e) {
+        console.error("Initialization error:", e);
+      }
+    };
+  </script>
+</body>
+</html>
