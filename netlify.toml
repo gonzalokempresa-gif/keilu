@@ -1,0 +1,7 @@
+# Configuración de despliegue para Netlify.
+# Keilu no necesita "compilarse" (no hay build): son archivos HTML/JS/CSS
+# ya listos, adentro de la carpeta "desktop". Esto le dice a Netlify que
+# publique esa carpeta tal cual, sin ejecutar ningún comando de build.
+
+[build]
+  publish = "desktop"
