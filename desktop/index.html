@@ -769,7 +769,7 @@
           err => {
             console.warn("GPS de alta precisión no disponible, permaneciendo en la ciudad de la IP.", err);
           },
-          { enableHighAccuracy: true, timeout: 4000 }
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
         );
       }
     });
@@ -958,8 +958,11 @@
       if (!navigator.geolocation) return;
       navigator.geolocation.getCurrentPosition(
         pos => map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 15, duration: 1500 }),
-        ()  => map.flyTo({ center: [userCoords[1], userCoords[0]], zoom: 15, duration: 1500 }),
-        { enableHighAccuracy: true, timeout: 5000 }
+        (err) => {
+          console.warn("No se pudo obtener tu ubicación GPS exacta, mostrando la ciudad aproximada.", err);
+          map.flyTo({ center: [userCoords[1], userCoords[0]], zoom: 15, duration: 1500 });
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     }
 
@@ -1415,8 +1418,17 @@
     }
 
     // ── Callback de cada actualización GPS continua (watchPosition) ──
+    // Umbral de precisión: ignoramos lecturas con más de 100m de margen de error
+    // (típico en interiores o con mala señal) para que el punto azul no salte
+    // de lugar ni se recalcule la ruta por una ubicación poco confiable.
+    const GPS_PRECISION_MINIMA_M = 100;
+
     function onPosicionGPSActualizada(pos) {
       if (!rutaActivaData || !map) return;
+      if (typeof pos.coords.accuracy === 'number' && pos.coords.accuracy > GPS_PRECISION_MINIMA_M) {
+        console.warn(`Lectura GPS descartada por baja precisión (±${Math.round(pos.coords.accuracy)}m).`);
+        return;
+      }
 
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
