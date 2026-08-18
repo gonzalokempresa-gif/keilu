@@ -1047,97 +1047,124 @@
 
           const esPrivado = (isNew ? p.ubicacion?.privacidad : p.privacidad) !== 'exacta';
 
-          if (isAzul && isProPlan && (rubroStickerPath || actionStickerPath)) {
-            // 🌟 PIN PRO COMPACTO SIN CUADRO AZUL GRANDE ALREDEDOR DE LOS EMOJIS:
-            // - EMOJIS CUADRADOS (34px) FLOTANDO DIRECTAMENTE
-            // - CAJA DE TEXTO AZUL MARINO (#052659) MÁS GRANDE Y DESTACADA ABAJO
-            const stickerSizePx = pinDesign.stickerSize;
-            const stickerIconPx = Math.max(14, stickerSizePx - 8);
-            let rubroContent = rubroStickerPath
-              ? `<img src="${rubroStickerPath}" style="width:${stickerIconPx}px;height:${stickerIconPx}px;" class="object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji}</span>';">`
-              : `<span style="font-size:13.5px;">${emoji}</span>`;
-
-            if (!actionStickerPath) {
+          // Fallback inteligente para el segundo sticker si no viene especificado
+          if (!actionStickerPath) {
+            if (isNaranja) {
+              actionStickerPath = 'stickers/appmojis/calendar.gif';
+            } else if (isAzul) {
               actionStickerPath = 'stickers/acciones trabajadores/02-domicilio/00-default.gif';
+            } else {
+              actionStickerPath = 'stickers/appmojis/ubicacion.gif';
             }
+          }
+
+          if (isProPlan) {
+            // 🌟 PIN PRO: 2 STICKERS DESTACADOS + CAJA DE TEXTO CON MENSAJE/SLOGAN (CON LÍMITE DE LONGITUD)
+            const stickerSizePx = pinDesign.stickerSize || 34;
+            const stickerIconPx = Math.max(14, stickerSizePx - 8);
+
+            let rubroContent = rubroStickerPath
+              ? `<img src="${rubroStickerPath}" style="width:${stickerIconPx}px;height:${stickerIconPx}px;" class="object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji || '⭐'}</span>';">`
+              : `<span style="font-size:13.5px;">${emoji || '⭐'}</span>`;
 
             let actionContent = `<img src="${actionStickerPath}" style="width:${stickerIconPx}px;height:${stickerIconPx}px;" class="object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>⚡</span>';">`;
 
-            // Extraer nombre del oficio/trabajo (ej: Gasfiter, Fletes, Técnico PC, Jardinero)
-            let oficioNombre = '';
-            if (p.identidad?.nombre && p.identidad.nombre.includes('—')) {
-              oficioNombre = p.identidad.nombre.split('—')[1].trim();
-            } else if (p.nombre && p.nombre.includes('—')) {
-              oficioNombre = p.nombre.split('—')[1].trim();
-            } else if (p.identidad?.especialidad) {
-              oficioNombre = p.identidad.especialidad.replace(/^[^\w\s]+/, '').trim().split(',')[0];
+            // Construir mensaje / slogan corto y atractivo para el Pin PRO
+            let mensajePro = '';
+            if (p.mensajePro && p.mensajePro.trim().length > 0) {
+              mensajePro = p.mensajePro.trim();
+            } else if (p.notaAd && p.notaAd.trim().length > 0) {
+              mensajePro = p.notaAd.trim();
+            } else if (p.tiemposYAcciones?.estadoVivo?.activo && p.tiemposYAcciones.estadoVivo.texto) {
+              mensajePro = p.tiemposYAcciones.estadoVivo.texto;
+            } else if (p.identidad?.slogan) {
+              mensajePro = p.identidad.slogan;
             } else {
-              oficioNombre = p.rubro || 'Profesional';
+              const rubroRaw = (p.identidad?.rubroId || p.rubroId || '').toLowerCase();
+              const espRaw = (p.identidad?.especialidad || p.especialidad || p.rubro || '').toLowerCase();
+              const nomRaw = (p.identidad?.nombre || p.nombre || '');
+
+              if (rubroRaw === 'truck' || espRaw.includes('flete') || espRaw.includes('mudanza')) {
+                mensajePro = '¿Necesitas transporte?';
+              } else if (rubroRaw === 'wrench' || espRaw.includes('gasfiter') || espRaw.includes('cañería') || espRaw.includes('plomer')) {
+                mensajePro = '¿Filtración o urgencia?';
+              } else if (rubroRaw === 'scissors' || espRaw.includes('corte') || espRaw.includes('estilista') || espRaw.includes('peluquer')) {
+                mensajePro = 'Cortes a domicilio';
+              } else if (rubroRaw === 'solder' || espRaw.includes('soldador') || espRaw.includes('reja')) {
+                mensajePro = 'Soldaduras y rejas';
+              } else if (rubroRaw === 'wood' || espRaw.includes('mueble') || espRaw.includes('carpinter')) {
+                mensajePro = 'Muebles a medida';
+              } else if (rubroRaw === 'screen' || espRaw.includes('computador') || espRaw.includes('técnico pc')) {
+                mensajePro = 'Servicio técnico PC';
+              } else if (rubroRaw === 'electric' || espRaw.includes('electric') || espRaw.includes('enchufe')) {
+                mensajePro = 'Instalaciones SEC';
+              } else if (rubroRaw === 'gardener' || espRaw.includes('jardin') || espRaw.includes('poda')) {
+                mensajePro = 'Jardinería y podas';
+              } else if (rubroRaw === 'lock' || espRaw.includes('cerrajer')) {
+                mensajePro = 'Aperturas 24 hrs';
+              } else if (nomRaw.includes('—')) {
+                mensajePro = nomRaw.split('—')[1].trim();
+              } else {
+                mensajePro = p.identidad?.especialidad?.split(',')[0]?.replace(/^[^\w\s]+/, '').trim() || p.rubro || 'Servicio Express';
+              }
             }
+
+            const proBgColor = isNaranja ? '#c2410c' : (isAzul ? (pinDesign.capsuleBg || '#052659') : '#065f46');
 
             pinHtml = `
               <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-105" style="position: absolute; transform: translate(-50%, -50%);">
-                <!-- 1. LOS 2 STICKERS CUADRADOS SIN NINGÚN MARCO AZUL GRANDE ATRÁS (tamaño editable en Modo Diseño) -->
+                <!-- 1. LOS 2 STICKERS CUADRADOS SUPERIORES (34px) -->
                 <div class="flex items-center gap-1 z-20">
-                  <div style="width:${stickerSizePx}px;height:${stickerSizePx}px;" class="rounded-lg bg-white flex items-center justify-center border-2 border-white shadow-md overflow-hidden ring-1 ring-slate-900/10">
+                  <div style="width:${stickerSizePx}px;height:${stickerSizePx}px;" class="rounded-xl bg-white flex items-center justify-center border-2 border-white shadow-md overflow-hidden ring-1 ring-slate-900/10">
                     ${rubroContent}
                   </div>
-                  <div style="width:${stickerSizePx}px;height:${stickerSizePx}px;" class="rounded-lg bg-white flex items-center justify-center border-2 border-white shadow-md overflow-hidden ring-1 ring-slate-900/10">
+                  <div style="width:${stickerSizePx}px;height:${stickerSizePx}px;" class="rounded-xl bg-white flex items-center justify-center border-2 border-white shadow-md overflow-hidden ring-1 ring-slate-900/10">
                     ${actionContent}
                   </div>
                 </div>
 
-                <!-- 2. CAJA DE TEXTO (color/tamaño editables en Modo Diseño) -->
-                <div style="background:${pinDesign.capsuleBg};" class="relative z-10 -mt-1.5 py-1.5 px-3 rounded-lg shadow-xl flex items-center justify-center border-2 border-white min-w-[80px]">
-                  <span style="color:${pinDesign.capsuleText};font-size:${pinDesign.fontSize}px;" class="font-black tracking-wide whitespace-nowrap leading-none drop-shadow-xs">${oficioNombre}</span>
+                <!-- 2. CAJA DE TEXTO CON EL MENSAJE / SLOGAN (CON LÍMITE DE TAMAÑO PARA NO SATURAR) -->
+                <div style="background:${proBgColor};max-width:145px;" class="relative z-10 -mt-1.5 py-1 px-2.5 rounded-lg shadow-xl flex items-center justify-center border-2 border-white min-w-[70px]">
+                  <span style="color:${pinDesign.capsuleText || '#ffffff'};font-size:${pinDesign.fontSize || 10.5}px;" class="font-black tracking-wide truncate whitespace-nowrap leading-tight drop-shadow-xs">${mensajePro}</span>
                 </div>
 
                 <!-- 3. PUNTA TRIANGULAR ABAJO -->
-                <div style="border-top-color:${pinDesign.capsuleBg};" class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] -mt-0.5 z-10"></div>
+                <div style="border-top-color:${proBgColor};" class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] -mt-0.5 z-10"></div>
                 
                 <!-- 4. SOMBRA DISCRETA DE PISO -->
                 <div class="w-8 h-1 bg-slate-900/35 rounded-full blur-[1px] -mt-0.5 pointer-events-none"></div>
               </div>`;
-          } else if (tieneBoost) {
-            // 🚀 REDISEÑO DE GOTA PREMIUM 3D INDIVIDUAL
-            let stickerContent = '';
-            
-            if (rubroStickerPath) {
-              stickerContent = `<img src="${rubroStickerPath}" class="w-[28px] h-[28px] object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji}</span>';">`;
-            } else if (p.id === 128) {
-              stickerContent = `<img src="gif/hamburguesa_boost.gif" class="w-[28px] h-[28px] object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji}</span>';">`;
-            } else if (p.id === 127) {
-              stickerContent = `<img src="gif/sushi_boost.gif" class="w-[28px] h-[28px] object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji}</span>';">`;
-            } else if (p.id === 129) {
-              stickerContent = `<img src="gif/pollo_boost.gif" class="w-[28px] h-[28px] object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji}</span>';">`;
-            } else {
-              stickerContent = `<span class="${animClass}" style="font-size: 13.5px; display: inline-block; line-height: 1;">${emoji}</span>`;
-            }
+          } else {
+            // 📍 PLAN BÁSICO: 2 EMOJIS / STICKERS COMPACTOS (SIN TEXTO INFERIOR PARA NO SATURAR LA PANTALLA)
+            const basicSizePx = 25;
+            const basicIconPx = 18;
+
+            let rubroContent = rubroStickerPath
+              ? `<img src="${rubroStickerPath}" style="width:${basicIconPx}px;height:${basicIconPx}px;" class="object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:12px;\'>${emoji || '📍'}</span>';">`
+              : `<span style="font-size:12px;">${emoji || '📍'}</span>`;
+
+            let actionContent = `<img src="${actionStickerPath}" style="width:${basicIconPx}px;height:${basicIconPx}px;" class="object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:12px;\'>⚡</span>';">`;
+
+            const basicBorderColor = isNaranja ? 'border-orange-500' : (isAzul ? 'border-blue-600' : 'border-emerald-600');
+            const basicTipColor = isNaranja ? '#ea580c' : (isAzul ? '#2563eb' : '#059669');
 
             pinHtml = `
-              <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-110" style="position: absolute; transform: translate(-50%, -50%);">
-                <!-- 1. CUERPO PRINCIPAL DE LA GOTA (Blanco exterior, color interior) -->
-                <div class="relative z-10 w-9 h-9 rounded-full bg-white shadow-md flex items-center justify-center border border-slate-200/50">
-                  <div class="w-[28px] h-[28px] rounded-full ${innerColor} flex items-center justify-center text-white border border-white/20 overflow-hidden">
-                    ${stickerContent}
+              <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-115" style="position: absolute; transform: translate(-50%, -50%);">
+                <!-- CÁPSULA BLANCA CON LOS 2 EMOJIS/STICKERS -->
+                <div class="flex items-center gap-0.5 p-1 rounded-xl bg-white border-2 ${basicBorderColor} shadow-md overflow-hidden z-20">
+                  <div style="width:${basicSizePx}px;height:${basicSizePx}px;" class="rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden">
+                    ${rubroContent}
+                  </div>
+                  <div style="width:${basicSizePx}px;height:${basicSizePx}px;" class="rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden">
+                    ${actionContent}
                   </div>
                 </div>
-                
-                <!-- 2. PUNTA INFERIOR -->
-                <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[7px] border-t-white -mt-0.5 z-10 shadow-sm"></div>
-                
-                <!-- 3. SOMBRA DE LEVITACIÓN EN EL PISO 3D -->
-                <div class="w-4.5 h-1 ${shadowColor} rounded-full blur-[1px] -mt-0.5 pointer-events-none"></div>
-              </div>`;
-          } else {
-            // ESTRUCTURA DE PIN CON EMOJI VISIBLE
-            pinHtml = `
-              <div class="relative flex items-center justify-center pointer-events-auto cursor-pointer transition-transform duration-200 hover:scale-125 select-none shadow-md group" style="position: absolute; transform: translate(-50%, -50%);">
-                <div class="w-7 h-7 rounded-full bg-white border-2 ${borderColorClass} shadow-sm flex items-center justify-center text-xs overflow-hidden z-20">
-                  ${rubroStickerPath 
-                    ? `<img src="${rubroStickerPath}" class="w-5 h-5 object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<span>${emoji}</span>';">`
-                    : `<span>${emoji}</span>`}
-                </div>
+
+                <!-- PUNTA INFERIOR SUTIL -->
+                <div style="border-top-color:${basicTipColor};" class="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] -mt-0.5 z-10 shadow-xs"></div>
+
+                <!-- SOMBRA DE PISO -->
+                <div class="w-6 h-1 bg-slate-900/30 rounded-full blur-[1px] -mt-0.5 pointer-events-none"></div>
               </div>`;
           }
 
