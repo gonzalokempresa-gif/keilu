@@ -1047,27 +1047,14 @@
 
           const esPrivado = (isNew ? p.ubicacion?.privacidad : p.privacidad) !== 'exacta';
 
-          // Fallback inteligente para el segundo sticker si no viene especificado
-          if (!actionStickerPath) {
-            if (isNaranja) {
-              actionStickerPath = 'stickers/appmojis/calendar.gif';
-            } else if (isAzul) {
-              actionStickerPath = 'stickers/acciones trabajadores/02-domicilio/00-default.gif';
-            } else {
-              actionStickerPath = 'stickers/appmojis/ubicacion.gif';
-            }
-          }
+          // Foto de perfil del proveedor con fallback
+          const fotoPerfil = foto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200';
 
           if (isProPlan) {
-            // 🌟 PIN PRO: 2 STICKERS DESTACADOS + CAJA DE TEXTO CON MENSAJE/SLOGAN (CON LÍMITE DE LONGITUD)
-            const stickerSizePx = pinDesign.stickerSize || 34;
-            const stickerIconPx = Math.max(14, stickerSizePx - 8);
-
-            let rubroContent = rubroStickerPath
-              ? `<img src="${rubroStickerPath}" style="width:${stickerIconPx}px;height:${stickerIconPx}px;" class="object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>${emoji || '⭐'}</span>';">`
-              : `<span style="font-size:13.5px;">${emoji || '⭐'}</span>`;
-
-            let actionContent = `<img src="${actionStickerPath}" style="width:${stickerIconPx}px;height:${stickerIconPx}px;" class="object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:13.5px;\'>⚡</span>';">`;
+            // 🌟 PIN PRO: FOTO DE PERFIL CIRCULAR DESTACADA + MINI STICKER DE RUBRO + MENSAJE/SLOGAN
+            let miniSticker = rubroStickerPath
+              ? `<img src="${rubroStickerPath}" class="w-full h-full object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:10px;\'>${emoji || '⭐'}</span>';">`
+              : `<span style="font-size:10px;">${emoji || '⭐'}</span>`;
 
             // Construir mensaje / slogan corto y atractivo para el Pin PRO
             let mensajePro = '';
@@ -1110,54 +1097,42 @@
             }
 
             const proBgColor = isNaranja ? '#c2410c' : (isAzul ? (pinDesign.capsuleBg || '#052659') : '#065f46');
+            const proBorderColor = isNaranja ? 'border-orange-500' : (isAzul ? 'border-blue-500' : 'border-emerald-500');
 
             pinHtml = `
-              <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-105" style="position: absolute; transform: translate(-50%, -50%);">
-                <!-- 1. LOS 2 STICKERS CUADRADOS SUPERIORES (34px) -->
-                <div class="flex items-center gap-1 z-20">
-                  <div style="width:${stickerSizePx}px;height:${stickerSizePx}px;" class="rounded-xl bg-white flex items-center justify-center border-2 border-white shadow-md overflow-hidden ring-1 ring-slate-900/10">
-                    ${rubroContent}
+              <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-110" style="position: absolute; transform: translate(-50%, -50%);">
+                <!-- AVATAR CIRCULAR PRO CON FOTO DE PERFIL Y MINI STICKER -->
+                <div class="relative z-20">
+                  <div class="w-10 h-10 rounded-full bg-white border-2 border-white shadow-xl overflow-hidden ring-2 ${proBorderColor}">
+                    <img src="${fotoPerfil}" class="w-full h-full object-cover block select-none" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200'">
                   </div>
-                  <div style="width:${stickerSizePx}px;height:${stickerSizePx}px;" class="rounded-xl bg-white flex items-center justify-center border-2 border-white shadow-md overflow-hidden ring-1 ring-slate-900/10">
-                    ${actionContent}
+                  <!-- Mini Sticker flotante en la esquina -->
+                  <div class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center p-0.5 z-30">
+                    ${miniSticker}
                   </div>
                 </div>
 
-                <!-- 2. CAJA DE TEXTO CON EL MENSAJE / SLOGAN (CON LÍMITE DE TAMAÑO PARA NO SATURAR) -->
+                <!-- CAJA DE TEXTO CON MENSAJE / SLOGAN -->
                 <div style="background:${proBgColor};max-width:145px;" class="relative z-10 -mt-1.5 py-1 px-2.5 rounded-lg shadow-xl flex items-center justify-center border-2 border-white min-w-[70px]">
                   <span style="color:${pinDesign.capsuleText || '#ffffff'};font-size:${pinDesign.fontSize || 10.5}px;" class="font-black tracking-wide truncate whitespace-nowrap leading-tight drop-shadow-xs">${mensajePro}</span>
                 </div>
 
-                <!-- 3. PUNTA TRIANGULAR ABAJO -->
+                <!-- PUNTA TRIANGULAR ABAJO -->
                 <div style="border-top-color:${proBgColor};" class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] -mt-0.5 z-10"></div>
                 
-                <!-- 4. SOMBRA DISCRETA DE PISO -->
+                <!-- SOMBRA DE PISO -->
                 <div class="w-8 h-1 bg-slate-900/35 rounded-full blur-[1px] -mt-0.5 pointer-events-none"></div>
               </div>`;
           } else {
-            // 📍 PLAN BÁSICO: 2 EMOJIS / STICKERS COMPACTOS (SIN TEXTO INFERIOR PARA NO SATURAR LA PANTALLA)
-            const basicSizePx = 25;
-            const basicIconPx = 18;
-
-            let rubroContent = rubroStickerPath
-              ? `<img src="${rubroStickerPath}" style="width:${basicIconPx}px;height:${basicIconPx}px;" class="object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:12px;\'>${emoji || '📍'}</span>';">`
-              : `<span style="font-size:12px;">${emoji || '📍'}</span>`;
-
-            let actionContent = `<img src="${actionStickerPath}" style="width:${basicIconPx}px;height:${basicIconPx}px;" class="object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:12px;\'>⚡</span>';">`;
-
-            const basicBorderColor = isNaranja ? 'border-orange-500' : (isAzul ? 'border-blue-600' : 'border-emerald-600');
+            // 📍 PLAN BÁSICO: FOTO DE PERFIL CIRCULAR DEL PROVEEDOR (CON BORDE DEL COLOR DEL ROL)
+            const basicBorderColor = isNaranja ? 'border-orange-500 ring-orange-200' : (isAzul ? 'border-blue-600 ring-blue-200' : 'border-emerald-600 ring-emerald-200');
             const basicTipColor = isNaranja ? '#ea580c' : (isAzul ? '#2563eb' : '#059669');
 
             pinHtml = `
-              <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-115" style="position: absolute; transform: translate(-50%, -50%);">
-                <!-- CÁPSULA BLANCA CON LOS 2 EMOJIS/STICKERS -->
-                <div class="flex items-center gap-0.5 p-1 rounded-xl bg-white border-2 ${basicBorderColor} shadow-md overflow-hidden z-20">
-                  <div style="width:${basicSizePx}px;height:${basicSizePx}px;" class="rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden">
-                    ${rubroContent}
-                  </div>
-                  <div style="width:${basicSizePx}px;height:${basicSizePx}px;" class="rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden">
-                    ${actionContent}
-                  </div>
+              <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-120" style="position: absolute; transform: translate(-50%, -50%);">
+                <!-- FOTO DE PERFIL CIRCULAR CON ANILLO DE COLOR -->
+                <div class="w-8 h-8 rounded-full bg-white border-2 ${basicBorderColor} ring-2 shadow-lg overflow-hidden z-20">
+                  <img src="${fotoPerfil}" class="w-full h-full object-cover block select-none" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200'">
                 </div>
 
                 <!-- PUNTA INFERIOR SUTIL -->
