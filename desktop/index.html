@@ -1050,29 +1050,29 @@
           // Foto de perfil del proveedor con fallback
           const fotoPerfil = foto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200';
 
-          const roleBorder = isNaranja ? 'border-orange-500' : (isAzul ? 'border-blue-600' : 'border-emerald-600');
-          const roleTipColor = isNaranja ? '#ea580c' : (isAzul ? '#2563eb' : '#059669');
+          const roleBorderHex = isNaranja ? '#ea580c' : (isAzul ? '#2563eb' : '#059669');
+          const roleTipColor = roleBorderHex;
 
-          // Distinción sutil para Pro (sin cambiar el tamaño del pin)
+          // Distinción sutil para Pro: mini estrellita dorada en la esquina (SIN cartel de texto)
           const badgePro = isProPlan
-            ? `<div class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 border border-white shadow-sm flex items-center justify-center text-[8px] font-black text-amber-950 z-30 select-none">⭐</div>`
+            ? `<div style="position:absolute; top:-3px; right:-3px; width:16px; height:16px; border-radius:50%; background:#f59e0b; border:1.5px solid #ffffff; box-shadow:0 2px 4px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:900; color:#451a03; z-index:30; user-select:none;">⭐</div>`
             : '';
 
           pinHtml = `
-            <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-115" style="position: absolute; transform: translate(-50%, -50%);">
-              <!-- CONTENEDOR CIRCULAR UNIFORME DE 36px PARA TODOS -->
-              <div class="relative z-20">
-                <div class="w-9 h-9 rounded-full bg-white border-2 ${roleBorder} shadow-lg overflow-hidden flex items-center justify-center ring-2 ring-white">
-                  <img src="${fotoPerfil}" class="w-full h-full object-cover block select-none" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200'">
+            <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-120" style="position: absolute; transform: translate(-50%, -50%);">
+              <!-- CONTENEDOR CIRCULAR EXACTO DE 36px PARA TODOS (SIN TEXTO EN NINGUNO) -->
+              <div style="position: relative; z-index: 20;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: #ffffff; border: 2.5px solid ${roleBorderHex}; box-shadow: 0 4px 12px rgba(0,0,0,0.18); overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                  <img src="${fotoPerfil}" style="width: 100%; height: 100%; object-fit: cover; display: block; user-select: none;" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200'">
                 </div>
                 ${badgePro}
               </div>
 
               <!-- PUNTA DE GOTA INFERIOR UNIFORME -->
-              <div style="border-top-color:${roleTipColor};" class="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[6px] -mt-0.5 z-10 shadow-xs"></div>
+              <div style="width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid ${roleTipColor}; margin-top: -2px; z-index: 10;"></div>
 
               <!-- SOMBRA DE PISO -->
-              <div class="w-6 h-1 bg-slate-900/30 rounded-full blur-[1px] -mt-0.5 pointer-events-none"></div>
+              <div style="width: 24px; height: 4px; background: rgba(15, 23, 42, 0.25); border-radius: 50%; filter: blur(1px); margin-top: -2px; pointer-events: none;"></div>
             </div>`;
 
           const el = document.createElement('div');
