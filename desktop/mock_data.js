@@ -448,8 +448,348 @@ const providersData = [
   },
 
   // =====================================================================
-  // CATÁLOGO VERDE 🟢 — COMERCIOS, LOCALES Y EMPRESAS (VACÍO - RECONSTRUCCIÓN DE 0)
+  // CATÁLOGO VERDE 🟢 — COMERCIOS, LOCALES Y EMPRESAS (IDs 301-320)
   // =====================================================================
+  {
+    id: 301, tipo: 'verde', plan: 'pro', dePago: true, subPlan: 'pro', radarActivo: true, verificado: true, rankingScore: 150,
+    identidad: {
+      nombre: 'Minimarket El Vecino', rubroId: 'minimarket', emoji: '🛒',
+      especialidad: '🛒 Abarrotes, bebidas y productos de primera necesidad',
+      descripcion: 'Minimarket de barrio abierto todos los días, con despacho a domicilio en el sector. Variedad de abarrotes, lácteos, bebidas y artículos de aseo.',
+      foto: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Familia Muñoz'
+    },
+    stickerRubro: 'stickers/empresa/02-almacenes-minimarkets/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/01-desapacho-delivery/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: true, radarPulse: true },
+    tiemposYAcciones: { tiempoRespuesta: '20-30 min', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Plan Pro', tarifaPagada: '$14.990 CLP' },
+    ubicacion: { lat: -36.802900, lng: -73.100976, calle: 'Local 3, Avenida Gran Bretaña', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010001', whatsapp: 'https://wa.me/56930010001', horario: '08:00 - 22:00 hrs', dias: 'Lunes a Domingo' }
+  },
+  {
+    id: 302, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: true, rankingScore: 80,
+    identidad: {
+      nombre: 'Panadería San Pedro', rubroId: 'panaderia', emoji: '🥖',
+      especialidad: '🥖 Pan amasado, pastelería y tortas por encargo',
+      descripcion: 'Panadería tradicional con horneado diario. Pan amasado, marraqueta, completos y tortas de cumpleaños por encargo con 24 horas de anticipación.',
+      foto: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Panadería San Pedro'
+    },
+    stickerRubro: 'stickers/empresa/03-panaderia-reposteria/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/02-retiro-en-tienda/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Retiro en tienda', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.778639, lng: -73.114552, calle: 'Local 5, Calle Costanera', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010002', whatsapp: 'https://wa.me/56930010002', horario: '07:30 - 21:00 hrs', dias: 'Lunes a Domingo' }
+  },
+  {
+    id: 303, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: false, rankingScore: 50,
+    identidad: {
+      nombre: 'Ferretería Hualpén', rubroId: 'ferreteria', emoji: '🔨',
+      especialidad: '🔨 Materiales de construcción y herramientas',
+      descripcion: 'Ferretería de barrio con materiales de construcción, pinturas, herramientas manuales y artículos eléctricos básicos.',
+      foto: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Ferretería Hualpén'
+    },
+    stickerRubro: 'stickers/empresa/07-ferreteria-construccion/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/07-compras-presencial/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Compra en local', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.778221, lng: -73.111213, calle: 'Local 8, Calle Tirana', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010003', whatsapp: 'https://wa.me/56930010003', horario: '09:00 - 19:00 hrs', dias: 'Lunes a Sábado' }
+  },
+  {
+    id: 304, tipo: 'verde', plan: 'pro', dePago: true, subPlan: 'pro', radarActivo: true, verificado: true, rankingScore: 150,
+    identidad: {
+      nombre: 'Botillería La Esquina', rubroId: 'botilleria', emoji: '🍾',
+      especialidad: '🍾 Bebidas, cervezas y despacho express',
+      descripcion: 'Botillería con despacho a domicilio en menos de 30 minutos. Amplia variedad de cervezas, vinos y bebidas heladas.',
+      foto: 'https://images.unsplash.com/photo-1567958451986-2de427a4a0be?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Botillería La Esquina'
+    },
+    stickerRubro: 'stickers/empresa/12-licoreria-botilleria/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/01-desapacho-delivery/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: true, radarPulse: true },
+    tiemposYAcciones: { tiempoRespuesta: '15-30 min', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Plan Pro', tarifaPagada: '$14.990 CLP' },
+    ubicacion: { lat: -36.771748, lng: -73.088862, calle: 'Local 2, Calle Las Amapolas', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010004', whatsapp: 'https://wa.me/56930010004', horario: '11:00 - 23:00 hrs', dias: 'Lunes a Domingo' }
+  },
+  {
+    id: 305, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: false, rankingScore: 50,
+    identidad: {
+      nombre: 'Pizzería Toscana', rubroId: 'pizzeria', emoji: '🍕',
+      especialidad: '🍕 Pizzas artesanales a la piedra',
+      descripcion: 'Pizzería familiar con masa artesanal fermentada 24 horas. Despacho propio y retiro en local.',
+      foto: 'https://images.unsplash.com/photo-1543168256-418811576931?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Pizzería Toscana'
+    },
+    stickerRubro: 'stickers/empresa/01-gastronomia-cafes/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/01-desapacho-delivery/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: '30-45 min', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.787852, lng: -73.092285, calle: 'Local 1, Calle Los Tilos', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010005', whatsapp: 'https://wa.me/56930010005', horario: '18:00 - 23:30 hrs', dias: 'Miércoles a Domingo' }
+  },
+  {
+    id: 306, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: true, rankingScore: 80,
+    identidad: {
+      nombre: 'Farmacia Vida Sana', rubroId: 'farmacia', emoji: '💊',
+      especialidad: '💊 Medicamentos y despacho de recetas',
+      descripcion: 'Farmacia de barrio con atención de químico farmacéutico, despacho de recetas y productos de cuidado personal.',
+      foto: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Farmacia Vida Sana'
+    },
+    stickerRubro: 'stickers/empresa/09-salud-farmacia/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/07-compras-presencial/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Atención en local', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.775058, lng: -73.101450, calle: 'Local 4, Calle Los Naranjos', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010006', whatsapp: 'https://wa.me/56930010006', horario: '08:30 - 21:00 hrs', dias: 'Lunes a Domingo' }
+  },
+  {
+    id: 307, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: false, rankingScore: 50,
+    identidad: {
+      nombre: 'Veterinaria Patitas', rubroId: 'veterinaria', emoji: '🐾',
+      especialidad: '🐾 Consultas, vacunas y peluquería canina',
+      descripcion: 'Clínica veterinaria de barrio. Consultas generales, vacunación, desparasitación y baño/peluquería para perros y gatos.',
+      foto: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Veterinaria Patitas'
+    },
+    stickerRubro: 'stickers/empresa/10-mascotas-veterinaria/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/04-reservas-agendas/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Con hora agendada', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.784374, lng: -73.103451, calle: 'Local 6, Calle Génova', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010007', whatsapp: 'https://wa.me/56930010007', horario: '10:00 - 19:00 hrs', dias: 'Lunes a Sábado' }
+  },
+  {
+    id: 308, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: false, rankingScore: 50,
+    identidad: {
+      nombre: 'Bazar y Librería El Estudiante', rubroId: 'libreria', emoji: '📚',
+      especialidad: '📚 Útiles escolares, fotocopias e impresiones',
+      descripcion: 'Bazar y librería con útiles escolares, artículos de oficina, fotocopiado, impresiones y encuadernado.',
+      foto: 'https://images.unsplash.com/photo-1481833761820-0509d3217039?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Bazar El Estudiante'
+    },
+    stickerRubro: 'stickers/empresa/05-bazar-libreria/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/07-compras-presencial/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Atención en local', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.781943, lng: -73.094308, calle: 'Local 9, Calle Suecia', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010008', whatsapp: 'https://wa.me/56930010008', horario: '09:00 - 20:00 hrs', dias: 'Lunes a Sábado' }
+  },
+  {
+    id: 309, tipo: 'verde', plan: 'pro', dePago: true, subPlan: 'pro', radarActivo: true, verificado: true, rankingScore: 150,
+    identidad: {
+      nombre: 'Carnicería Don José', rubroId: 'carniceria', emoji: '🥩',
+      especialidad: '🥩 Carnes, cecinas y pollo fresco',
+      descripcion: 'Carnicería de barrio con cortes frescos diarios, cecinas y pollo. Despacho a domicilio en el sector.',
+      foto: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Carnicería Don José'
+    },
+    stickerRubro: 'stickers/empresa/13-carnes-alimentos-frescos/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/01-desapacho-delivery/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: true, radarPulse: true },
+    tiemposYAcciones: { tiempoRespuesta: '20-40 min', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Plan Pro', tarifaPagada: '$14.990 CLP' },
+    ubicacion: { lat: -36.793535, lng: -73.106201, calle: 'Local 7, Calle Los Maitenes', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010009', whatsapp: 'https://wa.me/56930010009', horario: '08:00 - 19:30 hrs', dias: 'Lunes a Sábado' }
+  },
+  {
+    id: 310, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: false, rankingScore: 50,
+    identidad: {
+      nombre: 'Moda Sur', rubroId: 'ropa', emoji: '👕',
+      especialidad: '👕 Ropa, calzado y accesorios',
+      descripcion: 'Tienda de ropa y calzado para toda la familia, con nuevas colecciones cada temporada.',
+      foto: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Moda Sur'
+    },
+    stickerRubro: 'stickers/empresa/04-ropa-zapatos-accesorios/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/07-compras-presencial/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Atención en local', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.791372, lng: -73.090274, calle: 'Local 10, Calle Nápoles', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010010', whatsapp: 'https://wa.me/56930010010', horario: '10:00 - 20:00 hrs', dias: 'Lunes a Sábado' }
+  },
+  {
+    id: 311, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: false, rankingScore: 50,
+    identidad: {
+      nombre: 'Repuestos El Motor', rubroId: 'automotriz', emoji: '🚗',
+      especialidad: '🚗 Repuestos y accesorios automotrices',
+      descripcion: 'Venta de repuestos, lubricantes y accesorios para autos de todas las marcas. Asesoría técnica en el local.',
+      foto: 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Repuestos El Motor'
+    },
+    stickerRubro: 'stickers/empresa/08-automotriz-repuestos/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/07-compras-presencial/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Atención en local', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.791308, lng: -73.110139, calle: 'Local 11, Calle Milán', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010011', whatsapp: 'https://wa.me/56930010011', horario: '09:00 - 18:30 hrs', dias: 'Lunes a Sábado' }
+  },
+  {
+    id: 312, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: true, rankingScore: 80,
+    identidad: {
+      nombre: 'Cafetería Aroma', rubroId: 'cafeteria', emoji: '☕',
+      especialidad: '☕ Café de especialidad y repostería',
+      descripcion: 'Cafetería de barrio con café de grano, repostería casera y desayunos. Espacio para trabajar o reunirse con amigos.',
+      foto: 'https://images.unsplash.com/photo-1516685018646-549198525c1b?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Cafetería Aroma'
+    },
+    stickerRubro: 'stickers/empresa/01-gastronomia-cafes/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/03-consumo-en-local/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Atención en local', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.794348, lng: -73.113222, calle: 'Local 13, Calle Verona', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010012', whatsapp: 'https://wa.me/56930010012', horario: '08:00 - 20:00 hrs', dias: 'Lunes a Domingo' }
+  },
+  {
+    id: 313, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: false, rankingScore: 50,
+    identidad: {
+      nombre: 'Construmax Ferretería', rubroId: 'ferreteria', emoji: '🧱',
+      especialidad: '🧱 Cemento, fierros y materiales de obra gruesa',
+      descripcion: 'Ferretería especializada en materiales de obra gruesa: cemento, fierros, áridos y despacho a obra.',
+      foto: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Construmax'
+    },
+    stickerRubro: 'stickers/empresa/07-ferreteria-construccion/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/05-despacho-nacional/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Despacho a coordinar', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.797807, lng: -73.105034, calle: 'Local 14, Calle Génova', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010013', whatsapp: 'https://wa.me/56930010013', horario: '08:30 - 18:00 hrs', dias: 'Lunes a Sábado' }
+  },
+  {
+    id: 314, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: false, rankingScore: 50,
+    identidad: {
+      nombre: 'Minimarket 24 Horas', rubroId: 'minimarket', emoji: '🏪',
+      especialidad: '🏪 Abarrotes y snacks, atención nocturna',
+      descripcion: 'Minimarket con atención las 24 horas. Snacks, bebidas, cigarrillos y artículos de urgencia.',
+      foto: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Minimarket 24 Horas'
+    },
+    stickerRubro: 'stickers/empresa/02-almacenes-minimarkets/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/07-compras-presencial/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Atención en local', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.775580, lng: -73.089546, calle: 'Local 15, Calle Los Tilos', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010014', whatsapp: 'https://wa.me/56930010014', horario: '24/7', dias: 'Lunes a Domingo' }
+  },
+  {
+    id: 315, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: false, rankingScore: 50,
+    identidad: {
+      nombre: 'Pastelería Dulce Hogar', rubroId: 'pasteleria', emoji: '🎂',
+      especialidad: '🎂 Tortas, kuchenes y pastelería fina',
+      descripcion: 'Pastelería casera especializada en tortas de cumpleaños, kuchenes y pastelería fina por encargo.',
+      foto: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Pastelería Dulce Hogar'
+    },
+    stickerRubro: 'stickers/empresa/03-panaderia-reposteria/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/04-reservas-agendas/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Por encargo', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.784288, lng: -73.096370, calle: 'Local 16, Calle Lebu', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010015', whatsapp: 'https://wa.me/56930010015', horario: '10:00 - 19:00 hrs', dias: 'Martes a Domingo' }
+  },
+  {
+    id: 316, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: false, rankingScore: 50,
+    identidad: {
+      nombre: 'Mi Casa Hogar y Decoración', rubroId: 'hogar', emoji: '🛋️',
+      especialidad: '🛋️ Artículos de hogar, menaje y decoración',
+      descripcion: 'Tienda de artículos para el hogar: menaje de cocina, textiles y decoración a precios convenientes.',
+      foto: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Mi Casa Hogar y Decoración'
+    },
+    stickerRubro: 'stickers/empresa/06-hogar-decoracion/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/07-compras-presencial/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Atención en local', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.780268, lng: -73.110027, calle: 'Local 17, Calle Pasaje 1', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010016', whatsapp: 'https://wa.me/56930010016', horario: '10:00 - 19:30 hrs', dias: 'Lunes a Sábado' }
+  },
+  {
+    id: 317, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: true, rankingScore: 80,
+    identidad: {
+      nombre: 'Asesorías Sur', rubroId: 'oficina', emoji: '🗂️',
+      especialidad: '🗂️ Asesoría contable, tributaria y trámites',
+      descripcion: 'Oficina de contabilidad y asesorías para pymes y particulares: declaración de renta, boletas e IVA.',
+      foto: 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Asesorías Sur'
+    },
+    stickerRubro: 'stickers/empresa/11-servicios-oficinas/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/04-reservas-agendas/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Con hora agendada', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.777057, lng: -73.102409, calle: 'Local 18, Calle Iranda', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010017', whatsapp: 'https://wa.me/56930010017', horario: '09:00 - 18:00 hrs', dias: 'Lunes a Viernes' }
+  },
+  {
+    id: 318, tipo: 'verde', plan: 'pro', dePago: true, subPlan: 'pro', radarActivo: true, verificado: true, rankingScore: 150,
+    identidad: {
+      nombre: 'Sushi Umi', rubroId: 'sushi', emoji: '🍣',
+      especialidad: '🍣 Sushi y comida japonesa a domicilio',
+      descripcion: 'Sushi bar con despacho a domicilio. Rolls tradicionales y especiales, promociones para grupos.',
+      foto: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Sushi Umi'
+    },
+    stickerRubro: 'stickers/empresa/01-gastronomia-cafes/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/01-desapacho-delivery/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: true, radarPulse: true },
+    tiemposYAcciones: { tiempoRespuesta: '30-50 min', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Plan Pro', tarifaPagada: '$14.990 CLP' },
+    ubicacion: { lat: -36.769121, lng: -73.071326, calle: 'Local 19, Calle El Roble', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010018', whatsapp: 'https://wa.me/56930010018', horario: '18:30 - 23:00 hrs', dias: 'Miércoles a Domingo' }
+  },
+  {
+    id: 319, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: false, rankingScore: 50,
+    identidad: {
+      nombre: 'Zapatería El Paso', rubroId: 'zapateria', emoji: '👟',
+      especialidad: '👟 Calzado para toda la familia',
+      descripcion: 'Zapatería con calzado escolar, deportivo y de vestir para toda la familia.',
+      foto: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Zapatería El Paso'
+    },
+    stickerRubro: 'stickers/empresa/04-ropa-zapatos-accesorios/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/07-compras-presencial/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Atención en local', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.792211, lng: -73.082145, calle: 'Local 20, Calle Los Tilos', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010019', whatsapp: 'https://wa.me/56930010019', horario: '10:00 - 20:00 hrs', dias: 'Lunes a Sábado' }
+  },
+  {
+    id: 320, tipo: 'verde', plan: 'gratis', dePago: false, subPlan: 'gratis', radarActivo: false, verificado: false, rankingScore: 50,
+    identidad: {
+      nombre: 'Botillería Punto Full', rubroId: 'botilleria', emoji: '🍺',
+      especialidad: '🍺 Cervezas artesanales y bebidas',
+      descripcion: 'Botillería con selección de cervezas artesanales nacionales e importadas, bebidas y snacks.',
+      foto: 'https://images.unsplash.com/photo-1567958451986-2de427a4a0be?auto=format&fit=crop&w=400&q=80',
+      galeria: [], atendidoPor: 'Botillería Punto Full'
+    },
+    stickerRubro: 'stickers/empresa/12-licoreria-botilleria/00-default.gif',
+    stickerAccion: 'stickers/acciones empresas/07-compras-presencial/00-default.gif',
+    visualMapa: { animClass: '', animSpeed: 1.0, marcoEstrella: false, radarPulse: false },
+    tiemposYAcciones: { tiempoRespuesta: 'Atención en local', estadoVivo: { activo: false, texto: '', expiraEn: '' }, boostGratis: { activo: false, turnosRestantes: 0, duracionHoras: 0 } },
+    suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
+    ubicacion: { lat: -36.796860, lng: -73.089021, calle: 'Local 21, Calle Las Heras', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    contacto: { fono: '+56930010020', whatsapp: 'https://wa.me/56930010020', horario: '11:00 - 22:00 hrs', dias: 'Lunes a Domingo' }
+  },
 
   // =====================================================================
   // CATÁLOGO NARANJO 🟠 — EVENTOS Y ACTIVIDADES COMUNITARIAS (IDs 201-210)
@@ -477,7 +817,7 @@ const providersData = [
       estadoVivo: { activo: true, texto: '🎲 BINGO SOLIDARIO HOY 15:00', expiraEn: '2026-07-31T22:00:00Z' }
     },
     suscripcionInfo: { duracionActiva: 'Evento Diario', tarifaPagada: '$990 CLP' },
-    ubicacion: { lat: -36.782000, lng: -73.100000, calle: 'Calle Las Orquídeas 320, Sede Social', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    ubicacion: { lat: -36.803498, lng: -73.102701, calle: 'Calle Las Orquídeas 320, Sede Social', sector: 'Hualpén Residencial', privacidad: 'exacta' },
     contacto: { fono: '+56911223344', whatsapp: 'https://wa.me/56911223344', horario: 'Termina: 2026-07-31 22:00', dias: 'Viernes' }
   },
   {
@@ -502,7 +842,7 @@ const providersData = [
       estadoVivo: { activo: true, texto: '🌭 COMPLETADA SOLIDARIA AHORA', expiraEn: '2026-07-31T21:00:00Z' }
     },
     suscripcionInfo: { duracionActiva: 'Evento Diario', tarifaPagada: '$990 CLP' },
-    ubicacion: { lat: -36.778000, lng: -73.095000, calle: 'Calle Los Aromos 455, Multicancha', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    ubicacion: { lat: -36.777987, lng: -73.110728, calle: 'Calle Los Aromos 455, Multicancha', sector: 'Hualpén Residencial', privacidad: 'exacta' },
     contacto: { fono: '+56922334455', whatsapp: 'https://wa.me/56922334455', horario: 'Termina: 2026-07-31 21:00', dias: 'Sábado' }
   },
   {
@@ -527,7 +867,7 @@ const providersData = [
       estadoVivo: { activo: true, texto: '🧘 YOGA AL AIRE LIBRE MAÑANA', expiraEn: '2026-07-31T18:00:00Z' }
     },
     suscripcionInfo: { duracionActiva: '1 Semana (7 días)', tarifaPagada: '$3.990 CLP' },
-    ubicacion: { lat: -36.785000, lng: -73.090000, calle: 'Plaza Central Brisas del Sol', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    ubicacion: { lat: -36.787237, lng: -73.091476, calle: 'Plaza Central Brisas del Sol', sector: 'Hualpén Residencial', privacidad: 'exacta' },
     contacto: { fono: '+56933445566', whatsapp: 'https://wa.me/56933445566', horario: 'Termina: 2026-08-05 12:00', dias: 'Sábados' }
   },
   {
@@ -551,7 +891,7 @@ const providersData = [
       estadoVivo: { activo: false, texto: '' }
     },
     suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
-    ubicacion: { lat: -36.783000, lng: -73.085000, calle: 'Calle Nápoles, Pasaje B central', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    ubicacion: { lat: -36.785645, lng: -73.103588, calle: 'Calle Nápoles, Pasaje B central', sector: 'Hualpén Residencial', privacidad: 'exacta' },
     contacto: { fono: '+56944556677', whatsapp: 'https://wa.me/56944556677', horario: 'Termina: 2026-07-31 21:30', dias: 'Hoy' }
   },
   {
@@ -575,7 +915,7 @@ const providersData = [
       estadoVivo: { activo: false, texto: '' }
     },
     suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
-    ubicacion: { lat: -36.787000, lng: -73.088000, calle: 'Calle Florencia 800, Cancha Sintética', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    ubicacion: { lat: -36.792393, lng: -73.106889, calle: 'Calle Florencia 800, Cancha Sintética', sector: 'Hualpén Residencial', privacidad: 'exacta' },
     contacto: { fono: '+56955667788', whatsapp: 'https://wa.me/56955667788', horario: 'Termina: 2026-08-10 19:00', dias: 'Miércoles y Viernes' }
   },
   {
@@ -599,7 +939,7 @@ const providersData = [
       estadoVivo: { activo: true, texto: '🎟️ ÚLTIMOS NÚMEROS DISPONIBLES', expiraEn: '2026-07-31T21:00:00Z' }
     },
     suscripcionInfo: { duracionActiva: 'Evento Diario', tarifaPagada: '$990 CLP' },
-    ubicacion: { lat: -36.789000, lng: -73.097000, calle: 'Calle Suecia 544, Capilla', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    ubicacion: { lat: -36.791239, lng: -73.110465, calle: 'Calle Suecia 544, Capilla', sector: 'Hualpén Residencial', privacidad: 'exacta' },
     contacto: { fono: '+56966778899', whatsapp: 'https://wa.me/56966778899', horario: 'Termina: 2026-07-31 21:00', dias: 'Sábado' }
   },
   {
@@ -623,7 +963,7 @@ const providersData = [
       estadoVivo: { activo: false, texto: '' }
     },
     suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
-    ubicacion: { lat: -36.775000, lng: -73.105000, calle: 'Calle Las Magnolias 120, Sede Social', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    ubicacion: { lat: -36.798780, lng: -73.103311, calle: 'Calle Las Magnolias 120, Sede Social', sector: 'Hualpén Residencial', privacidad: 'exacta' },
     contacto: { fono: '+56977889900', whatsapp: 'https://wa.me/56977889900', horario: 'Termina: 2026-07-31 20:00', dias: 'Viernes' }
   },
   {
@@ -647,7 +987,7 @@ const providersData = [
       estadoVivo: { activo: true, texto: '🧶 TALLER DE TEJIDO MAÑANA', expiraEn: '2026-07-31T17:00:00Z' }
     },
     suscripcionInfo: { duracionActiva: '1 Semana (7 días)', tarifaPagada: '$3.990 CLP' },
-    ubicacion: { lat: -36.781000, lng: -73.093000, calle: 'Calle Viena 844, Sede Social', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    ubicacion: { lat: -36.783976, lng: -73.098065, calle: 'Calle Viena 844, Sede Social', sector: 'Hualpén Residencial', privacidad: 'exacta' },
     contacto: { fono: '+56988990011', whatsapp: 'https://wa.me/56988990011', horario: 'Termina: 2026-08-04 18:00', dias: 'Martes' }
   },
   {
@@ -671,7 +1011,7 @@ const providersData = [
       estadoVivo: { activo: false, texto: '' }
     },
     suscripcionInfo: { duracionActiva: 'Gratis', tarifaPagada: '$0 CLP' },
-    ubicacion: { lat: -36.786000, lng: -73.082000, calle: 'Calle Milan 310, Sede Social', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    ubicacion: { lat: -36.776752, lng: -73.101914, calle: 'Calle Milan 310, Sede Social', sector: 'Hualpén Residencial', privacidad: 'exacta' },
     contacto: { fono: '+56999001122', whatsapp: 'https://wa.me/56999001122', horario: 'Termina: 2026-07-31 14:00', dias: 'Hoy' }
   },
   {
@@ -695,7 +1035,7 @@ const providersData = [
       estadoVivo: { activo: true, texto: '🎲 BINGO SCOUTS EN VIVO', expiraEn: '2026-07-31T22:30:00Z' }
     },
     suscripcionInfo: { duracionActiva: 'Evento Diario', tarifaPagada: '$990 CLP' },
-    ubicacion: { lat: -36.791000, lng: -73.091000, calle: 'Calle Las Magnolias 890, Capilla Sur', sector: 'Hualpén Residencial', privacidad: 'exacta' },
+    ubicacion: { lat: -36.791466, lng: -73.081177, calle: 'Calle Las Magnolias 890, Capilla Sur', sector: 'Hualpén Residencial', privacidad: 'exacta' },
     contacto: { fono: '+56900112233', whatsapp: 'https://wa.me/56900112233', horario: 'Termina: 2026-07-31 22:30', dias: 'Sábado' }
   }
 
