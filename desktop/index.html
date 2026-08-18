@@ -1050,98 +1050,30 @@
           // Foto de perfil del proveedor con fallback
           const fotoPerfil = foto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200';
 
-          if (isProPlan) {
-            // 🌟 PIN PRO: FOTO DE PERFIL CIRCULAR DESTACADA + MINI STICKER DE RUBRO + MENSAJE/SLOGAN
-            let miniSticker = rubroStickerPath
-              ? `<img src="${rubroStickerPath}" class="w-full h-full object-contain block select-none" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:10px;\'>${emoji || '⭐'}</span>';">`
-              : `<span style="font-size:10px;">${emoji || '⭐'}</span>`;
+          const roleBorder = isNaranja ? 'border-orange-500' : (isAzul ? 'border-blue-600' : 'border-emerald-600');
+          const roleTipColor = isNaranja ? '#ea580c' : (isAzul ? '#2563eb' : '#059669');
 
-            // Construir mensaje / slogan corto y atractivo para el Pin PRO
-            let mensajePro = '';
-            if (p.mensajePro && p.mensajePro.trim().length > 0) {
-              mensajePro = p.mensajePro.trim();
-            } else if (p.notaAd && p.notaAd.trim().length > 0) {
-              mensajePro = p.notaAd.trim();
-            } else if (p.tiemposYAcciones?.estadoVivo?.activo && p.tiemposYAcciones.estadoVivo.texto) {
-              mensajePro = p.tiemposYAcciones.estadoVivo.texto;
-            } else if (p.identidad?.slogan) {
-              mensajePro = p.identidad.slogan;
-            } else {
-              const rubroRaw = (p.identidad?.rubroId || p.rubroId || '').toLowerCase();
-              const espRaw = (p.identidad?.especialidad || p.especialidad || p.rubro || '').toLowerCase();
-              const nomRaw = (p.identidad?.nombre || p.nombre || '');
+          // Distinción sutil para Pro (sin cambiar el tamaño del pin)
+          const badgePro = isProPlan
+            ? `<div class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-400 border border-white shadow-sm flex items-center justify-center text-[8px] font-black text-amber-950 z-30 select-none">⭐</div>`
+            : '';
 
-              if (rubroRaw === 'truck' || espRaw.includes('flete') || espRaw.includes('mudanza')) {
-                mensajePro = '¿Necesitas transporte?';
-              } else if (rubroRaw === 'wrench' || espRaw.includes('gasfiter') || espRaw.includes('cañería') || espRaw.includes('plomer')) {
-                mensajePro = '¿Filtración o urgencia?';
-              } else if (rubroRaw === 'scissors' || espRaw.includes('corte') || espRaw.includes('estilista') || espRaw.includes('peluquer')) {
-                mensajePro = 'Cortes a domicilio';
-              } else if (rubroRaw === 'solder' || espRaw.includes('soldador') || espRaw.includes('reja')) {
-                mensajePro = 'Soldaduras y rejas';
-              } else if (rubroRaw === 'wood' || espRaw.includes('mueble') || espRaw.includes('carpinter')) {
-                mensajePro = 'Muebles a medida';
-              } else if (rubroRaw === 'screen' || espRaw.includes('computador') || espRaw.includes('técnico pc')) {
-                mensajePro = 'Servicio técnico PC';
-              } else if (rubroRaw === 'electric' || espRaw.includes('electric') || espRaw.includes('enchufe')) {
-                mensajePro = 'Instalaciones SEC';
-              } else if (rubroRaw === 'gardener' || espRaw.includes('jardin') || espRaw.includes('poda')) {
-                mensajePro = 'Jardinería y podas';
-              } else if (rubroRaw === 'lock' || espRaw.includes('cerrajer')) {
-                mensajePro = 'Aperturas 24 hrs';
-              } else if (nomRaw.includes('—')) {
-                mensajePro = nomRaw.split('—')[1].trim();
-              } else {
-                mensajePro = p.identidad?.especialidad?.split(',')[0]?.replace(/^[^\w\s]+/, '').trim() || p.rubro || 'Servicio Express';
-              }
-            }
-
-            const proBgColor = isNaranja ? '#c2410c' : (isAzul ? (pinDesign.capsuleBg || '#052659') : '#065f46');
-            const proBorderColor = isNaranja ? 'border-orange-500' : (isAzul ? 'border-blue-500' : 'border-emerald-500');
-
-            pinHtml = `
-              <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-110" style="position: absolute; transform: translate(-50%, -50%);">
-                <!-- AVATAR CIRCULAR PRO CON FOTO DE PERFIL Y MINI STICKER -->
-                <div class="relative z-20">
-                  <div class="w-10 h-10 rounded-full bg-white border-2 border-white shadow-xl overflow-hidden ring-2 ${proBorderColor}">
-                    <img src="${fotoPerfil}" class="w-full h-full object-cover block select-none" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200'">
-                  </div>
-                  <!-- Mini Sticker flotante en la esquina -->
-                  <div class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center p-0.5 z-30">
-                    ${miniSticker}
-                  </div>
-                </div>
-
-                <!-- CAJA DE TEXTO CON MENSAJE / SLOGAN -->
-                <div style="background:${proBgColor};max-width:145px;" class="relative z-10 -mt-1.5 py-1 px-2.5 rounded-lg shadow-xl flex items-center justify-center border-2 border-white min-w-[70px]">
-                  <span style="color:${pinDesign.capsuleText || '#ffffff'};font-size:${pinDesign.fontSize || 10.5}px;" class="font-black tracking-wide truncate whitespace-nowrap leading-tight drop-shadow-xs">${mensajePro}</span>
-                </div>
-
-                <!-- PUNTA TRIANGULAR ABAJO -->
-                <div style="border-top-color:${proBgColor};" class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] -mt-0.5 z-10"></div>
-                
-                <!-- SOMBRA DE PISO -->
-                <div class="w-8 h-1 bg-slate-900/35 rounded-full blur-[1px] -mt-0.5 pointer-events-none"></div>
-              </div>`;
-          } else {
-            // 📍 PLAN BÁSICO: FOTO DE PERFIL CIRCULAR DEL PROVEEDOR (CON BORDE DEL COLOR DEL ROL)
-            const basicBorderColor = isNaranja ? 'border-orange-500 ring-orange-200' : (isAzul ? 'border-blue-600 ring-blue-200' : 'border-emerald-600 ring-emerald-200');
-            const basicTipColor = isNaranja ? '#ea580c' : (isAzul ? '#2563eb' : '#059669');
-
-            pinHtml = `
-              <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-120" style="position: absolute; transform: translate(-50%, -50%);">
-                <!-- FOTO DE PERFIL CIRCULAR CON ANILLO DE COLOR -->
-                <div class="w-8 h-8 rounded-full bg-white border-2 ${basicBorderColor} ring-2 shadow-lg overflow-hidden z-20">
+          pinHtml = `
+            <div class="relative flex flex-col items-center group pointer-events-auto cursor-pointer select-none transition-transform duration-200 hover:scale-115" style="position: absolute; transform: translate(-50%, -50%);">
+              <!-- CONTENEDOR CIRCULAR UNIFORME DE 36px PARA TODOS -->
+              <div class="relative z-20">
+                <div class="w-9 h-9 rounded-full bg-white border-2 ${roleBorder} shadow-lg overflow-hidden flex items-center justify-center ring-2 ring-white">
                   <img src="${fotoPerfil}" class="w-full h-full object-cover block select-none" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200'">
                 </div>
+                ${badgePro}
+              </div>
 
-                <!-- PUNTA INFERIOR SUTIL -->
-                <div style="border-top-color:${basicTipColor};" class="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[5px] -mt-0.5 z-10 shadow-xs"></div>
+              <!-- PUNTA DE GOTA INFERIOR UNIFORME -->
+              <div style="border-top-color:${roleTipColor};" class="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[6px] -mt-0.5 z-10 shadow-xs"></div>
 
-                <!-- SOMBRA DE PISO -->
-                <div class="w-6 h-1 bg-slate-900/30 rounded-full blur-[1px] -mt-0.5 pointer-events-none"></div>
-              </div>`;
-          }
+              <!-- SOMBRA DE PISO -->
+              <div class="w-6 h-1 bg-slate-900/30 rounded-full blur-[1px] -mt-0.5 pointer-events-none"></div>
+            </div>`;
 
           const el = document.createElement('div');
           el.className = 'pointer-events-auto cursor-pointer';
